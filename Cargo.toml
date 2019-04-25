@@ -1,0 +1,7 @@
+[package]
+name = "rust-ipv8"
+version = "0.1.0"
+authors = ["Dany Sluijk <dany@atlasdev.nl>"]
+edition = "2018"
+
+[dependencies]
