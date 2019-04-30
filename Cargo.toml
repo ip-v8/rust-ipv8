@@ -10,6 +10,11 @@ repository = "https://github.com/dsluijk/rust-ipv8"
 readme = "readme.md"
 license-file = "license.md"
 
+exclude = [
+  ".editorconfig",
+  ".travis.yml",
+]
+
 [badges]
 travis-ci = { repository = "dsluijk/rust-ipv8", branch = "master" }
 maintenance = { status = "experimental" }
