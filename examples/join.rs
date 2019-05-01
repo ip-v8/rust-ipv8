@@ -7,5 +7,6 @@
 use ipv8;
 
 fn main() {
-  let _ = ipv8::new(ipv8::config::Config {});
+  let _ = ipv8::new(ipv8::config::Config::default());
+
 }
