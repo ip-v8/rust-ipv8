@@ -1,0 +1,3 @@
+trait Connector {
+  fn new();
+}

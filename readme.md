@@ -1,5 +1,7 @@
 # rust-ipv8
 
+[![Build Status](https://travis-ci.org/dsluijk/rust-ipv8.svg?branch=master)](https://travis-ci.org/dsluijk/rust-ipv8)
+
 This is an implementation of the Python library [py-ipv8](https://github.com/Tribler/py-ipv8) in Rust. The goal is that it's completely compatible with it's Python counterpart.
 
 ## Differences with py-ipv8
