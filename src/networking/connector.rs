@@ -1,0 +1,16 @@
+
+
+
+
+
+trait Connector{
+  fn new();
+
+
+}
+
+
+
+
+
+
