@@ -1,20 +1,7 @@
-/// IPV6 address
-pub struct IPV6Addr {
-  address: String,
-  port: u16,
-
-}
-
 /// IPV4 address
 pub struct IPV4Addr {
-  address: String,
-  port: u16,
-}
-
-impl IPV4Addr {
-  pub fn new(address: String, port: u16) -> Self {
-    IPV4Addr { address, port }
-  }
+  pub address: String,
+  pub port: u16,
 }
 
 impl std::fmt::Display for IPV4Addr {
@@ -23,10 +10,10 @@ impl std::fmt::Display for IPV4Addr {
   }
 }
 
-impl IPV6Addr {
-  pub fn new(address: String, port: u16) -> Self {
-    IPV6Addr { address, port }
-  }
+/// IPV6 address
+pub struct IPV6Addr {
+  pub address: String,
+  pub port: u16,
 }
 
 impl std::fmt::Display for IPV6Addr {
