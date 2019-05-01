@@ -1,4 +1,3 @@
-
 /// IPV6 address
 pub struct IPV6Addr {
   address: String,
@@ -16,7 +15,6 @@ impl IPV4Addr {
   pub fn new(address: String, port: u16) -> Self {
     IPV4Addr { address, port }
   }
-
 }
 
 impl std::fmt::Display for IPV4Addr {
@@ -36,7 +34,6 @@ impl std::fmt::Display for IPV6Addr {
     write!(f, "IPV6Addr: ({}, {})", self.address, self.port)
   }
 }
-
 
 /// An enum containing both ipv6 and ipv4 addresses
 pub enum IpAddress {

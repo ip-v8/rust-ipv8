@@ -1,16 +1,3 @@
-
-
-
-
-
-trait Connector{
+trait Connector {
   fn new();
-
-
 }
-
-
-
-
-
-

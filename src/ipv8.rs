@@ -12,6 +12,5 @@ pub struct IPv8 {
 impl IPv8 {
   pub fn new(config: Config) -> Self {
     IPv8 { config }
-
   }
 }

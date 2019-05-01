@@ -1,13 +1,3 @@
-
-
-
-
 pub trait Connection {
 
 }
-
-
-
-
-
-
