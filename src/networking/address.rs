@@ -13,7 +13,6 @@ pub struct IPAddress {
   pub version: IPVersion,
 }
 
-
 impl std::fmt::Display for IPAddress {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(

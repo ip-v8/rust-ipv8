@@ -1,16 +1,22 @@
-/// public modules
+pub mod configuration;
 pub mod networking;
-pub mod config;
 
-/// private modules
-mod ipv8;
 
-use config::Config;
-use ipv8::IPv8;
+use configuration::Config;
+
 
 /**
- * Create a new instance of IPv8.
+ * The IPv8 instance.
+ *
+ * This struct is how you can interact with the network.
  */
-pub fn new(config: Config) -> IPv8 {
-  return IPv8::new(config);
+pub struct IPv8 {
+  config: Config,
 }
+
+impl IPv8 {
+  pub fn new(config: configuration::Config) -> Self {
+    IPv8 { config }
+  }
+}
+
