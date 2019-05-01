@@ -1,7 +1,11 @@
-mod config;
+/// public modules
+pub mod networking;
+pub mod config;
+
+/// private modules
 mod ipv8;
 
-pub use config::Config;
+use config::Config;
 use ipv8::IPv8;
 
 /**
