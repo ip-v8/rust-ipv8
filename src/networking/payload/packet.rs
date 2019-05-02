@@ -14,6 +14,7 @@ macro_rules! unwrap_or_return_value {
   };
 }
 
+/// Basicaly a union of all possible deserializable datatypes. Return type of the deserialization process.
 /// roughly copied from https://docs.python.org/2/library/struct.html#format-characters
 /// as py-ipv8 does this too (https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/serialization.py#L185).
 /// Allways packs big-endian.
@@ -38,6 +39,7 @@ pub enum PacketDataIdentifier {
   BITS(Bits),
 }
 
+/// with a vector of these, a format can be specified with which the packet can be decoded.
 #[derive(PartialEq, Debug)]
 pub enum PacketFormatIdentifier {
   PAD,
