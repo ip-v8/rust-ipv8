@@ -1,3 +1,1 @@
-trait Connector {
-  fn new();
-}
+trait Connector {}
