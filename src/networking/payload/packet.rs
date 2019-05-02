@@ -79,7 +79,6 @@ pub struct Packet {
 }
 
 impl Packet {
-
   /// create a packet based on a byte array
   pub fn from(data: &[u8]) -> Self {
     Packet {
@@ -91,7 +90,6 @@ impl Packet {
   pub fn unpack(&self, format: PacketFormat) -> Option<Vec<Vec<PacketDataIdentifier>>> {
     let mut finalres: Vec<Vec<PacketDataIdentifier>> = Vec::new();
     let mut data = self.data.iter();
-
 
     for line in &format {
       // inner vector of finalres
@@ -256,7 +254,6 @@ impl Packet {
 
     return Some(finalres);
   }
-
 }
 
 #[cfg(test)]
@@ -427,4 +424,3 @@ mod tests {
     );
   }
 }
-

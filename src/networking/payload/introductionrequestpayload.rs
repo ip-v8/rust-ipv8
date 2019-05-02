@@ -1,7 +1,6 @@
-use super::super::address::{IPAddress,IPVersion};
-use super::packet::{Packet,PacketFormat, PacketDataIdentifier, PacketFormatIdentifier::*};
-use super::payload::{Ipv8Payload};
-
+use super::super::address::{IPAddress, IPVersion};
+use super::packet::{Packet, PacketDataIdentifier, PacketFormat, PacketFormatIdentifier::*};
+use super::payload::Ipv8Payload;
 use std::string::String;
 
 enum ConnectionType {
@@ -39,13 +38,12 @@ struct IntroductionRequestPayload {
   extra_bytes: String,
 }
 
-
 impl Ipv8Payload for IntroductionRequestPayload {
-  fn pack(&self) -> Packet{
-    return Packet::from(&[1,2])
+  fn pack(&self) -> Packet {
+    return Packet::from(&[1, 2]);
   }
 
-  fn unpack(packet: Packet) -> Self{
+  fn unpack(packet: Packet) -> Self {
     // packet format copied from:
     // https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/payload.py#L39
     packet.unpack(vec![
@@ -58,27 +56,25 @@ impl Ipv8Payload for IntroductionRequestPayload {
     ]);
 
     IntroductionRequestPayload {
-        destination_address : IPAddress {
-          address: String::from("1.2.3.4"),
-          port: 6421,
-          version: IPVersion::IPV4,
-        },
-        source_lan_address : IPAddress {
-          address: String::from("1.2.3.4"),
-          port: 6421,
-          version: IPVersion::IPV4,
-        },
-        source_wan_address : IPAddress {
-          address: String::from("1.2.3.4"),
-          port: 6421,
-          version: IPVersion::IPV4,
-        },
-        advice:true,
-        connection_type:ConnectionType::PUBLIC,
-        identifier:1,
-        extra_bytes: String::from("42"),
+      destination_address: IPAddress {
+        address: String::from("1.2.3.4"),
+        port: 6421,
+        version: IPVersion::IPV4,
+      },
+      source_lan_address: IPAddress {
+        address: String::from("1.2.3.4"),
+        port: 6421,
+        version: IPVersion::IPV4,
+      },
+      source_wan_address: IPAddress {
+        address: String::from("1.2.3.4"),
+        port: 6421,
+        version: IPVersion::IPV4,
+      },
+      advice: true,
+      connection_type: ConnectionType::PUBLIC,
+      identifier: 1,
+      extra_bytes: String::from("42"),
     }
   }
-
-
 }
