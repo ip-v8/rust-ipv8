@@ -1,3 +1,7 @@
+//needs to be at the top to load macros
+#[macro_use]
+extern crate lazy_static;
+
 pub mod configuration;
 pub mod networking;
 
