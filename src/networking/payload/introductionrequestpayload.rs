@@ -1,5 +1,5 @@
 use super::super::address::{IPAddress, IPVersion};
-use super::packet::{Packet, PacketDataIdentifier, PacketFormat, PacketFormatIdentifier::*};
+use super::packet::Packet;
 use super::payload::Ipv8Payload;
 use std::string::String;
 
@@ -44,16 +44,6 @@ impl Ipv8Payload for IntroductionRequestPayload {
   }
 
   fn unpack(packet: Packet) -> Self {
-    // packet format copied from:
-    // https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/payload.py#L39
-    packet.unpack(vec![
-      vec![CHAR, CHAR, CHAR, CHAR, U16],
-      vec![CHAR, CHAR, CHAR, CHAR, U16],
-      vec![CHAR, CHAR, CHAR, CHAR, U16],
-      vec![BITS], // the connection type and also stores advice in the last bit
-      vec![U16],
-      vec![STRING],
-    ]);
 
     IntroductionRequestPayload {
       destination_address: IPAddress {
