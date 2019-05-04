@@ -1,7 +1,6 @@
 
 use super::bits::Bits;
 use std::iter;
-
 use std::mem;
 use std::slice;
 
@@ -180,7 +179,6 @@ impl<'a> PacketIterator<'a> {
   }
 }
 
-
 impl Packet {
   /// create a packet based on a byte array
   pub fn from(data: &[u8]) -> Self {
@@ -286,7 +284,6 @@ mod tests {
 
     assert_eq!(packetiter.next_bool().unwrap(), true);
     assert_eq!(packetiter.done(), true);
-
   }
 
   #[test]
