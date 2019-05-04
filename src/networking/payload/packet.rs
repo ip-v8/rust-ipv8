@@ -1,4 +1,3 @@
-
 use super::bits::Bits;
 use std::iter;
 use std::mem;
