@@ -13,9 +13,178 @@ macro_rules! unwrap_or_return_value {
   };
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Packet {
-  data: Vec<u8>,
+  pub data: Vec<u8>,
+}
+
+impl Packet {
+  pub fn new() -> Self {
+    Packet { data: vec![] }
+  }
+
+
+  pub fn add_char(&mut self, data: char) -> &mut Self {
+    self.data.push(data as u8);
+    self
+  }
+
+  pub fn add_bool(&mut self, data: bool) -> &mut Self {
+    self.data.push(match data {
+      true => 1,
+      false => 0,
+    });
+    self
+  }
+
+  pub fn add_u8(&mut self, data: u8) -> &mut Self {
+    self.data.push(data as u8);
+    self
+  }
+
+  pub fn add_i8(&mut self, data: i8) -> &mut Self {
+    self.data.push(data as u8);
+    self
+  }
+
+  pub fn add_u16(&mut self, data: u16) -> &mut Self {
+    let part0 = ((data as u16 >> 0) & 0xff) as u8;
+    let part1 = ((data as u16 >> 8) & 0xff) as u8;
+    self.data.push(part1 as u8);
+    self.data.push(part0 as u8);
+    self
+  }
+
+  pub fn add_i16(&mut self, data: i16) -> &mut Self {
+
+    let part0 = ((data as u16 >> 0) & 0xff) as u8;
+    let part1 = ((data as u16 >> 8) & 0xff) as u8;
+    self.data.push(part1 as u8);
+    self.data.push(part0 as u8);
+    self
+  }
+
+  pub fn add_u32(&mut self, data: u32) -> &mut Self {
+    let part0 = ((data as u32 >> 0) & 0xff) as u8;
+    let part1 = ((data as u32 >> 8) & 0xff) as u8;
+    let part2 = ((data as u32 >> 16) & 0xff) as u8;
+    let part3 = ((data as u32 >> 24) & 0xff) as u8;
+    self.data.push(part3 as u8);
+    self.data.push(part2 as u8);
+    self.data.push(part1 as u8);
+    self.data.push(part0 as u8);
+    self
+  }
+
+  pub fn add_i32(&mut self, data: i32) -> &mut Self {
+    let part0 = ((data as u32 >> 0) & 0xff) as u8;
+    let part1 = ((data as u32 >> 8) & 0xff) as u8;
+    let part2 = ((data as u32 >> 16) & 0xff) as u8;
+    let part3 = ((data as u32 >> 24) & 0xff) as u8;
+    self.data.push(part3 as u8);
+    self.data.push(part2 as u8);
+    self.data.push(part1 as u8);
+    self.data.push(part0 as u8);
+    self
+  }
+
+  pub fn add_u64(&mut self, data: u64) -> &mut Self {
+    let part0 = ((data as u64 >> 0) & 0xff) as u8;
+    let part1 = ((data as u64 >> 8) & 0xff) as u8;
+    let part2 = ((data as u64 >> 16) & 0xff) as u8;
+    let part3 = ((data as u64 >> 24) & 0xff) as u8;
+    let part4 = ((data as u64 >> 32) & 0xff) as u8;
+    let part5 = ((data as u64 >> 40) & 0xff) as u8;
+    let part6 = ((data as u64 >> 48) & 0xff) as u8;
+    let part7 = ((data as u64 >> 56) & 0xff) as u8;
+    self.data.push(part7 as u8);
+    self.data.push(part6 as u8);
+    self.data.push(part5 as u8);
+    self.data.push(part4 as u8);
+    self.data.push(part3 as u8);
+    self.data.push(part2 as u8);
+    self.data.push(part1 as u8);
+    self.data.push(part0 as u8);
+    self
+  }
+
+  pub fn add_i64(&mut self, data: i64) -> &mut Self {
+    let part0 = ((data as u64 >> 0) & 0xff) as u8;
+    let part1 = ((data as u64 >> 8) & 0xff) as u8;
+    let part2 = ((data as u64 >> 16) & 0xff) as u8;
+    let part3 = ((data as u64 >> 24) & 0xff) as u8;
+    let part4 = ((data as u64 >> 32) & 0xff) as u8;
+    let part5 = ((data as u64 >> 40) & 0xff) as u8;
+    let part6 = ((data as u64 >> 48) & 0xff) as u8;
+    let part7 = ((data as u64 >> 56) & 0xff) as u8;
+    self.data.push(part7 as u8);
+    self.data.push(part6 as u8);
+    self.data.push(part5 as u8);
+    self.data.push(part4 as u8);
+    self.data.push(part3 as u8);
+    self.data.push(part2 as u8);
+    self.data.push(part1 as u8);
+    self.data.push(part0 as u8);
+    self
+  }
+
+  pub fn add_f32(&mut self, data: f32) -> &mut Self {
+    let res: u32 = unsafe { mem::transmute(data) };
+    let part0 = ((res as u32 >> 0) & 0xff) as u8;
+    let part1 = ((res as u32 >> 8) & 0xff) as u8;
+    let part2 = ((res as u32 >> 16) & 0xff) as u8;
+    let part3 = ((res as u32 >> 24) & 0xff) as u8;
+    self.data.push(part3 as u8);
+    self.data.push(part2 as u8);
+    self.data.push(part1 as u8);
+    self.data.push(part0 as u8);
+    self
+  }
+
+  pub fn add_f64(&mut self, data: f64) -> &mut Self {
+    let res: u64 = unsafe { mem::transmute(data) };
+    let part0 = ((res as u64 >> 0) & 0xff) as u8;
+    let part1 = ((res as u64 >> 8) & 0xff) as u8;
+    let part2 = ((res as u64 >> 16) & 0xff) as u8;
+    let part3 = ((res as u64 >> 24) & 0xff) as u8;
+    let part4 = ((res as u64 >> 32) & 0xff) as u8;
+    let part5 = ((res as u64 >> 40) & 0xff) as u8;
+    let part6 = ((res as u64 >> 48) & 0xff) as u8;
+    let part7 = ((res as u64 >> 56) & 0xff) as u8;
+    self.data.push(part7 as u8);
+    self.data.push(part6 as u8);
+    self.data.push(part5 as u8);
+    self.data.push(part4 as u8);
+    self.data.push(part3 as u8);
+    self.data.push(part2 as u8);
+    self.data.push(part1 as u8);
+    self.data.push(part0 as u8);
+    self
+  }
+
+  pub fn add_string(&mut self, data: String, length: u32) -> &mut Self {
+    for i in 0..length {
+      self.data.push(data.as_bytes()[i as usize] as u8);
+    }
+    self
+  }
+
+  pub fn add_raw(&mut self, data: Vec<u8>, length: u32) -> &mut Self {
+    for i in 0..length {
+      self.data.push(data[i as usize] as u8);
+    }
+    self
+  }
+
+  pub fn add_raw_remaining(&mut self, data: Vec<u8>) -> &mut Self {
+    self.data.extend(&data);
+    self
+  }
+
+  pub fn add_bits(&mut self, data: Bits) -> &mut Self {
+    self.data.push(data.to_u8());
+    self
+  }
 }
 
 pub struct PacketIterator<'a> {
@@ -168,9 +337,19 @@ impl<'a> PacketIterator<'a> {
     Some(resultstring)
   }
 
-  pub fn next_bits(&mut self, length: u32) -> Option<Bits> {
+  pub fn next_raw_remaining(&mut self) -> Option<Vec<u8>> {
+
+    let mut resultstring: Vec<u8> = Vec::new();
+    while !self.done() {
+      resultstring.push(*unwrap_or_return_value!(self.i.next(), None));
+    }
+    Some(resultstring)
+  }
+
+
+  pub fn next_bits(&mut self) -> Option<Bits> {
     let byte = *unwrap_or_return_value!(self.i.next(), None);
-    return Some(Bits::from(byte));
+    return Some(Bits::from_u8(byte));
   }
 
   pub fn done(&mut self) -> bool {
