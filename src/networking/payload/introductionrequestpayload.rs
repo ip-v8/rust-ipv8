@@ -44,16 +44,6 @@ impl Ipv8Payload for IntroductionRequestPayload {
   }
 
   fn unpack(packet: Packet) -> Self {
-  //   // packet format copied from:
-  //   // https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/payload.py#L39
-  //   packet.unpack(vec![
-  //     CHAR, CHAR, CHAR, CHAR, U16,
-  //     CHAR, CHAR, CHAR, CHAR, U16,
-  //     CHAR, CHAR, CHAR, CHAR, U16,
-  //     BITS, // the connection type and also stores advice in the last bit
-  //     U16,
-  //     STRING,
-  //   ]);
 
     IntroductionRequestPayload {
       destination_address: IPAddress {
