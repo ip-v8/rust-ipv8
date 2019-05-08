@@ -3,7 +3,6 @@ use super::packet::Packet;
 use super::payload::Ipv8Payload;
 use std::net::Ipv4Addr;
 
-
 #[derive(Debug, PartialEq)]
 struct PuncturetPayload {
   /// is the lan address of the sender.  Nodes in the same LAN
