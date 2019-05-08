@@ -1,9 +1,7 @@
-
 use super::super::address::Address;
 use super::packet::Packet;
 use super::payload::Ipv8Payload;
 use std::net::Ipv4Addr;
-
 
 #[derive(Debug, PartialEq)]
 struct PuncturetPayload {

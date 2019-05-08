@@ -4,7 +4,6 @@ use super::packet::Packet;
 use super::payload::Ipv8Payload;
 use std::net::Ipv4Addr;
 
-
 #[derive(Debug, PartialEq)]
 struct PunctureRequestPayload {
   /// is the lan address of the node that the sender wants us to contact.
@@ -92,7 +91,6 @@ impl Ipv8Payload for PunctureRequestPayload {
     }
   }
 }
-
 
 #[cfg(test)]
 mod tests {
