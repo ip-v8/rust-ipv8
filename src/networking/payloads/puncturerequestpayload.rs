@@ -92,7 +92,6 @@ impl Ipv8Payload for PunctureRequestPayload {
   }
 }
 
-
 #[cfg(test)]
 mod tests {
   use super::*;
