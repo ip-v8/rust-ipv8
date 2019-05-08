@@ -13,7 +13,7 @@ impl Default for Config {
   fn default() -> Self {
     Config {
 
-      socketaddress:Address{
+      socketaddress: Address{
         address: Ipv4Addr::new(0,0,0,0),
         port: 8090
       },
