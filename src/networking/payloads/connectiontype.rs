@@ -6,6 +6,8 @@ pub enum ConnectionType {
 }
 
 impl ConnectionType {
+  /// encodes a connection type into 2 booleans.
+  /// Combinations are chosen semi-arbitrarily but are standardized. Booleans are used to go into a BITS field in a packet.
   pub fn encode(&self) -> (bool, bool) {
     match self {
       ConnectionType::UNKNOWN => (false, false),
@@ -14,6 +16,7 @@ impl ConnectionType {
     }
   }
 
+  /// Decodes two booleans into the corresponding connection type as encoded with the above encode method.
   pub fn decode(bits: (bool, bool)) -> Self {
     match bits {
       (false, false) => ConnectionType::UNKNOWN,
