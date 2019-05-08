@@ -1,4 +1,3 @@
-
 use super::super::address::Address;
 use super::packet::Packet;
 use super::payload::Ipv8Payload;
