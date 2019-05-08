@@ -1,4 +1,3 @@
-
 use super::super::address::Address;
 use super::bits::Bits;
 use super::connectiontype::ConnectionType;
