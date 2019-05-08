@@ -74,7 +74,6 @@ impl Bits {
   }
 }
 
-
 #[cfg(test)]
 mod tests {
   use super::*;

@@ -149,7 +149,6 @@ impl Ipv8Payload for IntroductionRequestPayload {
   }
 }
 
-
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -166,7 +165,7 @@ mod tests {
         port: 8000,
       },
       source_wan_address: Address {
-        address: Ipv4Addr::new(255, 255, 255, 255),
+        address: Ipv4Addr::new(255, 255, 255, 0),
         port: 8000,
       },
       advice: true,

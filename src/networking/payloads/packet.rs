@@ -23,7 +23,6 @@ impl Packet {
     Packet { data: vec![] }
   }
 
-
   pub fn add_char(&mut self, data: char) -> &mut Self {
     self.data.push(data as u8);
     self
@@ -335,14 +334,12 @@ impl<'a> PacketIterator<'a> {
   }
 
   pub fn next_raw_remaining(&mut self) -> Option<Vec<u8>> {
-
     let mut resultstring: Vec<u8> = Vec::new();
     while !self.done() {
       resultstring.push(*unwrap_or_return_value!(self.i.next(), None));
     }
     Some(resultstring)
   }
-
 
   pub fn next_bits(&mut self) -> Option<Bits> {
     let byte = *unwrap_or_return_value!(self.i.next(), None);
