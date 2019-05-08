@@ -1,6 +1,7 @@
 pub mod configuration;
-pub mod networking;
 
+pub mod event;
+pub mod networking;
 
 use configuration::Config;
 
@@ -18,5 +19,6 @@ impl IPv8 {
   pub fn new(config: configuration::Config) -> Self {
     IPv8 { config }
   }
+
 }
 

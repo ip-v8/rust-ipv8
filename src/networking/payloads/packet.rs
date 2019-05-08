@@ -13,7 +13,7 @@ macro_rules! unwrap_or_return_value {
   };
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Default, Debug, PartialEq)]
 pub struct Packet {
   pub data: Vec<u8>,
 }
@@ -30,10 +30,7 @@ impl Packet {
   }
 
   pub fn add_bool(&mut self, data: bool) -> &mut Self {
-    self.data.push(match data {
-      true => 1,
-      false => 0,
-    });
+    self.data.push(if data { 1 } else { 0 });
     self
   }
 
@@ -48,7 +45,7 @@ impl Packet {
   }
 
   pub fn add_u16(&mut self, data: u16) -> &mut Self {
-    let part0 = ((data as u16 >> 0) & 0xff) as u8;
+    let part0 = ((data as u16) & 0xff) as u8;
     let part1 = ((data as u16 >> 8) & 0xff) as u8;
     self.data.push(part1 as u8);
     self.data.push(part0 as u8);
@@ -57,7 +54,7 @@ impl Packet {
 
   pub fn add_i16(&mut self, data: i16) -> &mut Self {
 
-    let part0 = ((data as u16 >> 0) & 0xff) as u8;
+    let part0 = ((data as u16) & 0xff) as u8;
     let part1 = ((data as u16 >> 8) & 0xff) as u8;
     self.data.push(part1 as u8);
     self.data.push(part0 as u8);
@@ -65,7 +62,7 @@ impl Packet {
   }
 
   pub fn add_u32(&mut self, data: u32) -> &mut Self {
-    let part0 = ((data as u32 >> 0) & 0xff) as u8;
+    let part0 = ((data as u32) & 0xff) as u8;
     let part1 = ((data as u32 >> 8) & 0xff) as u8;
     let part2 = ((data as u32 >> 16) & 0xff) as u8;
     let part3 = ((data as u32 >> 24) & 0xff) as u8;
@@ -77,7 +74,7 @@ impl Packet {
   }
 
   pub fn add_i32(&mut self, data: i32) -> &mut Self {
-    let part0 = ((data as u32 >> 0) & 0xff) as u8;
+    let part0 = ((data as u32) & 0xff) as u8;
     let part1 = ((data as u32 >> 8) & 0xff) as u8;
     let part2 = ((data as u32 >> 16) & 0xff) as u8;
     let part3 = ((data as u32 >> 24) & 0xff) as u8;
@@ -89,7 +86,7 @@ impl Packet {
   }
 
   pub fn add_u64(&mut self, data: u64) -> &mut Self {
-    let part0 = ((data as u64 >> 0) & 0xff) as u8;
+    let part0 = ((data as u64) & 0xff) as u8;
     let part1 = ((data as u64 >> 8) & 0xff) as u8;
     let part2 = ((data as u64 >> 16) & 0xff) as u8;
     let part3 = ((data as u64 >> 24) & 0xff) as u8;
@@ -109,7 +106,7 @@ impl Packet {
   }
 
   pub fn add_i64(&mut self, data: i64) -> &mut Self {
-    let part0 = ((data as u64 >> 0) & 0xff) as u8;
+    let part0 = ((data as u64) & 0xff) as u8;
     let part1 = ((data as u64 >> 8) & 0xff) as u8;
     let part2 = ((data as u64 >> 16) & 0xff) as u8;
     let part3 = ((data as u64 >> 24) & 0xff) as u8;
@@ -130,7 +127,7 @@ impl Packet {
 
   pub fn add_f32(&mut self, data: f32) -> &mut Self {
     let res: u32 = unsafe { mem::transmute(data) };
-    let part0 = ((res as u32 >> 0) & 0xff) as u8;
+    let part0 = ((res as u32) & 0xff) as u8;
     let part1 = ((res as u32 >> 8) & 0xff) as u8;
     let part2 = ((res as u32 >> 16) & 0xff) as u8;
     let part3 = ((res as u32 >> 24) & 0xff) as u8;
@@ -143,7 +140,7 @@ impl Packet {
 
   pub fn add_f64(&mut self, data: f64) -> &mut Self {
     let res: u64 = unsafe { mem::transmute(data) };
-    let part0 = ((res as u64 >> 0) & 0xff) as u8;
+    let part0 = ((res as u64) & 0xff) as u8;
     let part1 = ((res as u64 >> 8) & 0xff) as u8;
     let part2 = ((res as u64 >> 16) & 0xff) as u8;
     let part3 = ((res as u64 >> 24) & 0xff) as u8;
@@ -221,42 +218,42 @@ impl<'a> PacketIterator<'a> {
   }
 
   pub fn next_i16(&mut self) -> Option<i16> {
-    let part0 = *unwrap_or_return_value!(self.i.next(), None) as u16;
-    let part1 = *unwrap_or_return_value!(self.i.next(), None) as u16;
+    let part0 = u16::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part1 = u16::from(*unwrap_or_return_value!(self.i.next(), None));
     Some((part0 << 8 | part1) as i16)
   }
 
   pub fn next_u16(&mut self) -> Option<u16> {
-    let part0 = *unwrap_or_return_value!(self.i.next(), None) as u16;
-    let part1 = *unwrap_or_return_value!(self.i.next(), None) as u16;
+    let part0 = u16::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part1 = u16::from(*unwrap_or_return_value!(self.i.next(), None));
     Some((part0 << 8 | part1) as u16)
   }
 
   pub fn next_i32(&mut self) -> Option<i32> {
-    let part0 = *unwrap_or_return_value!(self.i.next(), None) as u32;
-    let part1 = *unwrap_or_return_value!(self.i.next(), None) as u32;
-    let part2 = *unwrap_or_return_value!(self.i.next(), None) as u32;
-    let part3 = *unwrap_or_return_value!(self.i.next(), None) as u32;
+    let part0 = u32::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part1 = u32::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part2 = u32::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part3 = u32::from(*unwrap_or_return_value!(self.i.next(), None));
     Some((part0 << 24 | part1 << 16 | part2 << 8 | part3) as i32)
   }
 
   pub fn next_u32(&mut self) -> Option<u32> {
-    let part0 = *unwrap_or_return_value!(self.i.next(), None) as u32;
-    let part1 = *unwrap_or_return_value!(self.i.next(), None) as u32;
-    let part2 = *unwrap_or_return_value!(self.i.next(), None) as u32;
-    let part3 = *unwrap_or_return_value!(self.i.next(), None) as u32;
+    let part0 = u32::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part1 = u32::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part2 = u32::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part3 = u32::from(*unwrap_or_return_value!(self.i.next(), None));
     Some((part0 << 24 | part1 << 16 | part2 << 8 | part3) as u32)
   }
 
   pub fn next_i64(&mut self) -> Option<i64> {
-    let part0 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part1 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part2 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part3 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part4 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part5 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part6 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part7 = *unwrap_or_return_value!(self.i.next(), None) as u64;
+    let part0 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part1 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part2 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part3 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part4 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part5 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part6 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part7 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
     Some(
       (part0 << 56
         | part1 << 48
@@ -270,14 +267,14 @@ impl<'a> PacketIterator<'a> {
   }
 
   pub fn next_u64(&mut self) -> Option<u64> {
-    let part0 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part1 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part2 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part3 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part4 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part5 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part6 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part7 = *unwrap_or_return_value!(self.i.next(), None) as u64;
+    let part0 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part1 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part2 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part3 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part4 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part5 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part6 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part7 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
     Some(
       (part0 << 56
         | part1 << 48
@@ -291,24 +288,24 @@ impl<'a> PacketIterator<'a> {
   }
 
   pub fn next_f32(&mut self) -> Option<f32> {
-    let part0 = *unwrap_or_return_value!(self.i.next(), None) as u32;
-    let part1 = *unwrap_or_return_value!(self.i.next(), None) as u32;
-    let part2 = *unwrap_or_return_value!(self.i.next(), None) as u32;
-    let part3 = *unwrap_or_return_value!(self.i.next(), None) as u32;
+    let part0 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part1 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part2 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part3 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
     let bits = (part0 << 24 | part1 << 16 | part2 << 8 | part3) as u32;
-    let res: f32 = unsafe { mem::transmute(bits) };
+    let res: f32 = f32::from_bits(bits);
     Some(res)
   }
 
   pub fn next_f64(&mut self) -> Option<f64> {
-    let part0 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part1 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part2 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part3 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part4 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part5 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part6 = *unwrap_or_return_value!(self.i.next(), None) as u64;
-    let part7 = *unwrap_or_return_value!(self.i.next(), None) as u64;
+    let part0 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part1 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part2 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part3 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part4 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part5 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part6 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
+    let part7 = u64::from(*unwrap_or_return_value!(self.i.next(), None));
     let bits = (part0 << 56
       | part1 << 48
       | part2 << 40
@@ -317,7 +314,7 @@ impl<'a> PacketIterator<'a> {
       | part5 << 16
       | part6 << 8
       | part7) as u64;
-    let res: f64 = unsafe { mem::transmute(bits) };
+    let res: f64 = f64::from_bits(bits);
     Some(res)
   }
 
@@ -349,7 +346,7 @@ impl<'a> PacketIterator<'a> {
 
   pub fn next_bits(&mut self) -> Option<Bits> {
     let byte = *unwrap_or_return_value!(self.i.next(), None);
-    return Some(Bits::from_u8(byte));
+    Some(Bits::from_u8(byte))
   }
 
   pub fn done(&mut self) -> bool {
@@ -403,7 +400,7 @@ mod tests {
     let packet = Packet::from(&[0xff, 0xff, 0xff, 0xff, 0xff]);
     let mut packetiter = packet.iter();
 
-    assert_eq!(packetiter.next_u32().unwrap(), 0xffffffff);
+    assert_eq!(packetiter.next_u32().unwrap(), 0xffff_ffff);
     assert_eq!(packetiter.next_u8().unwrap(), 0xff);
     assert_eq!(packetiter.done(), true);
   }
@@ -413,7 +410,7 @@ mod tests {
     let packet = Packet::from(&[0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]);
     let mut packetiter = packet.iter();
 
-    assert_eq!(packetiter.next_u64().unwrap(), 0xffffffffffffffffu64);
+    assert_eq!(packetiter.next_u64().unwrap(), 0xffff_ffff_ffff_ffffu64);
     assert_eq!(packetiter.next_u8().unwrap(), 0xff);
     assert_eq!(packetiter.done(), true);
   }
@@ -487,7 +484,7 @@ mod tests {
     let packet = Packet::from(&[0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]);
     let mut packetiter = packet.iter();
 
-    assert_eq!(packetiter.next_u64().unwrap(), 0x0123456789abcdef);
+    assert_eq!(packetiter.next_u64().unwrap(), 0x0123_4567_89ab_cdefu64);
     assert_eq!(packetiter.done(), true);
   }
 

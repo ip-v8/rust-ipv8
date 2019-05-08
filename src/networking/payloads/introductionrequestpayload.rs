@@ -1,36 +1,10 @@
 
 use super::super::address::Address;
 use super::bits::Bits;
-
+use super::connectiontype::ConnectionType;
 use super::packet::Packet;
 use super::payload::Ipv8Payload;
 use std::net::Ipv4Addr;
-
-#[derive(Debug, PartialEq)]
-enum ConnectionType {
-  UNKNOWN,
-  PUBLIC,
-  SYMMETRICNAT,
-}
-
-impl ConnectionType {
-  fn encode(&self) -> (bool, bool) {
-    match self {
-      ConnectionType::UNKNOWN => (false, false),
-      ConnectionType::PUBLIC => (true, false),
-      ConnectionType::SYMMETRICNAT => (true, true),
-    }
-  }
-
-  fn decode(bits: (bool, bool)) -> Self {
-    match bits {
-      (false, false) => ConnectionType::UNKNOWN,
-      (true, false) => ConnectionType::PUBLIC,
-      (false, true) => ConnectionType::UNKNOWN, // not in py-ipv8 but this case is not specified and thus unknown
-      (true, true) => ConnectionType::SYMMETRICNAT,
-    }
-  }
-}
 
 #[derive(Debug, PartialEq)]
 struct IntroductionRequestPayload {
@@ -64,7 +38,6 @@ struct IntroductionRequestPayload {
 
 impl Ipv8Payload for IntroductionRequestPayload {
   fn pack(&self) -> Packet {
-    // return Packet::from(&[1, 2]);
     let mut res = Packet::new();
 
     let destination_address = self.destination_address.address.octets();
@@ -106,7 +79,7 @@ impl Ipv8Payload for IntroductionRequestPayload {
         4,
       )
       .add_u16(source_wan_port)
-      .add_bits(Bits::new(
+      .add_bits(Bits::from_bools((
         conntype.0,
         conntype.1,
         false,
@@ -115,7 +88,7 @@ impl Ipv8Payload for IntroductionRequestPayload {
         false,
         false,
         self.advice,
-      ))
+      )))
       .add_u16(self.identifier)
       .add_raw_remaining(self.extra_bytes.clone());
     res
@@ -170,8 +143,8 @@ impl Ipv8Payload for IntroductionRequestPayload {
       },
       advice: flags.bit7,
       connection_type: ConnectionType::decode((flags.bit0, flags.bit1)),
-      identifier: identifier,
-      extra_bytes: extra_bytes,
+      identifier,
+      extra_bytes,
     }
   }
 }

@@ -4,11 +4,20 @@ use std::net::Ipv4Addr;
 pub struct Config {
   /// Default list of host used for peer discovery
   pub default_hosts: Vec<Address>,
+  /// from py-ipv8 configuration. UDP socket address.
+  /// There split up in "address" and "port"
+  pub socketaddress: Address,
 }
 
 impl Default for Config {
   fn default() -> Self {
     Config {
+
+      socketaddress:Address{
+        address: Ipv4Addr::new(0,0,0,0),
+        port: 8090
+      },
+
       default_hosts: vec![
         // Dispersy
         Address {
