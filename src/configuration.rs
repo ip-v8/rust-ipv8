@@ -1,80 +1,77 @@
-use crate::networking::address::*;
+use crate::networking::address::Address;
+use std::net::Ipv4Addr;
 
 pub struct Config {
   /// Default list of host used for peer discovery
-  pub default_hosts: Vec<IPAddress>,
+  pub default_hosts: Vec<Address>,
+  /// from py-ipv8 configuration. UDP socket address.
+  /// There split up in "address" and "port"
+  pub socketaddress: Address,
 }
 
 impl Default for Config {
   fn default() -> Self {
     Config {
+
+      socketaddress: Address{
+        address: Ipv4Addr::new(0,0,0,0),
+        port: 8090
+      },
+
       default_hosts: vec![
         // Dispersy
-        IPAddress {
-          address: String::from("130.161.119.206"),
+        Address {
+          address: Ipv4Addr::new(130, 161, 119, 206),
           port: 6421,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("130.161.119.206"),
+        Address {
+          address: Ipv4Addr::new(130, 161, 119, 206),
           port: 6422,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("131.180.27.155"),
+        Address {
+          address: Ipv4Addr::new(131, 180, 27, 155),
           port: 6423,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("131.180.27.156"),
+        Address {
+          address: Ipv4Addr::new(131, 180, 27, 156),
           port: 6424,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("131.180.27.161"),
+        Address {
+          address: Ipv4Addr::new(131, 180, 27, 161),
           port: 6427,
-          version: IPVersion::IPV4,
         },
         // IPv8
-        IPAddress {
-          address: String::from("131.180.27.161"),
+        Address {
+          address: Ipv4Addr::new(131, 180, 27, 161),
           port: 6521,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("131.180.27.161"),
+        Address {
+          address: Ipv4Addr::new(131, 180, 27, 161),
           port: 6522,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("131.180.27.162"),
+        Address {
+          address: Ipv4Addr::new(131, 180, 27, 162),
           port: 6523,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("131.180.27.162"),
+        Address {
+          address: Ipv4Addr::new(131, 180, 27, 162),
           port: 6524,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("130.161.119.215"),
+        Address {
+          address: Ipv4Addr::new(130, 161, 119, 215),
           port: 6525,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("130.161.119.215"),
+        Address {
+          address: Ipv4Addr::new(130, 161, 119, 215),
           port: 6526,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("81.171.27.194"),
+        Address {
+          address: Ipv4Addr::new(81, 171, 27, 194),
           port: 6527,
-          version: IPVersion::IPV4,
         },
-        IPAddress {
-          address: String::from("81.171.27.194"),
+        Address {
+          address: Ipv4Addr::new(81, 171, 27, 194),
           port: 6528,
-          version: IPVersion::IPV4,
         },
       ],
     }

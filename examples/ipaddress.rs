@@ -1,10 +1,10 @@
-use ipv8::networking::address::*;
+use ipv8::networking::address::Address;
+use std::net::Ipv4Addr;
 
 fn main() {
-  let addr = IPAddress {
-    address: String::from("127.0.0.1"),
+  let addr = Address {
+    address: Ipv4Addr::new(127, 0, 0, 1),
     port: 8000,
-    version: IPVersion::IPV4,
   };
 
   println!("{}", addr);

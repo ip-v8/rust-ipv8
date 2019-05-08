@@ -1,1 +1,1 @@
-trait Connector {}
+struct Connector {}
