@@ -1,5 +1,7 @@
 # Editor specific
 .vscode
+.idea
+*.iml
 
 # Rust specific
 

@@ -125,7 +125,7 @@ impl Packet {
   }
 
   pub fn add_f32(&mut self, data: f32) -> &mut Self {
-    let res: u32 = unsafe { mem::transmute(data) };
+    let res: u32 = data.to_bits();
     let part0 = ((res as u32) & 0xff) as u8;
     let part1 = ((res as u32 >> 8) & 0xff) as u8;
     let part2 = ((res as u32 >> 16) & 0xff) as u8;
@@ -138,7 +138,7 @@ impl Packet {
   }
 
   pub fn add_f64(&mut self, data: f64) -> &mut Self {
-    let res: u64 = unsafe { mem::transmute(data) };
+    let res: u64 = data.to_bits();
     let part0 = ((res as u64) & 0xff) as u8;
     let part1 = ((res as u64 >> 8) & 0xff) as u8;
     let part2 = ((res as u64 >> 16) & 0xff) as u8;
@@ -492,5 +492,41 @@ mod tests {
 
     assert_eq!(packetiter.next_i8().unwrap(), -1);
     assert_eq!(packetiter.done(), true);
+  }
+
+  #[test]
+  fn test_bits_unsafe_naive() {
+    let data:f32 = 42.42;
+    let unsafe_conversion: u32 = unsafe { mem::transmute(data) };
+    let safe_conversion: u32 = data.to_bits();
+
+    assert_eq!(unsafe_conversion, safe_conversion);
+  }
+
+  #[test]
+  fn test_bits_unsafe_inf() {
+    let data:f32 = std::f32::INFINITY;
+    let unsafe_conversion: u32 = unsafe { mem::transmute(data) };
+    let safe_conversion: u32 = data.to_bits();
+
+    assert_eq!(unsafe_conversion, safe_conversion);
+  }
+
+  #[test]
+  fn test_bits_unsafe_max() {
+    let data:f32 = std::f32::MAX;
+    let unsafe_conversion: u32 = unsafe { mem::transmute(data) };
+    let safe_conversion: u32 = data.to_bits();
+
+    assert_eq!(unsafe_conversion, safe_conversion);
+  }
+
+  #[test]
+  fn test_bits_unsafe_neg() {
+    let data:f64 = std::f64::MIN_POSITIVE;
+    let unsafe_conversion: u64 = unsafe { mem::transmute(data) };
+    let safe_conversion: u64 = data.to_bits();
+
+    assert_eq!(unsafe_conversion, safe_conversion);
   }
 }
