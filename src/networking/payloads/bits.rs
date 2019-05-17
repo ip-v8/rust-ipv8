@@ -1,3 +1,8 @@
+use serde::ser::{Serialize, Serializer, SerializeStruct};
+use std::marker::PhantomData;
+use serde::de::{self, Deserialize, Deserializer, Visitor};
+use std::fmt;
+
 /// This struct represents the bits inside an u8 by unpacking them into booleans.
 /// Mostly here to achieve feature parity with py-ipv8
 /// see https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/serialization.py#L84.
@@ -74,9 +79,57 @@ impl Bits {
   }
 }
 
+impl Serialize for Bits {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where S: Serializer{
+        let mut state = serializer.serialize_struct("Bits", 1)?;
+        state.serialize_field("value", &self.to_u8())?;
+        state.end()
+    }
+}
+
+/// used for deserializing bits
+struct BitsVisitor{
+  marker: PhantomData<fn() -> Bits>
+}
+
+impl<'de> Visitor<'de> for BitsVisitor{
+  type Value = Bits;
+  fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    formatter.write_str("Bits")
+  }
+
+  fn visit_u8<E>(self, value: u8) -> Result<Self::Value, E>
+  where E: de::Error,{
+      Ok(Bits::from_u8(value))
+  }
+}
+
+impl<'de> Deserialize<'de> for Bits{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where D: Deserializer<'de>,{
+        deserializer.deserialize_u8(BitsVisitor {marker:PhantomData})
+    }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
+  use bincode;
+
+  #[test]
+  fn test_serialization(){
+    let b = Bits::from_bools((false, true, false, true, false, true, false, false));
+    assert_eq!(vec![42],bincode::serialize(&b).unwrap());
+  }
+
+  #[test]
+  fn test_deserialization(){
+    let b = Bits::from_bools((false, true, false, true, false, true, false, false));
+    assert_eq!(b,bincode::deserialize(
+      &bincode::serialize(&b).unwrap()
+    ).unwrap());
+  }
 
   #[test]
   fn test_creation() {
