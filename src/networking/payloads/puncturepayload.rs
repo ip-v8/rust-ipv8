@@ -1,10 +1,9 @@
 use super::super::address::Address;
-use super::packet::Packet;
 use super::payload::Ipv8Payload;
-use std::net::Ipv4Addr;
+use serde::{Serialize,Deserialize};
 
-#[derive(Debug, PartialEq)]
-struct PuncturetPayload {
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct PuncturePayload {
   /// is the lan address of the sender.  Nodes in the same LAN
   /// should use this address to communicate.
   lan_walker_address: Address,
@@ -17,83 +16,19 @@ struct PuncturetPayload {
   identifier: u16,
 }
 
-impl Ipv8Payload for PuncturetPayload {
-  fn pack(&self) -> Packet {
-    let mut res = Packet::new();
-
-    let lan_walker_address = self.lan_walker_address.address.octets();
-    let lan_walker_port = self.lan_walker_address.port;
-    let wan_walker_address = self.wan_walker_address.address.octets();
-    let wan_walker_port = self.wan_walker_address.port;
-
-    res
-      .add_raw(
-        vec![
-          lan_walker_address[0],
-          lan_walker_address[1],
-          lan_walker_address[2],
-          lan_walker_address[3],
-        ],
-        4,
-      )
-      .add_u16(lan_walker_port)
-      .add_raw(
-        vec![
-          wan_walker_address[0],
-          wan_walker_address[1],
-          wan_walker_address[2],
-          wan_walker_address[3],
-        ],
-        4,
-      )
-      .add_u16(wan_walker_port)
-      .add_u16(self.identifier);
-    res
-  }
-
-  fn unpack(packet: Packet) -> Self {
-    let mut packetiter = packet.iter();
-
-    let lan_walker_address = packetiter.next_raw(4).unwrap();
-    let lan_walker_port = packetiter.next_u16().unwrap();
-
-    let wan_walker_address = packetiter.next_raw(4).unwrap();
-    let wan_walker_port = packetiter.next_u16().unwrap();
-
-    let identifier = packetiter.next_u16().unwrap();
-
-    PuncturetPayload {
-      lan_walker_address: Address {
-        address: Ipv4Addr::new(
-          lan_walker_address[0],
-          lan_walker_address[1],
-          lan_walker_address[2],
-          lan_walker_address[3],
-        ),
-        port: lan_walker_port,
-      },
-      wan_walker_address: Address {
-        address: Ipv4Addr::new(
-          wan_walker_address[0],
-          wan_walker_address[1],
-          wan_walker_address[2],
-          wan_walker_address[3],
-        ),
-        port: wan_walker_port,
-      },
-      identifier,
-    }
-  }
+impl Ipv8Payload for PuncturePayload {
+  // doesnt have anything but needed for the default implementation (as of right now)
 }
-
 
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crate::networking::serialization::{serialize, deserialize};
+  use std::net::Ipv4Addr;
 
   #[test]
   fn integration_test_creation() {
-    let i = PuncturetPayload {
+    let i = PuncturePayload {
       lan_walker_address: Address {
         address: Ipv4Addr::new(127, 0, 0, 1),
         port: 8000,
@@ -106,11 +41,11 @@ mod tests {
     };
 
     assert_eq!(
-      i.pack(),
-      Packet {
-        data: vec![127, 0, 0, 1, 31, 64, 42, 42, 42, 42, 31, 64, 0, 42,]
-      }
+      serialize(&i).unwrap(),
+      vec![127, 0, 0, 1, 64, 31, 42, 42, 42, 42, 64, 31, 42, 0]
     );
-    assert_eq!(i, PuncturetPayload::unpack(i.pack()));
+    assert_eq!(i, deserialize(
+      &serialize(&i).unwrap()
+    ).unwrap());
   }
 }

@@ -1,4 +1,4 @@
-use super::{super::event::EventGenerator, address::Address, payloads::packet::Packet};
+use super::{super::event::EventGenerator, address::Address};
 use std::net::{SocketAddr, UdpSocket};
 
 // NOTE: i am really unhappy with how this connection class works as of now.
@@ -24,7 +24,7 @@ impl Connection {
     })
   }
 
-  fn send(address: Address, data: Packet) {}
+  fn send(address: Address, data: Vec<u8>) {}
 
 }
 

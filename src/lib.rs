@@ -4,7 +4,6 @@ pub mod networking;
 
 use configuration::Config;
 
-
 /**
  * The IPv8 instance.
  *
