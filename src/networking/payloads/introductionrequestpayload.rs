@@ -1,15 +1,11 @@
-use super::{
-  super::address::Address,
-  rawend::RawEnd
-};
-use super::bits::Bits;
+use super::super::address::Address;
+use super::super::serialization::rawend::RawEnd;
+use super::super::serialization::bits::Bits;
 use super::connectiontype::ConnectionType;
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde;
-use std::marker::PhantomData;
-use serde::de::{Deserialize, Deserializer, Visitor};
-use std::fmt;
-use std::net::Ipv4Addr;
+use serde::de::{Deserialize, Deserializer};
+use crate::networking::payloads::payload::Ipv8Payload;
 
 #[derive(Debug, PartialEq)]
 struct IntroductionRequestPayload {
@@ -41,6 +37,16 @@ struct IntroductionRequestPayload {
   extra_bytes: RawEnd,
 }
 
+impl Ipv8Payload for IntroductionRequestPayload{
+  /// this function is necessary for any payload which has a rawend final field. It is called to set this field. (like a setter.)
+  fn set_rawend(&mut self, bytes:RawEnd){
+    self.extra_bytes = bytes;
+  }
+}
+
+/// makes the IntroductionRequestPayload serializable.
+/// This is less than trivial as there is no 1:1 mapping between the serialized data and the payload struct.
+/// Some struct fields are combined into one byte to form the serialized data.
 impl Serialize for IntroductionRequestPayload {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where S: Serializer{
@@ -61,22 +67,12 @@ impl Serialize for IntroductionRequestPayload {
 
 #[derive(Debug, PartialEq, serde::Deserialize)]
 /// this is the actual pattern of an introductionRequestPayload.
-/// used for deserializing
-struct IntroductionRequestPayloadPattern(Address,Address,Address,Bits,u16,RawEnd);
-
-/// used for deserializing IntroductionRequestPayload
-struct IntroductionRequestPayloadVisitor{
-  marker: PhantomData<fn() -> IntroductionRequestPayload>
-}
-
-impl<'de> Visitor<'de> for IntroductionRequestPayloadVisitor{
-  type Value = IntroductionRequestPayload;
-  fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-    formatter.write_str("IntroductionRequestPayload")
-  }
-}
+/// Used for deserializing. This is again needed because there is no 1:1 mapping between the
+/// serialized data and the payload struct. This is the intermediate representation.
+struct IntroductionRequestPayloadPattern(Address,Address,Address,Bits,u16);
 
 impl<'de> Deserialize<'de> for IntroductionRequestPayload{
+  /// deserializes an IntroductionRequestPayload
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where D: Deserializer<'de>,{
 
@@ -92,7 +88,7 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
         advice: i.3.bit7,
         connection_type: ConnectionType::decode((i.3.bit0, i.3.bit1)),
         identifier: i.4,
-        extra_bytes: i.5,
+        extra_bytes: RawEnd(vec![]), //empty for now but will be set by deserialize
       }),
       Err(i) => Err(i) // on error just forward the error
     }
@@ -103,8 +99,8 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
 #[cfg(test)]
 mod tests {
   use super::*;
-  use bincode;
   use std::net::Ipv4Addr;
+  use crate::networking::serialization::{deserialize, serialize};
 
   #[test]
   fn integration_test_creation() {
@@ -127,15 +123,16 @@ mod tests {
       extra_bytes: RawEnd(vec![43, 44]),
     };
 
+    let serialized = serialize(&i).unwrap();
     assert_eq!(
-      bincode::serialize(&i).unwrap(),
+      serialized,
       vec![
           127, 0, 0, 1,64, 31, 42, 42, 42, 42,64, 31, 255, 255, 255, 0 ,64, 31, 131, 42, 0, 43,44
         ]
     );
 
-    assert_eq!(i,bincode::deserialize(
-      &bincode::serialize(&i).unwrap()
+    assert_eq!(i,deserialize(
+      &serialized
     ).unwrap());
   }
 }
