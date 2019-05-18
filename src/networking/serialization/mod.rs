@@ -15,7 +15,7 @@ pub fn deserialize<T>(buffer: &[u8]) -> Result<T, Box<ErrorKind>>
   where for<'de> T: Deserialize<'de> + Ipv8Payload {
   let mut cur = &buffer[..];
 
-  let mut msg: T = bincode::deserialize_from(&mut cur)?;
+  let mut msg: T = bincode::config().big_endian().deserialize_from(&mut cur)?;
   msg.set_rawend(RawEnd(cur.to_owned()));
 
   Ok(msg)
@@ -24,7 +24,7 @@ pub fn deserialize<T>(buffer: &[u8]) -> Result<T, Box<ErrorKind>>
 /// simple wrapper function to serialize to bincode. TODO: how will we handle serialization to other standards like json easily?
 pub fn serialize<T>(obj: &T) -> Result<Vec<u8>,Box<ErrorKind>>
   where T: Ipv8Payload + Serialize {
-  bincode::serialize(&obj)
+  bincode::config().big_endian().serialize(&obj)
 }
 
 

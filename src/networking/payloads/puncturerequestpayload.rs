@@ -47,7 +47,7 @@ mod tests {
 
     assert_eq!(
       serialize(&i).unwrap(),
-      vec![127, 0, 0, 1, 64, 31, 42, 42, 42, 42, 64, 31, 42, 0]
+      vec![127, 0, 0, 1, 31, 64, 42, 42, 42, 42, 31, 64, 0, 42, ]
     );
     assert_eq!(i, deserialize(
       &serialize(&i).unwrap()
