@@ -1,5 +1,3 @@
-#![feature(core_intrinsics)]
-
 pub mod configuration;
 pub mod event;
 pub mod networking;
