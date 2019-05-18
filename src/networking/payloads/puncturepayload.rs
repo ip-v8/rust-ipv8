@@ -20,7 +20,6 @@ impl Ipv8Payload for PuncturePayload {
   // doesnt have anything but needed for the default implementation (as of right now)
 }
 
-
 #[cfg(test)]
 mod tests {
   use super::*;

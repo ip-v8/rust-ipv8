@@ -64,7 +64,6 @@ impl Serialize for IntroductionRequestPayload {
     }
 }
 
-
 #[derive(Debug, PartialEq, serde::Deserialize)]
 /// this is the actual pattern of an introductionRequestPayload.
 /// Used for deserializing. This is again needed because there is no 1:1 mapping between the
@@ -75,7 +74,6 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
   /// deserializes an IntroductionRequestPayload
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where D: Deserializer<'de>,{
-
     // first deserialize it to a temporary struct which litterally represents the packer
     let temppayload = IntroductionRequestPayloadPattern::deserialize(deserializer);
 
@@ -94,7 +92,6 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
     }
   }
 }
-
 
 #[cfg(test)]
 mod tests {
