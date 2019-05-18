@@ -56,6 +56,7 @@ impl Serialize for IntroductionRequestPayload {
         state.serialize_field("destination_address", &self.destination_address)?;
         state.serialize_field("source_lan_address", &self.source_lan_address)?;
         state.serialize_field("source_wan_address", &self.source_wan_address)?;
+        // the False values here correspond to unused bits in the flags field, inherited from py-ipv8.
         state.serialize_field("advice", &Bits::from_bools((conntype.0, conntype.1, false, false, false, false, false, self.advice)))?;
         state.serialize_field("identifier", &self.identifier)?;
         state.serialize_field("extra_bytes", &self.extra_bytes)?;
@@ -75,10 +76,10 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where D: Deserializer<'de>,{
     // first deserialize it to a temporary struct which literally represents the packer
-    let temppayload = IntroductionRequestPayloadPattern::deserialize(deserializer);
+    let payload_temporary = IntroductionRequestPayloadPattern::deserialize(deserializer);
 
     // now build the struct for real
-    match temppayload{
+    match payload_temporary{
       Ok(i) => Ok(IntroductionRequestPayload {
         destination_address: i.0,
         source_lan_address: i.1,
