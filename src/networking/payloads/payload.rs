@@ -1,7 +1,5 @@
-use super::packet::Packet;
+use crate::networking::serialization::rawend::RawEnd;
 
 pub trait Ipv8Payload {
-  fn pack(&self) -> Packet;
-  fn unpack(packet: Packet) -> Self;
+  fn set_rawend(&mut self, _bytes: RawEnd){}
 }
-
