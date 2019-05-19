@@ -9,12 +9,12 @@ pub struct RawEnd (
 );
 
 impl Serialize for RawEnd {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer{
-        let mut state = serializer.serialize_struct("RawEnd", self.0.len())?;
-        for i in &self.0{
-          state.serialize_field("value", &i)?;
-        }
-        state.end()
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where S: Serializer{
+    let mut state = serializer.serialize_struct("RawEnd", self.0.len())?;
+    for i in &self.0{
+      state.serialize_field("value", &i)?;
     }
+    state.end()
+  }
 }
