@@ -1,5 +1,6 @@
 pub mod bits;
 pub mod rawend;
+pub mod varlen;
 
 use bincode;
 use crate::networking::payloads::payload::Ipv8Payload;
