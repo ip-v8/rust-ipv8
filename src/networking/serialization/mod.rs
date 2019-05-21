@@ -48,7 +48,7 @@ impl Packet{
     Ok(res)
   }
 
-  /// Deserialize multiple payloads.
+  /// Used for deeserializing multiple payloads.
   pub fn deserialize_multiple(self) -> PacketIterator
   {
     PacketIterator{

@@ -52,12 +52,12 @@ impl<'de> Deserialize<'de> for VarLen16 {
           res.push(seq.next_element()?.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?);
         }
 
-        return Ok(VarLen16(res));
+        Ok(VarLen16(res))
       }
     }
 
     //deserialize it as a tuple of maximum length (2^16)
-    return Ok(deserializer.deserialize_tuple(1<<16,VarLen16Visitor)?)
+    Ok(deserializer.deserialize_tuple(1<<16,VarLen16Visitor)?)
   }
 }
 
@@ -105,11 +105,11 @@ impl<'de> Deserialize<'de> for VarLen32 {
           res.push(seq.next_element()?.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?);
         }
 
-        return Ok(VarLen32(res));
+        Ok(VarLen32(res))
       }
     }
 
-    return Ok(deserializer.deserialize_tuple(1<<32,VarLen32Visitor)?)
+    Ok(deserializer.deserialize_tuple(1<<32,VarLen32Visitor)?)
   }
 }
 

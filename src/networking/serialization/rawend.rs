@@ -45,11 +45,10 @@ impl<'de> Deserialize<'de> for RawEnd {
             Err(_err) => break
           }
         }
-        return Ok(RawEnd(res));
+        Ok(RawEnd(res))
       }
     }
-    //TODO: something like infinity?
-    return Ok(deserializer.deserialize_tuple(std::usize::MAX,RawEndVisitor)?)
+    Ok(deserializer.deserialize_tuple(std::usize::MAX,RawEndVisitor)?)
   }
 }
 
