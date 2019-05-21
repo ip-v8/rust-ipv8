@@ -189,7 +189,9 @@ mod tests {
     };
   }
 
+  // fucking ci cant run this
   #[test]
+  #[ignore]
   fn test_varlen32_too_large(){
     let tmp:Vec<u8> = vec![0; (1u64 << 32 + 1) as usize];
     let i = VarLen32(tmp);
