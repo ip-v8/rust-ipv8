@@ -23,3 +23,11 @@ maintenance = { status = "experimental" }
 lazy_static = "1.3.0"
 serde = { version = "1.0", features = ["derive"] }
 bincode = "1.1.3"
+
+[profile.release]
+lto = true # Enables link time optimization (allows for inlining cross-crate)
+opt-level = 3 # Ensures optimization level is set to the maximum
+
+[profile.bench]
+lto = true
+opt-level = 3
