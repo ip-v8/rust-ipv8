@@ -189,8 +189,6 @@ mod tests {
     };
   }
 
-  /// This test is and SHOULD be ignored normally as using over 4 gigabytes of ram for a test
-  /// apparently sometimes is a problem.
   #[test]
   fn test_varlen32_too_large(){
     let tmp:Vec<u8> = vec![0; (1u64 << 32 + 1) as usize];
