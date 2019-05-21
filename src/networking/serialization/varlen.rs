@@ -134,38 +134,35 @@ impl Serialize for VarLen32 {
 
 #[cfg(test)]
 mod tests {
-  use bincode;
-
   use super::*;
-  use super::super::deserialize;
-  use super::super::serialize;
+  use super::super::Packet;
 
   #[test]
   fn test_serialize_varlen16(){
     let i = VarLen16(vec![1,2,3,4,5,6,7,8,9,10]);
-    let ser_tmp = serialize(&i).unwrap();
-    assert_eq!(ser_tmp,vec![0,10,1,2,3,4,5,6,7,8,9,10])
+    let ser_tmp = Packet::serialize(&i).unwrap();
+    assert_eq!(ser_tmp,Packet(vec![0,10,1,2,3,4,5,6,7,8,9,10]))
   }
 
   #[test]
   fn test_deserialize_varlen16(){
     let i = VarLen16(vec![1,2,3,4,5,6,7,8,9,10]);
-    let ser_tmp = serialize(&i).unwrap();
-    assert_eq!(i,deserialize(&ser_tmp).unwrap())
+    let mut ser_tmp = Packet::serialize(&i).unwrap();
+    assert_eq!(i,ser_tmp.deserialize().unwrap())
   }
 
   #[test]
   fn test_serialize_varlen32(){
     let i = VarLen32(vec![1,2,3,4,5,6,7,8,9,10]);
-    let ser_tmp = serialize(&i).unwrap();
-    assert_eq!(ser_tmp,vec![0,0,0,10,1,2,3,4,5,6,7,8,9,10])
+    let ser_tmp = Packet::serialize(&i).unwrap();
+    assert_eq!(ser_tmp,Packet(vec![0,0,0,10,1,2,3,4,5,6,7,8,9,10]));
   }
 
   #[test]
   fn test_deserialize_varlen32(){
     let i = VarLen32(vec![1,2,3,4,5,6,7,8,9,10]);
-    let ser_tmp = serialize(&i).unwrap();
-    assert_eq!(i,deserialize(&ser_tmp).unwrap())
+    let mut ser_tmp = Packet::serialize(&i).unwrap();
+    assert_eq!(i,ser_tmp.deserialize().unwrap())
   }
 
   #[test]
@@ -175,15 +172,15 @@ mod tests {
       tmp.push((i % 255) as u8);
     }
     let i = VarLen32(tmp);
-    let ser_tmp = serialize(&i).unwrap();
-    assert_eq!(i,deserialize(&ser_tmp).unwrap())
+    let mut ser_tmp = Packet::serialize(&i).unwrap();
+    assert_eq!(i,ser_tmp.deserialize().unwrap())
   }
 
   #[test]
   fn test_varlen16_too_large(){
     let tmp:Vec<u8> = vec![0; (1u32 << 17) as usize];
     let i = VarLen16(tmp);
-    match serialize(&i){
+    match Packet::serialize(&i){
       Ok(_) => assert!(false, "this should throw an error as 2^17 bytes is too large for a varlen16"),
       Err(_) => assert!(true)
     };
@@ -195,7 +192,7 @@ mod tests {
   fn test_varlen32_too_large(){
     let tmp:Vec<u8> = vec![0; (1u64 << 32 + 1) as usize];
     let i = VarLen32(tmp);
-    match serialize(&i){
+    match Packet::serialize(&i){
       Ok(_) => assert!(false, "this should throw an error as 2^33 bytes is too large for a varlen32"),
       Err(_) => assert!(true)
     };
@@ -204,8 +201,8 @@ mod tests {
   #[test]
   fn test_serialize_varlen16_zero(){
     let i = VarLen16(vec![]);
-    let ser_tmp = serialize(&i).unwrap();
-    assert_eq!(ser_tmp,vec![0,0])
+    let ser_tmp = Packet::serialize(&i).unwrap();
+    assert_eq!(ser_tmp,Packet(vec![0,0]));
   }
 
 }

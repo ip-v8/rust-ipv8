@@ -69,7 +69,7 @@ impl Serialize for IntroductionRequestPayload {
 /// this is the actual pattern of an introductionRequestPayload.
 /// Used for deserializing. This is again needed because there is no 1:1 mapping between the
 /// serialized data and the payload struct. This is the intermediate representation.
-struct IntroductionRequestPayloadPattern(Address,Address,Address,Bits,u16);
+struct IntroductionRequestPayloadPattern(Address,Address,Address,Bits,u16,RawEnd);
 
 impl<'de> Deserialize<'de> for IntroductionRequestPayload{
   /// deserializes an IntroductionRequestPayload
@@ -87,7 +87,7 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
         advice: i.3.bit7,
         connection_type: ConnectionType::decode((i.3.bit0, i.3.bit1)),
         identifier: i.4,
-        extra_bytes: RawEnd(vec![]), // empty for now but will be set by deserialize
+        extra_bytes: i.5,
       }),
       Err(i) => Err(i) // on error just forward the error
     }
@@ -98,7 +98,7 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
 mod tests {
   use super::*;
   use std::net::Ipv4Addr;
-  use crate::networking::serialization::{deserialize, serialize};
+  use crate::networking::serialization::Packet;
 
   #[test]
   fn integration_test_creation() {
@@ -121,16 +121,14 @@ mod tests {
       extra_bytes: RawEnd(vec![43, 44]),
     };
 
-    let serialized = serialize(&i).unwrap();
+    let mut serialized = Packet::serialize(&i).unwrap();
     assert_eq!(
       serialized,
-      vec![
-          127, 0, 0, 1,31, 64, 42, 42, 42, 42, 31, 64, 255, 255, 255, 0, 31 ,64, 131, 0, 42, 43,44
-        ]
+      Packet(vec![
+        127, 0, 0, 1,31, 64, 42, 42, 42, 42, 31, 64, 255, 255, 255, 0, 31 ,64, 131, 0, 42, 43,44
+      ])
     );
 
-    assert_eq!(i,deserialize(
-      &serialized
-    ).unwrap());
+    assert_eq!(i,serialized.deserialize().unwrap());
   }
 }
