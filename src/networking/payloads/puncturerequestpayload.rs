@@ -28,7 +28,7 @@ impl Ipv8Payload for PunctureRequestPayload {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::networking::serialization::{serialize, deserialize};
+  use crate::networking::serialization::Packet;
   use std::net::Ipv4Addr;
 
   #[test]
@@ -46,11 +46,9 @@ mod tests {
     };
 
     assert_eq!(
-      serialize(&i).unwrap(),
-      vec![127, 0, 0, 1, 31, 64, 42, 42, 42, 42, 31, 64, 0, 42, ]
+      Packet::serialize(&i).unwrap(),
+      Packet(vec![127, 0, 0, 1, 31, 64, 42, 42, 42, 42, 31, 64, 0, 42, ])
     );
-    assert_eq!(i, deserialize(
-      &serialize(&i).unwrap()
-    ).unwrap());
+    assert_eq!(i,Packet::serialize(&i).unwrap().deserialize().unwrap());
   }
 }
