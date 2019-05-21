@@ -49,7 +49,7 @@ impl<'de> Deserialize<'de> for RawEnd {
       }
     }
     //TODO: something like infinity?
-    return Ok(deserializer.deserialize_tuple(0xffffffff_ffffffff,RawEndVisitor)?)
+    return Ok(deserializer.deserialize_tuple(std::usize::MAX,RawEndVisitor)?)
   }
 }
 
