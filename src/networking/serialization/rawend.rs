@@ -2,7 +2,6 @@ use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde;
 use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
 use std::fmt;
-use std::process::exit;
 
 /// Datatype representing the raw bytes at the end of an ipv8 payload where the length shouldn't be prefixed.
 #[derive(Debug, PartialEq)]
@@ -21,12 +20,10 @@ impl Serialize for RawEnd {
   }
 }
 
-
 impl<'de> Deserialize<'de> for RawEnd {
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where D:Deserializer<'de>
   {
-
     struct RawEndVisitor;
     impl<'de> Visitor<'de> for RawEndVisitor{
       type Value = RawEnd;
@@ -45,7 +42,7 @@ impl<'de> Deserialize<'de> for RawEnd {
                 Some(value) => res.push(value),
                 None => break
             },
-            Err(err) => break
+            Err(_err) => break
           }
         }
         return Ok(RawEnd(res));
@@ -55,7 +52,6 @@ impl<'de> Deserialize<'de> for RawEnd {
     return Ok(deserializer.deserialize_tuple(0xffffffff_ffffffff,RawEndVisitor)?)
   }
 }
-
 
 #[cfg(test)]
 mod tests {

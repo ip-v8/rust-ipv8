@@ -19,6 +19,7 @@ pub struct PacketIterator{
   pub index: usize,
 }
 
+/// iterates over a packet to extract it's possibly multiple payloads
 impl PacketIterator{
   /// Deserializes a stream of bytes into an ipv8 payload. Which payload is inferred by the type of T which is generic.
   /// T has to be deserializable and implement the Ipv8Payload trait.
@@ -39,6 +40,7 @@ impl Packet{
 
   /// Deserializes a stream of bytes into an ipv8 payload. Which payload is inferred by the type of T which is generic.
   /// T has to be deserializable and implement the Ipv8Payload trait.
+  /// Only deserializes one (and the first) payload in a packet. Use the deserialize_multiple function with the PacketIterator for more payloads.
   pub fn deserialize<T>(&mut self) -> Result<T, Box<ErrorKind>>
     where for<'de> T: Deserialize<'de> + Ipv8Payload
   {
@@ -46,8 +48,7 @@ impl Packet{
     Ok(res)
   }
 
-  /// Deserializes a stream of bytes into an ipv8 payload. Which payload is inferred by the type of T which is generic.
-  /// T has to be deserializable and implement the Ipv8Payload trait.
+  /// Deserialize multiple payloads.
   pub fn deserialize_multiple(self) -> PacketIterator
   {
     PacketIterator{
@@ -118,7 +119,6 @@ mod tests {
     let mut ser_tmp = Packet::serialize(&a).unwrap();
     ser_tmp.add(&b).unwrap();
     ser_tmp.add(&c).unwrap();
-
 
     let mut deser_iterator = ser_tmp.deserialize_multiple();
     assert_eq!(a,deser_iterator.next().unwrap());
