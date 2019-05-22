@@ -36,8 +36,6 @@ rust-latest:
       paths:
         - target/
         - cargo/
-    before_script:
-      - apt-get update && apt install kcov
     script:
       - cargo build --verbose
       - cargo test --no-run
