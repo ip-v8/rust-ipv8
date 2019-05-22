@@ -25,7 +25,7 @@ rust-latest:
     stage: test
     image: $BUILD_IMAGE
     cache:
-    key: ${CI_COMMIT_REF_SLUG}
+      key: ${CI_COMMIT_REF_SLUG}
       paths:
         - target/
     before_script:

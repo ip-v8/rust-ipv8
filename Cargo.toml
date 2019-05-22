@@ -31,4 +31,3 @@ opt-level = 3 # Ensures optimization level is set to the maximum
 [profile.bench]
 lto = true
 opt-level = 3
-
