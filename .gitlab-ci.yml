@@ -18,7 +18,8 @@ create_build_image:
     before_script:
       - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     script:
-      - docker build --pull -t $BUILD_IMAGE -f Dockerfile.build .
+      - docker pull $BUILD_IMAGE
+      - docker build -t $BUILD_IMAGE -f Dockerfile.build .
       - docker push $BUILD_IMAGE
 
 rust-latest:
