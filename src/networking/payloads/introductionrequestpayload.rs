@@ -5,7 +5,7 @@ use super::connectiontype::ConnectionType;
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde;
 use serde::de::{Deserialize, Deserializer};
-use crate::networking::payloads::payload::Ipv8Payload;
+use crate::networking::payloads::Ipv8Payload;
 
 #[derive(Debug, PartialEq)]
 pub struct IntroductionRequestPayload {

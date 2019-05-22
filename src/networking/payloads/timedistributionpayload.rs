@@ -1,5 +1,5 @@
 use serde::{Serialize,Deserialize};
-use crate::networking::payloads::payload::Ipv8Payload;
+use super::Ipv8Payload;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct TimeDistributionPayload {

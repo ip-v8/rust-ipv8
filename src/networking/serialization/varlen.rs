@@ -2,7 +2,7 @@ use serde;
 use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
 use serde::ser::{Error, Serialize, Serializer, SerializeStruct};
 use std::fmt;
-use crate::networking::payloads::payload::Ipv8Payload;
+use crate::networking::payloads::Ipv8Payload;
 
 /// Struct representing a payload section of variable length section of a payload.
 /// VarLen16 means the max length of the variable length section is 2^16 bytes

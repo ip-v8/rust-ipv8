@@ -1,4 +1,3 @@
-use ipv8::networking;
 use ipv8::networking::serialization::Packet;
 use ipv8::networking::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
 use ipv8::networking::serialization::varlen::VarLen16;

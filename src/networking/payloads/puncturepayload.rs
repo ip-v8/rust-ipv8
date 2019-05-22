@@ -1,5 +1,5 @@
 use super::super::address::Address;
-use super::payload::Ipv8Payload;
+use super::Ipv8Payload;
 use serde::{Serialize,Deserialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

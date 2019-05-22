@@ -1,5 +1,5 @@
 use serde::{Serialize,Deserialize};
-use crate::networking::payloads::payload::Ipv8Payload;
+use crate::networking::payloads::Ipv8Payload;
 use crate::networking::serialization::varlen::VarLen16;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
