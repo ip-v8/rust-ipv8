@@ -1,0 +1,16 @@
+plugins:
+  fixme:
+    enabled: true
+    config:
+      strings:
+      - FIXME
+      - BUG
+  editorconfig:
+    enabled: true
+    channel: beta
+    config:
+      editorconfig: .editorconfig
+  git-legal:
+    enabled: true
+exclude_patterns:
+  - "LICENSE.md"
