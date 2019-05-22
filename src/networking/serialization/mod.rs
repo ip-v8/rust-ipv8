@@ -1,6 +1,7 @@
 pub mod bits;
 pub mod rawend;
 pub mod varlen;
+pub mod nestedpayload;
 
 use bincode;
 use crate::networking::payloads::Ipv8Payload;
@@ -45,6 +46,10 @@ impl PacketIterator{
 
     Ok(res)
   }
+
+  fn len(&self) -> usize {
+    self.pntr.0.len()
+  }
 }
 
 impl Packet{
@@ -85,6 +90,10 @@ impl Packet{
 
     self.0.extend(bincode::config().big_endian().serialize(&obj)?);
     Ok(())
+  }
+
+  fn len(&self) -> usize {
+    self.0.len()
   }
 }
 
