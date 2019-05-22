@@ -1,0 +1,8 @@
+FROM rust:latest
+
+WORKDIR /
+RUN USER=rust cargo new rust-ipv8 --lib
+WORKDIR /rust-ipv8
+COPY Cargo.* ./
+RUN cargo build && rm ./target/debug/libipv8* && rm -rf ./src/lib.rs
+

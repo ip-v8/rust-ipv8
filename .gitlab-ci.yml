@@ -1,0 +1,31 @@
+variables:
+  BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:$CI_COMMIT_REF_NAME
+
+stages:
+  - pre_build
+  - build
+  - test
+
+create_build_image:
+    stage: pre_build
+    image: docker
+    only:
+      changes:
+        - Cargo.*
+    before_script:
+      - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    script:
+      - docker build --pull -t $BUILD_IMAGE -f Dockerfile.build .
+      - docker push $BUILD_IMAGE
+
+rust-latest:
+    stage: test
+    image: $BUILD_IMAGE
+    before_script:
+      - apt install kcov
+    script:
+      - cargo build --verbose
+      - cargo test --no-run
+      - kcov --exclude-pattern=/.cargo,/usr/lib target/cov target/debug/ipv8-*[^\.d]
+
+
