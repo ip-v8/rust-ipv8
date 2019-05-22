@@ -8,6 +8,8 @@ stages:
 
 create_build_image:
     stage: pre_build
+    services:
+      docker:dind
     image: docker
     only:
       changes:
