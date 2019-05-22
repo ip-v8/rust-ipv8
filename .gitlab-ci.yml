@@ -41,5 +41,5 @@ rust-latest:
     script:
       - cargo build --verbose
       - cargo test --no-run
-      - kcov --exclude-pattern=/.cargo,/usr/lib target/cov target/debug/ipv8-*[^\.d]
+      - kcov --exclude-pattern=/.cargo,/usr/lib target/cov target/debug/ipv8-*[^\.d] && bash <(curl -s https://codecov.io/bash)
 
