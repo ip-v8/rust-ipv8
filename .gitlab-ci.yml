@@ -1,9 +1,9 @@
 variables:
-  BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:$CI_COMMIT_REF_NAME
+  BUILD_IMAGE: $CI_REGISTRY_IMAGE/build
+  CARGO_HOME: $CI_PROJECT_DIR/cargo
 
 stages:
   - pre_build
-  - build
   - test
 
 create_build_image:
@@ -13,12 +13,10 @@ create_build_image:
     image: docker
     only:
       changes:
-        - Cargo.*
         - Dockerfile.build
     before_script:
       - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     script:
-      - docker pull $BUILD_IMAGE
       - docker build -t $BUILD_IMAGE -f Dockerfile.build .
       - docker push $BUILD_IMAGE
 
@@ -29,6 +27,7 @@ rust-latest:
       key: ${CI_COMMIT_REF_SLUG}
       paths:
         - target/
+        - cargo/
     before_script:
       - apt-get update && apt install kcov
     script:

@@ -1,8 +1,2 @@
 FROM rust:latest
-
-WORKDIR /
 RUN apt-get update && apt-get -y install kcov && apt-get -y clean
-RUN USER=rust cargo new rust-ipv8 --lib
-WORKDIR /rust-ipv8
-COPY Cargo.* ./
-RUN cargo build && rm ./target/debug/libipv8* && rm -rf ./src/lib.rs
