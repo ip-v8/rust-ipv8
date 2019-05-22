@@ -14,6 +14,7 @@ create_build_image:
     only:
       changes:
         - Cargo.*
+        - Dockerfile.build
     before_script:
       - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     script:
@@ -23,11 +24,14 @@ create_build_image:
 rust-latest:
     stage: test
     image: $BUILD_IMAGE
+    cache:
+    key: ${CI_COMMIT_REF_SLUG}
+      paths:
+        - target/
     before_script:
-      - apt install kcov
+      - apt-get update && apt install kcov
     script:
       - cargo build --verbose
       - cargo test --no-run
       - kcov --exclude-pattern=/.cargo,/usr/lib target/cov target/debug/ipv8-*[^\.d]
-
 

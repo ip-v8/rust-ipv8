@@ -1,6 +1,7 @@
 FROM rust:latest
 
 WORKDIR /
+RUN apt-get update && apt-get install kcov && apt-get clean
 RUN USER=rust cargo new rust-ipv8 --lib
 WORKDIR /rust-ipv8
 COPY Cargo.* ./
