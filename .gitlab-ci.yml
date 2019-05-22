@@ -23,6 +23,14 @@ create_build_image:
 rust-latest:
     stage: test
     image: $BUILD_IMAGE
+    only:
+      changes:
+        - src/**/*.rs
+        - Cargo.*
+        - .gitlab-ci.yml
+        - tests/**/*.rs
+        - examples/**/*.rs
+        - benches/**/*.rs
     cache:
       key: ${CI_COMMIT_REF_SLUG}
       paths:
