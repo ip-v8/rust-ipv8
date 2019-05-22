@@ -7,15 +7,15 @@ use crate::networking::payloads::payload::Ipv8Payload;
 /// Struct representing a payload section of variable length section of a payload.
 /// VarLen16 means the max length of the variable length section is 2^16 bytes
 #[derive(PartialEq,Debug)]
-struct VarLen16(
-  pub Vec<u8>
+pub struct VarLen16(
+  pub Vec<u8>,
 );
 impl Ipv8Payload for VarLen16{}
 
 /// Struct representing a payload section of variable length section of a payload.
 /// VarLen16 means the max length of the variable length section is 2^32 bytes
 #[derive(PartialEq,Debug)]
-struct VarLen32(
+pub struct VarLen32(
   pub Vec<u8>
 );
 impl Ipv8Payload for VarLen32{}
@@ -23,7 +23,7 @@ impl Ipv8Payload for VarLen32{}
 /// Struct representing a payload section of variable length section of a payload.
 /// VarLen16 means the max length of the variable length section is 2^64 bytes
 #[derive(PartialEq, Debug, serde::Serialize, serde::Deserialize)]
-struct VarLen64(
+pub struct VarLen64(
   pub Vec<u8>
 );
 impl Ipv8Payload for VarLen64{}

@@ -24,10 +24,25 @@ impl PacketIterator{
   /// Deserializes a stream of bytes into an ipv8 payload. Which payload is inferred by the type of T which is generic.
   /// T has to be deserializable and implement the Ipv8Payload trait.
   pub fn next<T>(&mut self) -> Result<T, Box<ErrorKind>>
-    where for<'de> T: Deserialize<'de> + Ipv8Payload
+    where for<'de> T: Deserialize<'de> + Ipv8Payload + Serialize
   {
     let res: T = bincode::config().big_endian().deserialize(&self.pntr.0[self.index ..])?;
-    self.index += size_of::<T>();
+
+    // the old solution was: self.index += size_of::<T>();
+    // this doesnt work as it is not uncommon to return less bytes than was actually in the bytecode (lengths etc)
+    // the code below works but is inefficient. TODO: create a more efficient way to do this.
+    // tried this:
+    /*
+      let mut value = &self.pntr.0[self.index ..];
+      let oldsize = value.len();
+      let res: T = bincode::config().big_endian().deserialize_from(&mut value)?;
+      self.index += (oldsize - value.to_owned().len());
+    */
+    // apparently it is less efficient than recalculating the size as below.
+    // on the bench_deserialize_multiple benchmark in the tests section below
+    // it got 17,584,554 ns per iteration (where each iteration is 100000 serialize/deserializations
+    // while the recalculation takes 11,965,294ns
+    self.index += bincode::config().big_endian().serialized_size(&res)? as usize;
 
     Ok(res)
   }
@@ -78,6 +93,8 @@ impl Packet{
 mod tests {
   use super::*;
   use serde::{Serialize,Deserialize};
+  extern crate test;
+  use test::Bencher;
 
   #[derive(Debug, PartialEq, Serialize, Deserialize)]
   struct TestPayload1 {
@@ -95,6 +112,27 @@ mod tests {
 
   impl Ipv8Payload for TestPayload2 {
     // doesnt have anything but needed for the default implementation (as of right now)
+  }
+
+  #[bench]
+  fn bench_deserialize_multiple(b: &mut Bencher){
+    b.iter(|| {
+      let n = test::black_box(100000);
+      for i in 0..n{
+        let a = TestPayload1{test:42};
+        let b = TestPayload2{test:43};
+        let c = TestPayload1{test:44};
+
+        let mut ser_tmp = Packet::serialize(&a).unwrap();
+        ser_tmp.add(&b).unwrap();
+        ser_tmp.add(&c).unwrap();
+
+        let mut deser_iterator = ser_tmp.deserialize_multiple();
+        assert_eq!(a,deser_iterator.next().unwrap());
+        assert_eq!(b,deser_iterator.next().unwrap());
+        assert_eq!(c,deser_iterator.next().unwrap());
+      }
+    });
   }
 
   # [test]

@@ -8,40 +8,37 @@ use serde::de::{Deserialize, Deserializer};
 use crate::networking::payloads::payload::Ipv8Payload;
 
 #[derive(Debug, PartialEq)]
-struct IntroductionRequestPayload {
+pub struct IntroductionRequestPayload {
   /// is the address of the receiver.  Effectively this should be the
   /// wan address that others can use to contact the receiver.
-  destination_address: Address,
+  pub destination_address: Address,
   /// is the lan address of the sender.  Nodes in the same LAN
   /// should use this address to communicate.
-  source_lan_address: Address,
+  pub source_lan_address: Address,
   /// is the wan address of the sender.  Nodes not in the same
   /// LAN should use this address to communicate.
-  source_wan_address: Address,
+  pub source_wan_address: Address,
   /// When True the receiver will introduce the sender to a new
   /// node. This introduction will be facilitated by the receiver sending a puncture-request
   /// to the new node.
-  advice: bool,
+  pub advice: bool,
   // self.identifier = identifier % 65536
   // self.extra_bytes = extra_bytes
   /// indicates the connection type that the message creator has.
-  connection_type: ConnectionType,
+  pub connection_type: ConnectionType,
 
   /// is a number that must be given in the associated introduction-response.  This
   /// number allows to distinguish between multiple introduction-response messages.
   /// NOTE: u16 is the max value given by the py-ipv8 implementation
   /// (https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/payload.py#L74)
-  identifier: u16,
+  pub identifier: u16,
 
   /// is a string that can be used to piggyback extra information.
-  extra_bytes: RawEnd,
+  pub extra_bytes: RawEnd,
 }
 
 impl Ipv8Payload for IntroductionRequestPayload{
-  /// this function is necessary for any payload which has a rawend final field. It is called to set this field. (like a setter.)
-  fn set_rawend(&mut self, bytes:RawEnd){
-    self.extra_bytes = bytes;
-  }
+  // doesnt have anything but needed for the default implementation (as of right now)
 }
 
 /// makes the IntroductionRequestPayload serializable.
