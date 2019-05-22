@@ -1,5 +1,5 @@
 variables:
-  BUILD_IMAGE: /build:
+  BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:$CI_COMMIT_REF_NAME
 
 stages:
   - pre_build
@@ -15,18 +15,17 @@ create_build_image:
       changes:
         - Cargo.*
         - Dockerfile.build
-        - .gitlab-ci.yml
     before_script:
-      - docker login -u gitlab-ci-token -p
+      - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     script:
-      - docker build --pull -t  -f Dockerfile.build .
-      - docker push
+      - docker build --pull -t $BUILD_IMAGE -f Dockerfile.build .
+      - docker push $BUILD_IMAGE
 
 rust-latest:
     stage: test
-    image:
+    image: $BUILD_IMAGE
     cache:
-      key:
+    key: ${CI_COMMIT_REF_SLUG}
       paths:
         - target/
     before_script:
@@ -35,5 +34,4 @@ rust-latest:
       - cargo build --verbose
       - cargo test --no-run
       - kcov --exclude-pattern=/.cargo,/usr/lib target/cov target/debug/ipv8-*[^\.d]
-
 
