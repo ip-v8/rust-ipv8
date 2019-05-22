@@ -93,8 +93,6 @@ impl Packet{
 mod tests {
   use super::*;
   use serde::{Serialize,Deserialize};
-  extern crate test;
-  use test::Bencher;
 
   #[derive(Debug, PartialEq, Serialize, Deserialize)]
   struct TestPayload1 {
@@ -112,27 +110,6 @@ mod tests {
 
   impl Ipv8Payload for TestPayload2 {
     // doesnt have anything but needed for the default implementation (as of right now)
-  }
-
-  #[bench]
-  fn bench_deserialize_multiple(b: &mut Bencher){
-    b.iter(|| {
-      let n = test::black_box(100000);
-      for i in 0..n{
-        let a = TestPayload1{test:42};
-        let b = TestPayload2{test:43};
-        let c = TestPayload1{test:44};
-
-        let mut ser_tmp = Packet::serialize(&a).unwrap();
-        ser_tmp.add(&b).unwrap();
-        ser_tmp.add(&c).unwrap();
-
-        let mut deser_iterator = ser_tmp.deserialize_multiple();
-        assert_eq!(a,deser_iterator.next().unwrap());
-        assert_eq!(b,deser_iterator.next().unwrap());
-        assert_eq!(c,deser_iterator.next().unwrap());
-      }
-    });
   }
 
   # [test]
