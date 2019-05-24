@@ -1,9 +1,13 @@
 # rust-ipv8
 
-**Stable:**   
-[![Build Status](https://travis-ci.org/ip-v8/rust-ipv8.svg?branch=master)](https://travis-ci.org/ip-v8/rust-ipv8)   
-**Development:**   
+**Stable:**
+[![Build Status](https://travis-ci.org/ip-v8/rust-ipv8.svg?branch=master)](https://travis-ci.org/ip-v8/rust-ipv8)
+[![codecov](https://codecov.io/gh/ip-v8/rust-ipv8/branch/master/graph/badge.svg)](https://codecov.io/gh/ip-v8/rust-ipv8)
+**Development:**
 [![Build Status](https://travis-ci.org/ip-v8/rust-ipv8.svg?branch=develop)](https://travis-ci.org/ip-v8/rust-ipv8)
+[![codecov](https://codecov.io/gh/ip-v8/rust-ipv8/branch/develop/graph/badge.svg)](https://codecov.io/gh/ip-v8/rust-ipv8)
+
+
 
 This is an implementation of the Python library [py-ipv8](https://github.com/Tribler/py-ipv8) in Rust. The goal is that it's completely compatible with it's Python counterpart.
 
