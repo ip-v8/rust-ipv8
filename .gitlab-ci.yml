@@ -40,3 +40,5 @@ rust-latest:
       - cargo build --verbose
       - cargo test --no-run
       - kcov target/cov target/debug/ipv8-*[^\.d] && bash <(curl -s https://codecov.io/bash) -s target/cov
+    after_script:
+      - rm -rf target/cov
