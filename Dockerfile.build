@@ -1,2 +1,10 @@
 FROM rust:latest
-RUN apt-get update && apt-get -y install kcov && apt-get -y clean
+RUN apt-get update && apt-get install -y cmake
+RUN wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&\
+    tar xzf master.tar.gz &&\
+    cd kcov-master &&\
+    mkdir build &&\
+    cd build &&\
+    cmake .. &&\
+    make &&\
+    make install
