@@ -61,8 +61,8 @@ impl Signature{
         let s = signature.s().to_vec();
         let r = signature.r().to_vec();
 
-        let s_padding = half_signature_length - s.len() + s.len()%2;
-        let r_padding = half_signature_length - r.len() + r.len()%2;
+        let s_padding = half_signature_length - s.len();
+        let r_padding = half_signature_length - r.len();
 
         let mut result = vec![0; r_padding as usize];
         result.extend(r);
@@ -101,10 +101,10 @@ impl Signature{
         let r = &signature[..half_signature_length];
         let s = &signature[half_signature_length..];
 
-        match verify_signature_openssl((match BigNum::from_slice(s){
+        match verify_signature_openssl((match BigNum::from_slice(r){
           Ok(i) => i,
           Err(_) => return false
-        },match BigNum::from_slice(r){
+        },match BigNum::from_slice(s){
           Ok(i) => i,
           Err(_) => return false
         }),data,i){
