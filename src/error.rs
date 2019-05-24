@@ -1,5 +1,5 @@
 macro_rules! create_error {
- ( $name: ident, $message: expr) => {
+  ( $name: ident, $message: expr) => {
     #[derive(Debug)]
     pub struct $name;
 
