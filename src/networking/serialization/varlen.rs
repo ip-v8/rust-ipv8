@@ -2,20 +2,20 @@ use serde;
 use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
 use serde::ser::{Error, Serialize, Serializer, SerializeStruct};
 use std::fmt;
-use crate::networking::payloads::payload::Ipv8Payload;
+use crate::networking::payloads::Ipv8Payload;
 
 /// Struct representing a payload section of variable length section of a payload.
 /// VarLen16 means the max length of the variable length section is 2^16 bytes
 #[derive(PartialEq,Debug)]
-struct VarLen16(
-  pub Vec<u8>
+pub struct VarLen16(
+  pub Vec<u8>,
 );
 impl Ipv8Payload for VarLen16{}
 
 /// Struct representing a payload section of variable length section of a payload.
 /// VarLen16 means the max length of the variable length section is 2^32 bytes
 #[derive(PartialEq,Debug)]
-struct VarLen32(
+pub struct VarLen32(
   pub Vec<u8>
 );
 impl Ipv8Payload for VarLen32{}
@@ -23,7 +23,7 @@ impl Ipv8Payload for VarLen32{}
 /// Struct representing a payload section of variable length section of a payload.
 /// VarLen16 means the max length of the variable length section is 2^64 bytes
 #[derive(PartialEq, Debug, serde::Serialize, serde::Deserialize)]
-struct VarLen64(
+pub struct VarLen64(
   pub Vec<u8>
 );
 impl Ipv8Payload for VarLen64{}
@@ -52,12 +52,12 @@ impl<'de> Deserialize<'de> for VarLen16 {
           res.push(seq.next_element()?.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?);
         }
 
-        return Ok(VarLen16(res));
+        Ok(VarLen16(res))
       }
     }
 
     //deserialize it as a tuple of maximum length (2^16)
-    return Ok(deserializer.deserialize_tuple(1<<16,VarLen16Visitor)?)
+    Ok(deserializer.deserialize_tuple(1<<16,VarLen16Visitor)?)
   }
 }
 
@@ -105,11 +105,11 @@ impl<'de> Deserialize<'de> for VarLen32 {
           res.push(seq.next_element()?.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?);
         }
 
-        return Ok(VarLen32(res));
+        Ok(VarLen32(res))
       }
     }
 
-    return Ok(deserializer.deserialize_tuple(1<<32,VarLen32Visitor)?)
+    Ok(deserializer.deserialize_tuple(1<<32,VarLen32Visitor)?)
   }
 }
 

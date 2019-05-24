@@ -1,19 +1,19 @@
 use super::super::address::Address;
-use super::payload::Ipv8Payload;
+use super::Ipv8Payload;
 use serde::{Serialize,Deserialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct PuncturePayload {
+pub struct PuncturePayload {
   /// is the lan address of the sender.  Nodes in the same LAN
   /// should use this address to communicate.
-  lan_walker_address: Address,
+  pub lan_walker_address: Address,
   /// is the wan address of the sender.  Nodes not in the same
   /// LAN should use this address to communicate.
-  wan_walker_address: Address,
+  pub wan_walker_address: Address,
 
   /// is a number that was given in the associated introduction-request.  This
   /// number allows to distinguish between multiple introduction-response messages.
-  identifier: u16,
+  pub identifier: u16,
 }
 
 impl Ipv8Payload for PuncturePayload {
