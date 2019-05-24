@@ -1,14 +1,16 @@
-use serde::{Deserialize,Serialize};
-use crate::networking::crypto::{verify_signature_ed25519, create_signature_ed25519, verify_signature_openssl, create_signature_openssl};
 use std::error::Error;
+use std::fmt;
+
+use openssl::bn::BigNum;
 use rust_sodium::crypto::sign::ed25519;
-use crate::networking::payloads::Ipv8Payload;
+use serde::{Deserialize, Serialize};
 use serde::ser::Serializer;
 use serde::ser::SerializeTuple;
+
+use crate::networking::crypto::{create_signature_ed25519, create_signature_openssl, verify_signature_ed25519, verify_signature_openssl};
+use crate::networking::crypto::keytypes::{get_signature_length, PrivateKey, PublicKey};
+use crate::networking::payloads::Ipv8Payload;
 use crate::networking::serialization::rawend::RawEnd;
-use openssl::bn::BigNum;
-use crate::networking::crypto::keytypes::{PublicKey, PrivateKey, get_signature_length};
-use std::fmt;
 
 create_error!(KeyError, "Invalid Key");
 create_error!(CurveError, "This curve is unknown");
@@ -118,11 +120,14 @@ impl Signature{
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use rust_sodium::crypto::kx::keypair_from_seed;
-  use crate::networking::crypto::keytypes::PublicKey::OpenSSLVeryLow;
-  use openssl;
   use core::mem;
+
+  use openssl;
+  use rust_sodium::crypto::kx::keypair_from_seed;
+
+  use crate::networking::crypto::keytypes::PublicKey::OpenSSLVeryLow;
+
+  use super::*;
 
   #[test]
   fn test_signature_ed25519() {
@@ -139,17 +144,18 @@ mod tests {
 
   #[test]
   fn test_signature_SECT163K1() {
-    // private key generated with SECT163K1 and is allways constant because it is directly pasted here
-    //TODO: check if we can manually verify the sig
-    let skey = openssl::ec::EcKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMFMCAQEEFQKu4aaDxyTSj92iquQP5CIdbagLP6AHBgUrgQQAAaEuAywABABQ76xopUysBuWInGkX+S4elFdpOQZphgLlc6ksoim+5DgUZEBPp+B2Dg==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
-    //let pkey = openssl::ec::EcKey::public_key_from_pem("-----BEGIN PUBLIC KEY-----\nMEAwEAYHKoZIzj0CAQYFK4EEAAEDLAAEAFDvrGilTKwG5YicaRf5Lh6UV2k5BmmGAuVzqSyiKb7kOBRkQE+n4HYO\n-----END PUBLIC KEY-----".as_bytes()).unwrap();
-    let pkey_tmp = openssl::pkey::PKey::public_key_from_pem("-----BEGIN PUBLIC KEY-----\nMEAwEAYHKoZIzj0CAQYFK4EEAAEDLAAEAFDvrGilTKwG5YicaRf5Lh6UV2k5BmmGAuVzqSyiKb7kOBRkQE+n4HYO\n-----END PUBLIC KEY-----".as_bytes()).unwrap();
-    let pkey = pkey_tmp.ec_key().unwrap();
+    for x in 0..100 {
+      // private key generated with SECT163K1 and is always constant because it is directly pasted here
+      let skey = openssl::ec::EcKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMFMCAQEEFQKu4aaDxyTSj92iquQP5CIdbagLP6AHBgUrgQQAAaEuAywABABQ76xopUysBuWInGkX+S4elFdpOQZphgLlc6ksoim+5DgUZEBPp+B2Dg==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
+      //let pkey = openssl::ec::EcKey::public_key_from_pem("-----BEGIN PUBLIC KEY-----\nMEAwEAYHKoZIzj0CAQYFK4EEAAEDLAAEAFDvrGilTKwG5YicaRf5Lh6UV2k5BmmGAuVzqSyiKb7kOBRkQE+n4HYO\n-----END PUBLIC KEY-----".as_bytes()).unwrap();
+      let pkey_tmp = openssl::pkey::PKey::public_key_from_pem("-----BEGIN PUBLIC KEY-----\nMEAwEAYHKoZIzj0CAQYFK4EEAAEDLAAEAFDvrGilTKwG5YicaRf5Lh6UV2k5BmmGAuVzqSyiKb7kOBRkQE+n4HYO\n-----END PUBLIC KEY-----".as_bytes()).unwrap();
+      let pkey = pkey_tmp.ec_key().unwrap();
 
 
-    let sig = Signature::from_bytes(&[42,43,44],PrivateKey::OpenSSLVeryLow(skey)).unwrap();
-    println!("{:?}",sig);
+      let sig = Signature::from_bytes(&[42, 43, 44], PrivateKey::OpenSSLVeryLow(skey)).unwrap();
+      // println!("{:?}",sig);
 
-    assert!(sig.verify(&[42,43,44], PublicKey::OpenSSLVeryLow(pkey)));
+      assert!(sig.verify(&[42, 43, 44], PublicKey::OpenSSLVeryLow(pkey)));
+    }
   }
 }
