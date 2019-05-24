@@ -56,6 +56,10 @@ impl Packet{
   pub fn new() -> Self{
     Self(vec![])
   }
+//
+//  pub fn sign(&self, ){
+//
+//  }
 
   /// Deserializes a stream of bytes into an ipv8 payload. Which payload is inferred by the type of T which is generic.
   /// T has to be deserializable and implement the Ipv8Payload trait.

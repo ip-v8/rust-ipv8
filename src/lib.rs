@@ -1,3 +1,6 @@
+//#![allow(warnings)]
+#[macro_use]
+pub mod error;
 pub mod configuration;
 pub mod event;
 pub mod networking;
