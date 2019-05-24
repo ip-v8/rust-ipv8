@@ -45,11 +45,10 @@ impl<'de> Deserialize<'de> for RawEnd {
             Err(_err) => break
           }
         }
-        return Ok(RawEnd(res));
+        Ok(RawEnd(res))
       }
     }
-    //TODO: something like infinity?
-    return Ok(deserializer.deserialize_tuple(std::usize::MAX,RawEndVisitor)?)
+    Ok(deserializer.deserialize_tuple(std::usize::MAX,RawEndVisitor)?)
   }
 }
 
@@ -57,7 +56,7 @@ impl<'de> Deserialize<'de> for RawEnd {
 mod tests {
   use super::*;
   use serde::{Serialize,Deserialize};
-  use crate::networking::payloads::payload::Ipv8Payload;
+  use crate::networking::payloads::Ipv8Payload;
   use crate::networking::serialization::Packet;
 
   #[derive(Debug, PartialEq, Serialize, Deserialize)]
