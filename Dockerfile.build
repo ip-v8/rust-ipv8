@@ -1,10 +1,6 @@
+FROM kcov/kcov as kcov
+
 FROM rust:latest
-RUN apt-get update && apt-get install -y cmake
-RUN wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&\
-    tar xzf master.tar.gz &&\
-    cd kcov-master &&\
-    mkdir build &&\
-    cd build &&\
-    cmake .. &&\
-    make &&\
-    make install
+COPY --from=kcov /lib/x86_64-linux-gnu/*.so* /lib/x86_64-linux-gnu/
+COPY --from=kcov /usr/lib/x86_64-linux-gnu/*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=kcov /usr/local/bin/kcov /usr/local/bin/
