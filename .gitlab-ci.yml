@@ -5,40 +5,78 @@ variables:
 stages:
   - pre_build
   - test
+  - deploy
+
+.rust-template: &rust-template
+  before_script:
+    - rustc --version && cargo --version
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - target/
+      - $CARGO_HOME
+  only:
+    changes:
+      - src/**/*.rs
+      - Cargo.*
+      - .gitlab-ci.yml
+      - tests/**/*.rs
+      - examples/**/*.rs
+      - benches/**/*.rs
 
 create_build_image:
-    stage: pre_build
-    services:
-     - docker:dind
-    image: docker
-    only:
-      changes:
-        - Dockerfile.build
-    before_script:
-      - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    script:
-      - docker build -t $BUILD_IMAGE -f Dockerfile.build .
-      - docker push $BUILD_IMAGE
+  stage: pre_build
+  services:
+   - docker:dind
+  image: docker
+  only:
+    refs:
+      - schedules
+    changes:
+    - .gitlab-ci.yml
+    - Dockerfile.build
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - docker build -t $BUILD_IMAGE -f Dockerfile.build .
+    - docker push $BUILD_IMAGE
+
+clippy:
+  <<: *rust-template
+  image: $BUILD_IMAGE
+  stage: test
+  script:
+    - cargo clippy
 
 rust-latest:
-    stage: test
-    image: $BUILD_IMAGE
-    only:
-      changes:
-        - src/**/*.rs
-        - Cargo.*
-        - .gitlab-ci.yml
-        - tests/**/*.rs
-        - examples/**/*.rs
-        - benches/**/*.rs
-    cache:
-      key: ${CI_COMMIT_REF_SLUG}
-      paths:
-        - target/
-        - cargo/
-    script:
-      - cargo build --verbose
-      - cargo test --no-run
-      - kcov target/cov target/debug/ipv8-*[^\.d] && bash <(curl -s https://codecov.io/bash) -s target/cov
-    after_script:
-      - rm -rf target/cov
+  <<: *rust-template
+  stage: test
+  image: $BUILD_IMAGE
+  script:
+    - cargo build --verbose --release
+    - cargo test --no-run
+  after_script:
+    - kcov target/cov target/debug/ipv8-*[^\.d] && bash <(curl -s https://codecov.io/bash) -s target/cov
+    - rm -rf target/cov
+
+rust-nightly:
+  <<: *rust-template
+  stage: test
+  image: rustlang/rust:nightly
+  allow_failure: true
+  script:
+    - cargo build --verbose --release
+    - cargo test
+
+pages:
+  stage: deploy
+  image: $BUILD_IMAGE
+  only:
+    - development
+  script:
+    - cargo doc --no-deps
+    - rm -rf public
+    - mv target/doc/ public
+  artifacts:
+    paths:
+      - public
