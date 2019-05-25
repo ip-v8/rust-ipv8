@@ -106,7 +106,7 @@ mod tests {
   }
 
   #[test]
-  fn test_nothing() {
+  fn test_empty() {
     let i = TestPayload1 {
       test: NestedPacket(
         Packet::serialize(&TestPayload3{}).unwrap()

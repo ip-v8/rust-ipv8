@@ -4,7 +4,6 @@ pub mod keytypes;
 use rust_sodium::crypto::sign::ed25519;
 use std::error::Error;
 use std::fmt;
-use openssl::sign::Signer;
 use openssl::pkey::{Private, Public};
 use openssl::ecdsa::EcdsaSig;
 use openssl::bn::BigNum;
@@ -59,7 +58,6 @@ mod tests {
   use openssl::bn::BigNum;
   use std::os::raw::c_int;
   use std::error::Error;
-  use std::any::Any;
 
 
   #[test]
