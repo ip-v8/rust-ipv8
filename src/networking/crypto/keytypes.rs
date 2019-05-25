@@ -1,9 +1,6 @@
 
 use openssl;
 use rust_sodium::crypto::sign::ed25519;
-use lazy_static;
-use std::collections::HashMap;
-
 
 pub fn get_signature_length(curve : openssl::nid::Nid) -> Option<u16>{
 
