@@ -123,16 +123,35 @@ mod tests {
   impl Ipv8Payload for TestPayload2 {
     // doesnt have anything but needed for the default implementation (as of right now)
   }
-
-// only works with feature(test) and with `extern crate test; use test::Bencher`
+//
+//  // only works with feature(test) and with `extern crate test; use test::Bencher;`
+//  extern crate test;
+//  use test::Bencher;
+//  use crate::networking::serialization::varlen::VarLen16;
+//  #[derive(Debug, PartialEq, Serialize, Deserialize)]
+//  struct TestPayload3 {
+//    test:VarLen16,
+//  }
+//
+//  impl Ipv8Payload for TestPayload3 {
+//    // doesnt have anything but needed for the default implementation (as of right now)
+//  }
+//
 //  #[bench]
 //  fn bench_deserialize_multiple(b: &mut Bencher){
-//    b.iter(|| {
+//    let mut tst = vec![];
+//    for i in 0..10000{
+//      tst.push((i%255) as u8);
+//    }
+//
+//    b.iter(move || {
 //      let n = test::black_box(100000);
-//      for i in 0..n{
+//      for _i in 0..n{
+//
 //        let a = TestPayload1{test:42};
 //        let b = TestPayload2{test:43};
-//        let c = TestPayload1{test:44};
+//        let c = TestPayload1{test:10};
+////        let c = TestPayload3{test:VarLen16(tst.to_owned())};
 //
 //        let mut ser_tmp = Packet::serialize(&a).unwrap();
 //        ser_tmp.add(&b).unwrap();

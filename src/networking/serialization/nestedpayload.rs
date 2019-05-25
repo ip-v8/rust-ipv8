@@ -30,7 +30,7 @@ impl Serialize for NestedPacket {
 }
 
 #[derive(Debug, PartialEq, serde::Deserialize)]
-/// this is the actual pattern of an NestedPayload.z
+/// this is the actual pattern of a NestedPayload.
 /// Used for deserializing. This is again needed because there is no 1:1 mapping between the
 /// serialized data and the payload struct. This is the intermediate representation.
 struct NestedPayloadPattern(VarLen16);
@@ -86,7 +86,6 @@ mod tests {
   impl Ipv8Payload for TestPayload4 {
     // doesnt have anything but needed for the default implementation (as of right now)
   }
-
 
   #[test]
   fn integration_test_creation() {
