@@ -72,7 +72,7 @@ pages:
   stage: deploy
   image: $BUILD_IMAGE
   only:
-    - development
+    - develop
   script:
     - cargo doc --no-deps
     - rm -rf public
