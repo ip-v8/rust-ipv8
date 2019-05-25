@@ -2,6 +2,9 @@ use serde::{Serialize,Deserialize};
 use crate::networking::payloads::Ipv8Payload;
 use crate::networking::serialization::varlen::VarLen16;
 
+/// This struct represents the public key in a message.
+/// This is important because with this key the signature (at the end of a packet)
+/// can be verified.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BinMemberAuthenticationPayload {
   /// TODO: has to change to a PublicKey binary representation object. The serializer should convert this to a varlen16 while serializing like in IntroductionRequestPayload.

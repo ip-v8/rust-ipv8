@@ -73,21 +73,18 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where D: Deserializer<'de>,{
     // first deserialize it to a temporary struct which literally represents the packer
-    let payload_temporary = IntroductionRequestPayloadPattern::deserialize(deserializer);
+    let payload_temporary = IntroductionRequestPayloadPattern::deserialize(deserializer)?;
 
     // now build the struct for real
-    match payload_temporary{
-      Ok(i) => Ok(IntroductionRequestPayload {
-        destination_address: i.0,
-        source_lan_address: i.1,
-        source_wan_address: i.2,
-        advice: i.3.bit7,
-        connection_type: ConnectionType::decode((i.3.bit0, i.3.bit1)),
-        identifier: i.4,
-        extra_bytes: i.5,
-      }),
-      Err(i) => Err(i) // on error just forward the error
-    }
+    Ok(IntroductionRequestPayload {
+      destination_address: payload_temporary.0,
+      source_lan_address: payload_temporary.1,
+      source_wan_address: payload_temporary.2,
+      advice: payload_temporary.3.bit7,
+      connection_type: ConnectionType::decode((payload_temporary.3.bit0, payload_temporary.3.bit1)),
+      identifier: payload_temporary.4,
+      extra_bytes: payload_temporary.5,
+    })
   }
 }
 
