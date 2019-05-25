@@ -30,11 +30,11 @@ create_build_image:
    - docker:dind
   image: docker
   only:
+    changes:
+      - .gitlab-ci.yml
+      - Dockerfile.build
     refs:
       - schedules
-    changes:
-    - .gitlab-ci.yml
-    - Dockerfile.build
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
