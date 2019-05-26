@@ -39,14 +39,14 @@ impl Serialize for BinMemberAuthenticationPayload {
 /// this is the actual pattern of an BinMemberAuthenticationPayload.
 /// Used for deserializing. This is again needed because there is no 1:1 mapping between the
 /// serialized data and the payload struct. This is the intermediate representation.
-struct IntroductionRequestPayloadPattern(VarLen16);
+struct BinMemberAuthenticationPayloadPattern(VarLen16);
 
 impl<'de> Deserialize<'de> for BinMemberAuthenticationPayload {
   /// deserializes an IntroductionRequestPayload
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where D: Deserializer<'de>, {
     // first deserialize it to a temporary struct which literally represents the packer
-    let payload_temporary = IntroductionRequestPayloadPattern::deserialize(deserializer)?;
+    let payload_temporary = BinMemberAuthenticationPayloadPattern::deserialize(deserializer)?;
 
     // now build the struct for real
     Ok(BinMemberAuthenticationPayload {
@@ -67,12 +67,15 @@ impl Ipv8Payload for BinMemberAuthenticationPayload {
 mod tests {
   use super::*;
   use crate::networking::serialization::Packet;
+  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[test]
   fn integration_test_creation() {
     let i = BinMemberAuthenticationPayload {
-      public_key_bin: PublicKey::from_vec(vec![76,105,98,78,97,67,76,80,75,58,3,161,7,191,243,206,16,190,29,112,221,24,231,75,192,153,103,228,214,48,155,165,13,95,29,220,134,100,18,85,49,184,]).unwrap()
+      public_key_bin: PublicKey::from_vec(vec![76,105,98,78,97,67,76,80,75,58,3,161,7,191,243,206,16,190,29,112,221,24,231,75,192,153,103,228,214,48,155,165,13,95,29,220,134,100,18,85,49,184,3,161,7,191,243,206,16,190,29,112,221,24,231,75,192,153,103,228,214,48,155,165,13,95,29,220,134,100,18,85,49,184,]).unwrap()
     };
-    assert_eq!(i, Packet::serialize(&i).unwrap().deserialize().unwrap());
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&i).unwrap();
+    assert_eq!(i, packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
   }
 }

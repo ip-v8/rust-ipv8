@@ -48,8 +48,10 @@ impl<'de> Deserialize<'de> for NestedPacket {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::networking::serialization::Packet;
+  use crate::networking::serialization::{Packet, PacketIterator};
   use serde;
+  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
+  use bincode::ErrorKind;
 
   #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
   struct TestPayload1 {
@@ -89,46 +91,51 @@ mod tests {
 
   #[test]
   fn integration_test_creation() {
-    let i = TestPayload1 {
-      test: NestedPacket(
-        Packet::serialize(&TestPayload2{
-          test:10,
-        }).unwrap()
-      )
-    };
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&TestPayload2{test:10,}).unwrap();
 
-    assert_eq!(
-      Packet::serialize(&i).unwrap(),
-      Packet(vec![0,2,0,10])
-    );
-    assert_eq!(i,Packet::serialize(&i).unwrap().deserialize().unwrap());
+    let mut packet2 = Packet::new(TEST_HEADER).unwrap();
+    packet2.add(&TestPayload2{test:10,}).unwrap();
+
+    let i = TestPayload1 {
+      test: NestedPacket(packet)
+    };
+    let mut newpacket = Packet::new(TEST_HEADER).unwrap();
+    newpacket.add(&i);
+
+    assert_eq!(i,newpacket.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
   }
 
   #[test]
   fn test_empty() {
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&TestPayload3{}).unwrap();
+
+    let mut packet2 = Packet::new(TEST_HEADER).unwrap();
+    packet2.add(&TestPayload3{}).unwrap();
+
     let i = TestPayload1 {
-      test: NestedPacket(
-        Packet::serialize(&TestPayload3{}).unwrap()
-      )
+      test: NestedPacket(packet)
     };
 
-    assert_eq!(
-      Packet::serialize(&i).unwrap(),
-      Packet(vec![0,0,])
-    );
-    assert_eq!(i,Packet::serialize(&i).unwrap().deserialize().unwrap());
+    let mut newpacket = Packet::new(TEST_HEADER).unwrap();
+    newpacket.add(&i);
+
+    assert_eq!(i, newpacket.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
   }
 
   #[test]
   fn test_too_large() {
     let tmp:Vec<u8> = vec![0; (1u32 << 17) as usize];
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&TestPayload4{test:tmp}).unwrap();
+
     let i = TestPayload1 {
-      test: NestedPacket(
-        Packet::serialize(&TestPayload4{test:tmp}).unwrap()
-      )
+      test: NestedPacket(packet)
     };
 
-    match Packet::serialize(&i){
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    match packet.add(&i){
       Ok(_) => assert!(false),
       Err(_) => assert!(true),
     }

@@ -58,6 +58,7 @@ mod tests {
   use serde::{Serialize,Deserialize};
   use crate::networking::payloads::Ipv8Payload;
   use crate::networking::serialization::Packet;
+  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[derive(Debug, PartialEq, Serialize, Deserialize)]
   struct TestPayload1 {
@@ -72,16 +73,19 @@ mod tests {
   fn test_serialize_rawend(){
     let a = TestPayload1{test:RawEnd(vec![42,43])};
 
-    let ser_tmp = Packet::serialize(&a).unwrap();
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
 
-    assert_eq!(Packet(vec![42,43]),ser_tmp);
+    packet.add(&a).unwrap();
+
+    assert_eq!(Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,42,43]),packet);
   }
 
   # [test]
   fn test_deserialize_rawend(){
     let a = TestPayload1{test:RawEnd(vec![42,43,])};
 
-    let mut ser_tmp = Packet::serialize(&a).unwrap();
-    assert_eq!(a,ser_tmp.deserialize().unwrap());
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&a).unwrap();
+    assert_eq!(a,packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
   }
 }

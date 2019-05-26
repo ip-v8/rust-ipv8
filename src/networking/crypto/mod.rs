@@ -1,13 +1,18 @@
 pub mod signature;
 pub mod keytypes;
 
-use rust_sodium::crypto::sign::ed25519;
+use rust_sodium;
+use rust_sodium::crypto::sign::{ed25519, sign};
 use std::error::Error;
 use std::fmt;
 use openssl::pkey::{Private, Public};
 use openssl::ecdsa::EcdsaSig;
 use openssl::bn::BigNum;
 use std::os::raw::c_int;
+use std::any::Any;
+use rust_sodium::crypto::secretbox::open;
+use openssl::sign::Signer;
+use openssl::hash::MessageDigest;
 
 create_error!(SignatureError, "Invalid signature");
 create_error!(SizeError, "Invalid input size");
@@ -20,35 +25,53 @@ pub fn create_signature_ed25519(data: &[u8], skey: ed25519::SecretKey) -> Result
 
 /// wrapper function for verifying data using ed25519
 pub fn verify_signature_ed25519(signature: Vec<u8>, data: &[u8], pkey: ed25519::PublicKey) -> Result<bool,Box<Error>>{
-  Ok(ed25519::verify_detached(&match ed25519::Signature::from_slice(&*signature) {
+  let verify = ed25519::verify_detached(&match ed25519::Signature::from_slice(&*signature) {
     Some(i) => i,
     None => return Err(Box::new(SignatureError))
-  },data, &pkey))
+  },data, &pkey);
+  Ok(verify)
 }
 
-/// wrapper function for signing data using ed25519
-pub fn create_signature_openssl(data: &[u8], skey: openssl::ec::EcKey<Private>) -> Result<EcdsaSig, Box<Error>>{
+/// wrapper function for signing data using openssl
+pub fn create_signature_openssl(data: &[u8], skey: openssl::pkey::PKey<Private>) -> Result<Vec<u8>, Box<Error>>{
   if data.len() > c_int::max_value() as usize{
     return Err(Box::new(SizeError));
   }
-  match EcdsaSig::sign(data, &*skey){
-    Ok(i) => Ok(i),
-    Err(_) => Err(Box::new(OpenSSLError))
-  }
+
+  let mut signer = match Signer::new(MessageDigest::sha1(), &skey){
+    Ok(i) => i,
+    Err(e) => return Err(Box::new(OpenSSLError))
+  };
+
+  signer.update(data)?;
+
+  let a = match signer.sign_to_vec(){
+    Ok(i) => i,
+    Err(e) => return Err(Box::new(OpenSSLError))
+  };
+
+  dbg!(&a);
+
+  Ok(a)
 }
 
-/// wrapper function for verifying data using ed25519
-pub fn verify_signature_openssl(signature: (BigNum, BigNum), data: &[u8], pkey: openssl::ec::EcKey<Public>) -> Result<bool,Box<Error>>{
+/// wrapper function for verifying data using openssl
+pub fn verify_signature_openssl(signature: (BigNum, BigNum), data: &[u8], pkey: openssl::pkey::PKey<Public>) -> Result<bool,Box<Error>>{
   if data.len() > c_int::max_value() as usize{
     return Err(Box::new(SizeError));
   }
-  match match EcdsaSig::from_private_components(signature.0,signature.1){
+
+  let mut verifier =openssl::sign::Verifier::new(openssl::hash::MessageDigest::sha1(), &pkey)?;
+  verifier.update(data)?;
+
+  let sig = match EcdsaSig::from_private_components(signature.0,signature.1){
     Ok(i) => i,
     Err(_) => return Err(Box::new(OpenSSLError)) // Should **never** happen but if it does openssl burn it
-  }.verify(data,&*pkey) {
-    Ok(i) => Ok(i),
-    Err(_) => return Err(Box::new(OpenSSLError)) // Should **never** happen but if it does openssl burn it
-  }
+  };
+
+  let a = verifier.verify(&(*sig).to_der()?)?;
+  dbg!(a);
+  Ok(a)
 }
 
 #[cfg(test)]
@@ -78,8 +101,7 @@ mod tests {
     let s = BigNum::new().unwrap();
 
     let tmp:Vec<u8> = vec![0; (c_int::max_value() as usize) + 1];
-    let pkey_tmp = openssl::pkey::PKey::public_key_from_pem("-----BEGIN PUBLIC KEY-----\nMEAwEAYHKoZIzj0CAQYFK4EEAAEDLAAEAFDvrGilTKwG5YicaRf5Lh6UV2k5BmmGAuVzqSyiKb7kOBRkQE+n4HYO\n-----END PUBLIC KEY-----".as_bytes()).unwrap();
-    let pkey = pkey_tmp.ec_key().unwrap();
+    let pkey = openssl::pkey::PKey::public_key_from_pem("-----BEGIN PUBLIC KEY-----\nMEAwEAYHKoZIzj0CAQYFK4EEAAEDLAAEAFDvrGilTKwG5YicaRf5Lh6UV2k5BmmGAuVzqSyiKb7kOBRkQE+n4HYO\n-----END PUBLIC KEY-----".as_bytes()).unwrap();
 
     match verify_signature_openssl((r,s), &tmp,  pkey) {
       Ok(_) => assert!(false, "We expect failure as the data is too big"),
@@ -89,7 +111,7 @@ mod tests {
 
   #[test]
   fn openssl_create_signature_size_error() {
-    let skey = openssl::ec::EcKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMFMCAQEEFQKu4aaDxyTSj92iquQP5CIdbagLP6AHBgUrgQQAAaEuAywABABQ76xopUysBuWInGkX+S4elFdpOQZphgLlc6ksoim+5DgUZEBPp+B2Dg==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
+    let skey = openssl::pkey::PKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMFMCAQEEFQKu4aaDxyTSj92iquQP5CIdbagLP6AHBgUrgQQAAaEuAywABABQ76xopUysBuWInGkX+S4elFdpOQZphgLlc6ksoim+5DgUZEBPp+B2Dg==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
     let tmp:Vec<u8> = vec![0; (c_int::max_value() as usize) + 1];
 
     match create_signature_openssl(&tmp, skey) {
