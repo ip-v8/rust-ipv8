@@ -57,6 +57,7 @@ rust-latest:
     - cargo test --no-run
   after_script:
     - kcov target/cov target/debug/ipv8-*[^\.d] && bash <(curl -s https://codecov.io/bash) -s target/cov
+    - rm -rf target/debug/*ipv8*
     - rm -rf target/cov
 
 rust-nightly:
@@ -72,7 +73,7 @@ pages:
   stage: deploy
   image: $BUILD_IMAGE
   only:
-    - development
+    - develop
   script:
     - cargo doc --no-deps
     - rm -rf public
