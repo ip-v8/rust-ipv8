@@ -2,7 +2,6 @@ use std::error::Error;
 use std::fmt;
 
 use openssl::bn::BigNum;
-use rust_sodium::crypto::sign::ed25519;
 use serde::Serialize;
 use serde::ser::Serializer;
 use serde::ser::SerializeTuple;
@@ -10,8 +9,6 @@ use serde::ser::SerializeTuple;
 use crate::networking::crypto::{create_signature_ed25519, create_signature_openssl, verify_signature_ed25519, verify_signature_openssl};
 use crate::networking::crypto::keytypes::{PrivateKey, PublicKey};
 use crate::networking::payloads::Ipv8Payload;
-use std::any::Any;
-use rust_sodium::crypto::secretbox::open;
 
 create_error!(KeyError, "Invalid Key");
 create_error!(CurveError, "This curve is unknown");
@@ -39,6 +36,8 @@ impl Serialize for Signature {
 
 impl Signature{
   pub fn from_bytes(data: &[u8], skey: PrivateKey) -> Result<Self, Box<Error>>{
+    // this is before the match to prevent the skey value being "partially borrowed"
+    let size = skey.size();
     match skey {
       PrivateKey::Ed25519(_, key_verification) => {
         let signature: Vec<u8> = create_signature_ed25519(data,key_verification)?.as_ref().to_owned();
@@ -50,8 +49,7 @@ impl Signature{
       PrivateKey::OpenSSLMedium(i) |
       PrivateKey::OpenSSLLow(i) |
       PrivateKey::OpenSSLVeryLow(i) => {
-        // from the name the signature length can be calculated
-        let half_signature_length = i.size() / 2;
+        let half_signature_length = size / 2;
 
         let signature = create_signature_openssl(data, i)?;
 
@@ -75,7 +73,6 @@ impl Signature{
           signature: result
         })
       }
-      _ => Err(Box::new(KeyError))
     }
   }
 
@@ -123,6 +120,7 @@ pub mod tests {
 
   use openssl;
   use super::*;
+  use rust_sodium::crypto::sign::ed25519;
 
   #[test]
   pub fn test_signature_ed25519() {

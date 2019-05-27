@@ -2,15 +2,13 @@ pub mod signature;
 pub mod keytypes;
 
 use rust_sodium;
-use rust_sodium::crypto::sign::{ed25519, sign};
+use rust_sodium::crypto::sign::ed25519;
 use std::error::Error;
 use std::fmt;
 use openssl::pkey::{Private, Public};
 use openssl::ecdsa::EcdsaSig;
 use openssl::bn::BigNum;
 use std::os::raw::c_int;
-use std::any::Any;
-use rust_sodium::crypto::secretbox::open;
 use openssl::sign::Signer;
 use openssl::hash::MessageDigest;
 
@@ -40,19 +38,17 @@ pub fn create_signature_openssl(data: &[u8], skey: openssl::pkey::PKey<Private>)
 
   let mut signer = match Signer::new(MessageDigest::sha1(), &skey){
     Ok(i) => i,
-    Err(e) => return Err(Box::new(OpenSSLError))
+    Err(_) => return Err(Box::new(OpenSSLError))
   };
 
   signer.update(data)?;
 
-  let a = match signer.sign_to_vec(){
+  let der = match signer.sign_to_vec(){
     Ok(i) => i,
-    Err(e) => return Err(Box::new(OpenSSLError))
+    Err(_) => return Err(Box::new(OpenSSLError))
   };
 
-  dbg!(&a);
-
-  Ok(a)
+  Ok(der)
 }
 
 /// wrapper function for verifying data using openssl
@@ -69,9 +65,7 @@ pub fn verify_signature_openssl(signature: (BigNum, BigNum), data: &[u8], pkey: 
     Err(_) => return Err(Box::new(OpenSSLError)) // Should **never** happen but if it does openssl burn it
   };
 
-  let a = verifier.verify(&(*sig).to_der()?)?;
-  dbg!(a);
-  Ok(a)
+  Ok(verifier.verify(&(*sig).to_der()?)?)
 }
 
 #[cfg(test)]

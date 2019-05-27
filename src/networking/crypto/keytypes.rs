@@ -2,11 +2,14 @@ use openssl;
 use rust_sodium::crypto::sign::ed25519;
 use std::fmt;
 
-/// gives the signature length of a nid in bytes
-///
-/// When adding new curves their length should be added here.
+// TODO: when ed25519 becomes available for rust OpenSSL, rust_sodium will be trashed and burned and annihilated (yeeted out of existence). It would make the code so much cleaner.
 
-pub enum PublicKey{
+// when adding new key types follow these steps
+// 1. Add it the the PublicKey and PrivateKey enums
+// 2. Change all the match statements testing for either an openssl or libnacl key (or if your key is not either of this, add yours)
+// 3. Add your key to the list of consts below for signature length
+// 4. add your constant to the macro sig_size.
+pub enum PublicKey {
   OpenSSLVeryLow(openssl::pkey::PKey<openssl::pkey::Public>),
   OpenSSLLow(openssl::pkey::PKey<openssl::pkey::Public>),
   OpenSSLMedium(openssl::pkey::PKey<openssl::pkey::Public>),
@@ -14,27 +17,43 @@ pub enum PublicKey{
   Ed25519(ed25519::PublicKey, ed25519::PublicKey), // First key is encryption key, second is verification key
 }
 
-impl PublicKey{
-  /// Basically a way to map curves to their OpenSSL curve datatype
-  fn get_curve(&self) -> Option<openssl::nid::Nid>{
-    Some(match self{
-      PublicKey::OpenSSLVeryLow(_) => openssl::nid::Nid::SECT163K1,
-      PublicKey::OpenSSLLow(_) => openssl::nid::Nid::SECT233K1,
-      PublicKey::OpenSSLMedium(_) => openssl::nid::Nid::SECT409K1,
-      PublicKey::OpenSSLHigh(_) => openssl::nid::Nid::SECT571R1,
-      _ => return None,
-    })
-  }
+pub enum PrivateKey {
+  OpenSSLVeryLow(openssl::pkey::PKey<openssl::pkey::Private>),
+  OpenSSLLow(openssl::pkey::PKey<openssl::pkey::Private>),
+  OpenSSLMedium(openssl::pkey::PKey<openssl::pkey::Private>),
+  OpenSSLHigh(openssl::pkey::PKey<openssl::pkey::Private>),
+  Ed25519(ed25519::SecretKey, ed25519::SecretKey), // First key is encryption key, second is verification      
+}
 
-  pub fn size(&self) -> usize {
-    match self {
-      PublicKey::Ed25519(_,_) => 64,
-      PublicKey::OpenSSLHigh(i) => i.size() - 6, // we have no fucking clue why this is needed
-      PublicKey::OpenSSLMedium(i) |
-      PublicKey::OpenSSLLow(i) |
-      PublicKey::OpenSSLVeryLow(i) => i.size()
-    }
-  }
+// The length of the used signatures              pyipv8 | .size() | diff | bits/8*2
+const VERY_LOW_SIGNATURE_LENGTH: usize = 42;  //  42     |   50    |  8   | 42
+const LOW_SIGNATURE_LENGTH:      usize = 60;  //  60     |   66    |  6   | 58
+const MEDIUM_SIGNATURE_LENGTH:   usize = 104; //  104    |   110   |  6   | 102
+const HIGH_SIGNATURE_LENGTH:     usize = 144; //  144    |   153   |  9   | 144
+const ED25519_SIGNATURE_LENGTH:  usize = 64;  //  64     |   64    |  0   | 64
+
+// Macro for creating a size function which returns the signature length of the given key.
+// Created to avoid duplication between PrivateKey and PublicKey.
+macro_rules! sig_size {
+    ($keytype: ident) => {
+        pub fn size(&self) -> usize {
+            match self {
+                $keytype::Ed25519(_,_) => ED25519_SIGNATURE_LENGTH,
+                $keytype::OpenSSLHigh(_) => HIGH_SIGNATURE_LENGTH,
+                $keytype::OpenSSLMedium(_) => MEDIUM_SIGNATURE_LENGTH,
+                $keytype::OpenSSLLow(_) => LOW_SIGNATURE_LENGTH,
+                $keytype::OpenSSLVeryLow(_) => VERY_LOW_SIGNATURE_LENGTH
+          }
+        }
+    };
+}
+
+impl PrivateKey{
+  sig_size!(PrivateKey);
+}
+
+impl PublicKey{
+  sig_size!(PublicKey);
 
   pub fn to_vec(&self) -> Option<Vec<u8>>{
     Some(match self{
@@ -51,8 +70,7 @@ impl PublicKey{
       PublicKey::OpenSSLVeryLow(i) => match i.public_key_to_der(){
         Ok(i) => i,
         Err(_) => return None
-      },
-      _ => return None,
+      }
     })
   }
 
@@ -90,29 +108,16 @@ impl PublicKey{
         _ => return None
       };
 
-      dbg!(&m);
-
-
       //get the type of key and convert it to a PublicKey enum type
       Some(m)
     }
   }
 }
 
-pub enum PrivateKey{
-  OpenSSLVeryLow(openssl::pkey::PKey<openssl::pkey::Private>),
-  OpenSSLLow(openssl::pkey::PKey<openssl::pkey::Private>),
-  OpenSSLMedium(openssl::pkey::PKey<openssl::pkey::Private>),
-  OpenSSLHigh(openssl::pkey::PKey<openssl::pkey::Private>),
-  OpenSSLVeryHigh(openssl::pkey::PKey<openssl::pkey::Private>),
-  Ed25519(ed25519::SecretKey, ed25519::SecretKey), // First key is encryption key, second is verification key
-}
-
 impl PartialEq for PublicKey{
   fn eq(&self, other: &Self) -> bool{
     self.to_vec() == other.to_vec()
   }
-
 }
 
 impl fmt::Debug for PrivateKey{
@@ -120,7 +125,6 @@ impl fmt::Debug for PrivateKey{
     write!(f, "PrivateKey <...secret...>")
   }
 }
-
 
 impl fmt::Debug for PublicKey{
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result{

@@ -81,7 +81,7 @@ impl PacketIterator{
   pub fn verify(&mut self) -> bool{
     let authpayload: BinMemberAuthenticationPayload = match self.next(){
       Ok(i) => i,
-      Err(i) => return false // when an error occurred the signature is certainly not right.
+      Err(_) => return false // when an error occurred the signature is certainly not right.
     };
     self.verify_with(authpayload.public_key_bin)
   }
@@ -90,14 +90,11 @@ impl PacketIterator{
   /// through a BinMemberAuthenticationPayload
   pub fn verify_with(&mut self, pkey: PublicKey) -> bool{
     let signaturelength = pkey.size();
-    dbg!(signaturelength);
 
     let datalen = self.pntr.0.len();
     let signature = Signature{signature:self.pntr.0[datalen-signaturelength..].to_vec()};
     self.pntr.0.truncate(datalen - signaturelength);
-    let sig = signature.verify(&*self.pntr.0,pkey);
-    dbg!(sig);
-    sig
+    signature.verify(&*self.pntr.0,pkey)
   }
 }
 
@@ -124,7 +121,7 @@ impl Packet{
   /// PacketIterator.verify_with() method.
   pub fn sign(mut self, skey: PrivateKey) -> Result<Self, Box<Error>>{
     let signature = Signature::from_bytes(&*self.0, skey)?;
-    self.add(&signature);
+    self.add(&signature)?;
     // now this packet *must not* be modified anymore
     Ok(self)
   }
