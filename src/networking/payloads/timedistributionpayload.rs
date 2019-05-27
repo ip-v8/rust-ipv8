@@ -22,17 +22,21 @@ impl Ipv8Payload for TimeDistributionPayload {
 mod tests {
   use super::*;
   use crate::networking::serialization::Packet;
+  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[test]
   fn integration_test_creation() {
     let i = TimeDistributionPayload {
-      global_time:42u64
+      global_time: 42u64
     };
 
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&i);
+
     assert_eq!(
-      Packet::serialize(&i).unwrap(),
-      Packet(vec![0, 0, 0, 0, 0, 0, 0, 42])
+      packet,
+      Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0, 0, 0, 0, 0, 0, 0, 42])
     );
-    assert_eq!(i,Packet::serialize(&i).unwrap().deserialize().unwrap());
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 }
