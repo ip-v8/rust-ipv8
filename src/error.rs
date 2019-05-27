@@ -24,7 +24,7 @@ mod tests {
   use std::error::Error;
 
   #[test]
-  fn integration_test_creation() {
+  fn test_errors() {
     create_error!(TestError, "yeet");
     assert_eq!(TestError.description(), "yeet");
     assert_eq!(format!("{:?}",TestError), "TestError");
