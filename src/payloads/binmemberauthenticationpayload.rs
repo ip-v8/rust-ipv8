@@ -2,9 +2,9 @@ use serde::ser::{Serialize, Serializer};
 use serde::de::{Deserialize, Deserializer};
 use serde::{ser, de};
 use serde::ser::SerializeTuple;
-use crate::networking::payloads::Ipv8Payload;
-use crate::networking::serialization::varlen::VarLen16;
-use crate::networking::crypto::keytypes::PublicKey;
+use crate::payloads::Ipv8Payload;
+use crate::serialization::varlen::VarLen16;
+use crate::crypto::keytypes::PublicKey;
 
 /// This struct represents the public key in a message.
 /// This is important because with this key the signature (at the end of a packet)
@@ -66,8 +66,8 @@ impl Ipv8Payload for BinMemberAuthenticationPayload {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::networking::serialization::Packet;
-  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
+  use crate::serialization::Packet;
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[test]
   fn integration_test_creation() {

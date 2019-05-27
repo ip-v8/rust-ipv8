@@ -6,9 +6,9 @@ use serde::Serialize;
 use serde::ser::Serializer;
 use serde::ser::SerializeTuple;
 
-use crate::networking::crypto::{create_signature_ed25519, create_signature_openssl, verify_signature_ed25519, verify_signature_openssl};
-use crate::networking::crypto::keytypes::{PrivateKey, PublicKey};
-use crate::networking::payloads::Ipv8Payload;
+use crate::crypto::{create_signature_ed25519, create_signature_openssl, verify_signature_ed25519, verify_signature_openssl};
+use crate::crypto::keytypes::{PrivateKey, PublicKey};
+use crate::payloads::Ipv8Payload;
 
 create_error!(KeyError, "Invalid Key");
 create_error!(CurveError, "This curve is unknown");

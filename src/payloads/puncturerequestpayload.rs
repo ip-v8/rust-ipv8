@@ -1,6 +1,6 @@
-use super::super::address::Address;
-use super::Ipv8Payload;
 use serde::{Deserialize,Serialize};
+use crate::networking::address::Address;
+use crate::payloads::Ipv8Payload;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PunctureRequestPayload {
@@ -28,9 +28,9 @@ impl Ipv8Payload for PunctureRequestPayload {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::networking::serialization::Packet;
+  use crate::serialization::Packet;
   use std::net::Ipv4Addr;
-  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[test]
   fn integration_test_creation() {

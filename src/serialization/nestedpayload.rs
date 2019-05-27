@@ -1,8 +1,8 @@
-use crate::networking::payloads::Ipv8Payload;
-use crate::networking::serialization::varlen::VarLen16;
+use crate::payloads::Ipv8Payload;
+use crate::serialization::varlen::VarLen16;
 use serde::de::Deserialize;
 use serde::de::Deserializer;
-use crate::networking::serialization::Packet;
+use crate::serialization::Packet;
 use serde::ser::Serializer;
 use serde::ser::Serialize;
 use serde::ser::SerializeStruct;
@@ -48,10 +48,9 @@ impl<'de> Deserialize<'de> for NestedPacket {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::networking::serialization::{Packet, PacketIterator};
+  use crate::serialization::Packet;
   use serde;
-  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
-  use bincode::ErrorKind;
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
   struct TestPayload1 {
