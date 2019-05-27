@@ -54,7 +54,7 @@ rust-latest-build:
     stage: test
     image: $BUILD_IMAGE
     script:
-      - cargo build --release verbose
+      - cargo build --release --verbose
 
 rust-latest-test:
   <<: *rust-template
