@@ -2,7 +2,7 @@ use openssl;
 use rust_sodium::crypto::sign::ed25519;
 use std::fmt;
 
-// TODO: when ed25519 becomes available for rust OpenSSL, rust_sodium will be trashed and burned and annihilated (yeeted out of existence). It would make the code so much cleaner.
+// TODO: when ed25519 becomes available for rust OpenSSL, rust_sodium will be removed.
 
 // when adding new key types follow these steps
 // 1. Add it the the PublicKey and PrivateKey enums

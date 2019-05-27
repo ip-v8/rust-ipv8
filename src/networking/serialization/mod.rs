@@ -91,7 +91,7 @@ impl PacketIterator{
   pub fn verify_with(&mut self, pkey: PublicKey) -> bool{
     let signaturelength = pkey.size();
 
-    let datalen = self.pntr.0.len();
+    let datalen = self.len();
     let signature = Signature{signature:self.pntr.0[datalen-signaturelength..].to_vec()};
     self.pntr.0.truncate(datalen - signaturelength);
     signature.verify(&*self.pntr.0,pkey)

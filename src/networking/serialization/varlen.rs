@@ -118,7 +118,7 @@ impl Serialize for VarLen32 {
     where S: Serializer,
   {
     let length = self.0.len();
-    if length > 0xffffffff{
+    if length > 0xffff_ffff{
       return Err(Error::custom("Data too large to fit in a VarLen32. Must be less than 4294967295 bytes."));
     }
     // 2 bytes for the length of the length prefix, as this is a varlen*32*

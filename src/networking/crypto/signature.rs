@@ -69,9 +69,7 @@ impl Signature{
         result.resize(result.len() + s_padding, 0); // resize to append n zeros faster
         result.extend(s);
 
-        return Ok(Self{
-          signature: result
-        })
+        Ok(Self{ signature: result })
       }
     }
   }
@@ -80,8 +78,8 @@ impl Signature{
     match pkey {
       PublicKey::Ed25519(_, key_verification) => {
         match verify_signature_ed25519(self.signature.to_owned(),data,key_verification){
-          Ok(i) => return i,
-          Err(_) => return false, // if an error occurred, the signature is invalid and therefore did not match
+          Ok(i) => i,
+          Err(_) => false, // if an error occurred, the signature is invalid and therefore did not match
         }
       },
       PublicKey::OpenSSLHigh(i) |
@@ -107,7 +105,7 @@ impl Signature{
 
         match verify_signature_openssl((big_r, big_s),data,i){
           Ok(i) => i,
-          Err(_) => return false, // if an error occurred, the signature is invalid and therefore did not match
+          Err(_) => false, // if an error occurred, the signature is invalid and therefore did not match
         }
       }
     }

@@ -21,10 +21,11 @@ impl Header for DefaultHeader{
   }
 
   fn version(&self) -> u32{
-    self.version as u32
+    u32::from(self.version)
   }
 }
 
+#[allow(dead_code)]
 pub(crate) const TEST_HEADER: DefaultHeader = DefaultHeader{
   version: 42,
   mid_hash: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],

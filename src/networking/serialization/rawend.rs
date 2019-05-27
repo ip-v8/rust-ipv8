@@ -36,14 +36,11 @@ impl<'de> Deserialize<'de> for RawEnd {
       {
         let mut res:Vec<u8> = vec![];
 
-        loop {
-          match seq.next_element(){
-            Ok(item) => match item{
-                Some(value) => res.push(value),
-                None => break
-            },
-            Err(_err) => break
-          }
+        while let Ok(item) = seq.next_element() {
+          res.push(match item{
+            Some(i) => i,
+            None => break
+          })
         }
         Ok(RawEnd(res))
       }
