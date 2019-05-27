@@ -58,6 +58,7 @@ rust-latest:
   after_script:
     - kcov target/cov target/debug/ipv8-*[^\.d] && bash <(curl -s https://codecov.io/bash) -s target/cov
     - rm -rf target/debug/*ipv8*
+    - ls -la target/debug
     - rm -rf target/cov
 
 rust-nightly:
