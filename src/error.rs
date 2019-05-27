@@ -16,3 +16,18 @@ macro_rules! create_error {
     }
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use std::fmt;
+  use std::error::Error;
+
+  #[test]
+  fn integration_test_creation() {
+    create_error!(TestError, "yeet");
+    assert_eq!(TestError.description(), "yeet");
+    assert_eq!(format!("{:?}",TestError), "TestError");
+    assert_eq!(format!("{}", TestError), "yeet");
+  }
+}
