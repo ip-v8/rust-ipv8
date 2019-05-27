@@ -22,7 +22,7 @@ pub enum PrivateKey {
   OpenSSLLow(openssl::pkey::PKey<openssl::pkey::Private>),
   OpenSSLMedium(openssl::pkey::PKey<openssl::pkey::Private>),
   OpenSSLHigh(openssl::pkey::PKey<openssl::pkey::Private>),
-  Ed25519(ed25519::SecretKey, ed25519::SecretKey), // First key is encryption key, second is verification      
+  Ed25519(ed25519::SecretKey, ed25519::SecretKey), // First key is encryption key, second is verification
 }
 
 // The length of the used signatures              pyipv8 | .size() | diff | bits/8*2
