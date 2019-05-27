@@ -2,7 +2,7 @@ use serde;
 use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
 use serde::ser::{Error, Serialize, Serializer, SerializeStruct};
 use std::fmt;
-use crate::networking::payloads::Ipv8Payload;
+use crate::payloads::Ipv8Payload;
 
 /// Struct representing a payload section of variable length section of a payload.
 /// VarLen16 means the max length of the variable length section is 2^16 bytes
@@ -135,8 +135,8 @@ impl Serialize for VarLen32 {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use super::super::Packet;
-  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
+  use crate::serialization::Packet;
 
   #[test]
   fn test_serialize_varlen16(){

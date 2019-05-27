@@ -53,9 +53,9 @@ impl<'de> Deserialize<'de> for RawEnd {
 mod tests {
   use super::*;
   use serde::{Serialize,Deserialize};
-  use crate::networking::payloads::Ipv8Payload;
-  use crate::networking::serialization::Packet;
-  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
+  use crate::payloads::Ipv8Payload;
+  use crate::serialization::Packet;
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[derive(Debug, PartialEq, Serialize, Deserialize)]
   struct TestPayload1 {

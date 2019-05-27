@@ -1,11 +1,11 @@
-use super::super::address::Address;
-use super::super::serialization::rawend::RawEnd;
-use super::super::serialization::bits::Bits;
-use super::connectiontype::ConnectionType;
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde;
 use serde::de::{Deserialize, Deserializer};
-use crate::networking::payloads::Ipv8Payload;
+use crate::payloads::Ipv8Payload;
+use crate::payloads::connectiontype::ConnectionType;
+use crate::networking::address::Address;
+use crate::serialization::rawend::RawEnd;
+use crate::serialization::bits::Bits;
 
 #[derive(Debug, PartialEq)]
 pub struct IntroductionRequestPayload {
@@ -92,8 +92,8 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
 mod tests {
   use super::*;
   use std::net::Ipv4Addr;
-  use crate::networking::serialization::Packet;
-  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
+  use crate::serialization::Packet;
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[test]
   fn integration_test_creation() {

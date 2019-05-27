@@ -4,6 +4,9 @@ pub mod error;
 pub mod configuration;
 pub mod event;
 pub mod networking;
+pub mod payloads;
+pub mod serialization;
+pub mod crypto;
 
 use configuration::Config;
 

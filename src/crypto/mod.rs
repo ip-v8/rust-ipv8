@@ -70,7 +70,7 @@ pub fn verify_signature_openssl(signature: (BigNum, BigNum), data: &[u8], pkey: 
 
 #[cfg(test)]
 mod tests {
-  use crate::networking::crypto::{verify_signature_ed25519, verify_signature_openssl, SizeError, create_signature_openssl};
+  use crate::crypto::{verify_signature_ed25519, verify_signature_openssl, SizeError, create_signature_openssl};
   use rust_sodium::crypto::sign::ed25519;
   use openssl::bn::BigNum;
   use std::os::raw::c_int;
