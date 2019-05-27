@@ -24,7 +24,11 @@ impl Connection {
     })
   }
 
-  fn send(address: Address, data: Vec<u8>) {}
-
+  /**
+   * Send some data to an address.
+   * @param _address The address to send to.
+   * @param _data A vector with data to send.
+   */
+  fn send(_address: Address, _data: Vec<u8>) {}
 }
 
