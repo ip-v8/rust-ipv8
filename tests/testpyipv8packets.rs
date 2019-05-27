@@ -28,12 +28,12 @@ fn test_packet_1(){
 
   assert!(deserializer.verify());
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
   assert_eq!(time, TimeDistributionPayload{
     global_time: 1
   });
 
-  let intro: IntroductionResponsePayload = deserializer.next().unwrap();
+  let intro: IntroductionResponsePayload = deserializer.next_payload().unwrap();
   assert_eq!(intro, IntroductionResponsePayload{
     destination_address: Address {
       address: Ipv4Addr::new(81,171,27,194),
@@ -78,12 +78,12 @@ fn test_packet_2() {
 
   assert!(deserializer.verify());
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
   assert_eq!(time, TimeDistributionPayload{
     global_time: 3
   });
 
-  let puncture: PunctureRequestPayload = deserializer.next().unwrap();
+  let puncture: PunctureRequestPayload = deserializer.next_payload().unwrap();
   assert_eq!(puncture, PunctureRequestPayload{
     lan_walker_address: Address {
       address: Ipv4Addr::new(192,168,1,75),
@@ -112,12 +112,12 @@ fn test_packet_3() {
 
   assert!(deserializer.verify());
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
   assert_eq!(time, TimeDistributionPayload{
     global_time: 4
   });
 
-  let puncture: PunctureRequestPayload = deserializer.next().unwrap();
+  let puncture: PunctureRequestPayload = deserializer.next_payload().unwrap();
   assert_eq!(puncture, PunctureRequestPayload{
     lan_walker_address: Address {
       address: Ipv4Addr::new(192,168,1,75),
@@ -147,12 +147,12 @@ fn test_packet_4() {
 
   assert!(deserializer.verify());
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
   assert_eq!(time, TimeDistributionPayload{
     global_time: 7
   });
 
-  let puncture: PunctureRequestPayload = deserializer.next().unwrap();
+  let puncture: PunctureRequestPayload = deserializer.next_payload().unwrap();
   assert_eq!(puncture, PunctureRequestPayload {
     lan_walker_address: Address {
       address: Ipv4Addr::new(192, 168, 1, 75),
@@ -182,12 +182,12 @@ fn test_packet_5() {
 
   assert!(deserializer.verify());
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
   assert_eq!(time, TimeDistributionPayload{
     global_time: 8
   });
 
-  let puncture: PunctureRequestPayload = deserializer.next().unwrap();
+  let puncture: PunctureRequestPayload = deserializer.next_payload().unwrap();
   assert_eq!(puncture, PunctureRequestPayload {
     lan_walker_address: Address {
       address: Ipv4Addr::new(192, 168, 1, 75),
@@ -217,12 +217,12 @@ fn test_packet_6() {
 
   assert!(deserializer.verify());
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
   assert_eq!(time, TimeDistributionPayload{
     global_time: 14
   });
 
-  let puncture: PunctureRequestPayload = deserializer.next().unwrap();
+  let puncture: PunctureRequestPayload = deserializer.next_payload().unwrap();
   assert_eq!(puncture, PunctureRequestPayload {
     lan_walker_address: Address {
       address: Ipv4Addr::new(192, 168, 1, 75),
@@ -252,12 +252,12 @@ fn test_packet_7() {
 
   assert!(deserializer.verify());
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
   assert_eq!(time, TimeDistributionPayload{
     global_time: 15
   });
 
-  let puncture: PunctureRequestPayload = deserializer.next().unwrap();
+  let puncture: PunctureRequestPayload = deserializer.next_payload().unwrap();
   assert_eq!(puncture, PunctureRequestPayload {
     lan_walker_address: Address {
       address: Ipv4Addr::new(192, 168, 1, 75),
@@ -287,12 +287,12 @@ fn test_packet_8() {
 
   assert!(deserializer.verify());
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
   assert_eq!(time, TimeDistributionPayload{
     global_time: 11
   });
 
-  let intro: IntroductionResponsePayload = deserializer.next().unwrap();
+  let intro: IntroductionResponsePayload = deserializer.next_payload().unwrap();
 
   assert_eq!(intro, IntroductionResponsePayload{
     destination_address: Address {
@@ -338,12 +338,12 @@ fn test_packet_9() {
 
   assert!(deserializer.verify());
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
   assert_eq!(time, TimeDistributionPayload{
     global_time: 12
   });
 
-  let intro: IntroductionResponsePayload = deserializer.next().unwrap();
+  let intro: IntroductionResponsePayload = deserializer.next_payload().unwrap();
 
   assert_eq!(intro, IntroductionResponsePayload{
     destination_address: Address {
@@ -389,13 +389,13 @@ fn test_packet_10() {
     message_type: 246
   });
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(time, TimeDistributionPayload{
     global_time: 30
   });
 
-  let intro: IntroductionRequestPayload = deserializer.next().unwrap();
+  let intro: IntroductionRequestPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(intro, IntroductionRequestPayload{
     destination_address: Address {
@@ -433,13 +433,13 @@ fn test_packet_11() {
     message_type: 246
   });
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(time, TimeDistributionPayload{
     global_time: 31
   });
 
-  let intro: IntroductionRequestPayload = deserializer.next().unwrap();
+  let intro: IntroductionRequestPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(intro, IntroductionRequestPayload{
     destination_address: Address {
@@ -477,13 +477,13 @@ fn test_packet_12() {
     message_type: 246
   });
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(time, TimeDistributionPayload{
     global_time: 32
   });
 
-  let intro: IntroductionRequestPayload = deserializer.next().unwrap();
+  let intro: IntroductionRequestPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(intro, IntroductionRequestPayload{
     destination_address: Address {
@@ -520,13 +520,13 @@ fn test_packet_13() {
     message_type: 246
   });
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(time, TimeDistributionPayload{
     global_time: 33
   });
 
-  let intro: IntroductionRequestPayload = deserializer.next().unwrap();
+  let intro: IntroductionRequestPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(intro, IntroductionRequestPayload{
     destination_address: Address {
@@ -563,13 +563,13 @@ fn test_packet_14() {
     message_type: 246
   });
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(time, TimeDistributionPayload{
     global_time: 34
   });
 
-  let intro: IntroductionRequestPayload = deserializer.next().unwrap();
+  let intro: IntroductionRequestPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(intro, IntroductionRequestPayload{
     destination_address: Address {
@@ -607,13 +607,13 @@ fn test_packet_15() {
     message_type: 246
   });
 
-  let time: TimeDistributionPayload = deserializer.next().unwrap();
+  let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(time, TimeDistributionPayload{
     global_time: 151
   });
 
-  let intro: IntroductionRequestPayload = deserializer.next().unwrap();
+  let intro: IntroductionRequestPayload = deserializer.next_payload().unwrap();
 
   assert_eq!(intro, IntroductionRequestPayload{
     destination_address: Address {

@@ -32,7 +32,7 @@ pub struct PacketIterator{
 impl PacketIterator{
   /// Deserializes a stream of bytes into an ipv8 payload. Which payload is inferred by the type of T which is generic.
   /// T has to be deserializable and implement the Ipv8Payload trait.
-  pub fn next<T>(&mut self) -> Result<T, Box<ErrorKind>>
+  pub fn next_payload<T>(&mut self) -> Result<T, Box<ErrorKind>>
     where for<'de> T: Deserialize<'de> + Ipv8Payload + Serialize
   {
     let res: T = bincode::config().big_endian().deserialize(&self.pntr.0[self.index ..])?;
@@ -79,7 +79,7 @@ impl PacketIterator{
   /// If the public key has been acquired in any other way (i.e. there is no BinMemberAuthenticationPayload at the start)
   /// use the Packet.verify_with() function instead.
   pub fn verify(&mut self) -> bool{
-    let authpayload: BinMemberAuthenticationPayload = match self.next(){
+    let authpayload: BinMemberAuthenticationPayload = match self.next_payload(){
       Ok(i) => i,
       Err(_) => return false // when an error occurred the signature is certainly not right.
     };
@@ -326,9 +326,9 @@ mod tests {
     packet.add(&c).unwrap();
 
     let mut deser_iterator = packet.start_deserialize().skip_header::<DefaultHeader>();
-    assert_eq!(a,deser_iterator.next().unwrap());
-    assert_eq!(b,deser_iterator.next().unwrap());
-    assert_eq!(c,deser_iterator.next().unwrap());
+    assert_eq!(a,deser_iterator.next_payload().unwrap());
+    assert_eq!(b,deser_iterator.next_payload().unwrap());
+    assert_eq!(c,deser_iterator.next_payload().unwrap());
   }
 
   # [test]
@@ -344,11 +344,11 @@ mod tests {
 
 
     let mut deser_iterator = ser_tmp.start_deserialize().skip_header::<DefaultHeader>();
-    assert_eq!(a,deser_iterator.next().unwrap());
-    assert_eq!(b,deser_iterator.next().unwrap());
-    assert_eq!(c,deser_iterator.next().unwrap());
+    assert_eq!(a,deser_iterator.next_payload().unwrap());
+    assert_eq!(b,deser_iterator.next_payload().unwrap());
+    assert_eq!(c,deser_iterator.next_payload().unwrap());
 
-    let last:Result<TestPayload1,Box<ErrorKind>> = deser_iterator.next();
+    let last:Result<TestPayload1,Box<ErrorKind>> = deser_iterator.next_payload();
     match last {
       Ok(_) => assert!(false, "this should throw an error as there is no next"),
       Err(_) => assert!(true)

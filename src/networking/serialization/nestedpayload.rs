@@ -103,7 +103,7 @@ mod tests {
     let mut newpacket = Packet::new(TEST_HEADER).unwrap();
     newpacket.add(&i);
 
-    assert_eq!(i,newpacket.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
+    assert_eq!(i,newpacket.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 
   #[test]
@@ -121,7 +121,7 @@ mod tests {
     let mut newpacket = Packet::new(TEST_HEADER).unwrap();
     newpacket.add(&i);
 
-    assert_eq!(i, newpacket.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
+    assert_eq!(i, newpacket.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 
   #[test]

@@ -37,6 +37,6 @@ mod tests {
       packet,
       Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0, 0, 0, 0, 0, 0, 0, 42])
     );
-    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 }

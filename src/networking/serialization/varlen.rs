@@ -151,7 +151,7 @@ mod tests {
     let i = VarLen16(vec![1,2,3,4,5,6,7,8,9,10]);
     let mut packet = Packet::new(TEST_HEADER).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap())
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap())
   }
 
   #[test]
@@ -167,7 +167,7 @@ mod tests {
     let i = VarLen32(vec![1,2,3,4,5,6,7,8,9,10]);
     let mut packet = Packet::new(TEST_HEADER).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap())
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap())
   }
 
   #[test]
@@ -179,7 +179,7 @@ mod tests {
     let i = VarLen32(tmp);
     let mut packet = Packet::new(TEST_HEADER).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap())
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap())
   }
 
   #[test]

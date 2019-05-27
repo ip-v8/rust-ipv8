@@ -86,6 +86,6 @@ mod tests {
 
     let mut packet = Packet::new(TEST_HEADER).unwrap();
     packet.add(&a).unwrap();
-    assert_eq!(a,packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
+    assert_eq!(a,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 }

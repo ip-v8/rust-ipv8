@@ -126,6 +126,6 @@ mod tests {
       ])
     );
 
-    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 }

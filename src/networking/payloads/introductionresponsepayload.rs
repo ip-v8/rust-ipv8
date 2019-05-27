@@ -170,6 +170,6 @@ mod tests {
       connection_type: ConnectionType::decode((true, true)),
       identifier: 42,
       extra_bytes: RawEnd(vec![43, 44]),
-    },packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
+    },packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 }

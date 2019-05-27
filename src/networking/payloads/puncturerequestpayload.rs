@@ -55,6 +55,6 @@ mod tests {
         0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,
         127, 0, 0, 1, 31, 64, 42, 42, 42, 42, 31, 64, 0, 42, ])
     );
-    assert_eq!(i, packet.start_deserialize().skip_header::<DefaultHeader>().next().unwrap());
+    assert_eq!(i, packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 }
