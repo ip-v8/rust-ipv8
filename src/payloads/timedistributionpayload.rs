@@ -1,5 +1,5 @@
 use serde::{Serialize,Deserialize};
-use super::Ipv8Payload;
+use crate::payloads::Ipv8Payload;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct TimeDistributionPayload {
@@ -21,8 +21,8 @@ impl Ipv8Payload for TimeDistributionPayload {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::networking::serialization::Packet;
-  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
+  use crate::serialization::Packet;
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[test]
   fn integration_test_creation() {

@@ -1,16 +1,16 @@
-use ipv8::networking::serialization::Packet;
-use ipv8::networking::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
-use ipv8::networking::serialization::varlen::VarLen16;
-use ipv8::networking::payloads::timedistributionpayload::TimeDistributionPayload;
-use ipv8::networking::payloads::puncturepayload::PuncturePayload;
-use ipv8::networking::address::Address;
+use ipv8::serialization::Packet;
+use ipv8::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
+use ipv8::serialization::varlen::VarLen16;
+use ipv8::payloads::timedistributionpayload::TimeDistributionPayload;
+use ipv8::payloads::puncturepayload::PuncturePayload;
 use std::net::Ipv4Addr;
-use ipv8::networking::payloads::introductionrequestpayload::IntroductionRequestPayload;
-use ipv8::networking::payloads::connectiontype::ConnectionType;
-use ipv8::networking::serialization::rawend::RawEnd;
-use ipv8::networking::serialization::header::DefaultHeader;
-use ipv8::networking::payloads::introductionresponsepayload::IntroductionResponsePayload;
-use ipv8::networking::payloads::puncturerequestpayload::PunctureRequestPayload;
+use ipv8::payloads::introductionrequestpayload::IntroductionRequestPayload;
+use ipv8::payloads::connectiontype::ConnectionType;
+use ipv8::serialization::rawend::RawEnd;
+use ipv8::serialization::header::DefaultHeader;
+use ipv8::payloads::introductionresponsepayload::IntroductionResponsePayload;
+use ipv8::payloads::puncturerequestpayload::PunctureRequestPayload;
+use ipv8::networking::address::Address;
 
 #[test]
 fn test_packet_1(){

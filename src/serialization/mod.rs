@@ -5,14 +5,14 @@ pub mod nestedpayload;
 pub mod header;
 
 use bincode;
-use crate::networking::payloads::Ipv8Payload;
+use crate::payloads::Ipv8Payload;
 use bincode::ErrorKind;
 use serde::{Deserialize,Serialize};
-use crate::networking::crypto::keytypes::{PrivateKey, PublicKey};
-use crate::networking::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
-use crate::networking::crypto::signature::Signature;
+use crate::crypto::keytypes::{PrivateKey, PublicKey};
+use crate::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
+use crate::crypto::signature::Signature;
 use std::error::Error;
-use crate::networking::serialization::header::Header;
+use crate::serialization::header::Header;
 use std::fmt;
 
 create_error!(HeaderError, "The supplied header was invalid");
@@ -151,7 +151,7 @@ mod tests {
   use super::*;
   use serde::{Serialize,Deserialize};
   use rust_sodium::crypto::sign::ed25519;
-  use crate::networking::serialization::header::{TEST_HEADER, DefaultHeader};
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[derive(Debug, PartialEq, Serialize, Deserialize)]
   struct TestPayload1 {
@@ -174,7 +174,7 @@ mod tests {
 //  // only works with feature(test) and with `extern crate test; use test::Bencher;`
 //  extern crate test;
 //  use test::Bencher;
-//  use crate::networking::serialization::varlen::VarLen16;
+//  use crate::serialization::varlen::VarLen16;
 //  #[derive(Debug, PartialEq, Serialize, Deserialize)]
 //  struct TestPayload3 {
 //    test:VarLen16,
