@@ -54,7 +54,7 @@ rust-latest:
   image: $BUILD_IMAGE
   script:
     - cargo build --verbose --release
-    - cargo test --no-run
+    - cargo test
   after_script:
     - kcov target/cov target/debug/ipv8-*[^\.d] && bash <(curl -s https://codecov.io/bash) -s target/cov
     - rm -rf target/debug/*ipv8*
