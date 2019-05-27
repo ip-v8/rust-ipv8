@@ -288,7 +288,6 @@ mod tests {
     let seed = ed25519::Seed::from_slice(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,]).unwrap();
     let (e_pkey_tmp,e_skey_tmp) = ed25519::keypair_from_seed(&seed);
 
-
     let skey = PrivateKey::Ed25519(e_skey_tmp, skey_tmp);
     let pkey = PublicKey::Ed25519(e_pkey_tmp,pkey_tmp);
 
