@@ -48,17 +48,25 @@ clippy:
   script:
     - cargo clippy
 
-rust-latest:
+
+rust-latest-build:
+    <<: *rust-template
+    stage: test
+    image: $BUILD_IMAGE
+    script:
+      - cargo build --release --verbose
+
+rust-latest-test:
   <<: *rust-template
   stage: test
   image: $BUILD_IMAGE
-  script:
-    - cargo build --verbose --release
-    - cargo test --no-run
-  after_script:
-    - kcov target/cov target/debug/ipv8-*[^\.d] && bash <(curl -s https://codecov.io/bash) -s target/cov
+  before_script:
     - rm -rf target/debug/*ipv8*
     - rm -rf target/cov
+  script:
+    - cargo test
+  after_script:
+    - kcov target/cov target/debug/ipv8-*[^\.d] && bash <(curl -s https://codecov.io/bash) -s target/cov
 
 rust-nightly:
   <<: *rust-template
@@ -81,3 +89,4 @@ pages:
   artifacts:
     paths:
       - public
+
