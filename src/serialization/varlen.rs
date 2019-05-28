@@ -2,7 +2,7 @@ use serde;
 use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
 use serde::ser::{Error, Serialize, Serializer, SerializeStruct};
 use std::fmt;
-use crate::networking::payloads::Ipv8Payload;
+use crate::payloads::Ipv8Payload;
 
 /// Struct representing a payload section of variable length section of a payload.
 /// VarLen16 means the max length of the variable length section is 2^16 bytes
@@ -118,7 +118,7 @@ impl Serialize for VarLen32 {
     where S: Serializer,
   {
     let length = self.0.len();
-    if length > 0xffffffff{
+    if length > 0xffff_ffff{
       return Err(Error::custom("Data too large to fit in a VarLen32. Must be less than 4294967295 bytes."));
     }
     // 2 bytes for the length of the length prefix, as this is a varlen*32*
@@ -135,34 +135,39 @@ impl Serialize for VarLen32 {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use super::super::Packet;
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
+  use crate::serialization::Packet;
 
   #[test]
   fn test_serialize_varlen16(){
     let i = VarLen16(vec![1,2,3,4,5,6,7,8,9,10]);
-    let ser_tmp = Packet::serialize(&i).unwrap();
-    assert_eq!(ser_tmp,Packet(vec![0,10,1,2,3,4,5,6,7,8,9,10]))
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&i).unwrap();
+    assert_eq!(packet,Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,10,1,2,3,4,5,6,7,8,9,10]))
   }
 
   #[test]
   fn test_deserialize_varlen16(){
     let i = VarLen16(vec![1,2,3,4,5,6,7,8,9,10]);
-    let mut ser_tmp = Packet::serialize(&i).unwrap();
-    assert_eq!(i,ser_tmp.deserialize().unwrap())
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&i).unwrap();
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap())
   }
 
   #[test]
   fn test_serialize_varlen32(){
     let i = VarLen32(vec![1,2,3,4,5,6,7,8,9,10]);
-    let ser_tmp = Packet::serialize(&i).unwrap();
-    assert_eq!(ser_tmp,Packet(vec![0,0,0,10,1,2,3,4,5,6,7,8,9,10]));
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&i).unwrap();
+    assert_eq!(packet,Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,10,1,2,3,4,5,6,7,8,9,10]));
   }
 
   #[test]
   fn test_deserialize_varlen32(){
     let i = VarLen32(vec![1,2,3,4,5,6,7,8,9,10]);
-    let mut ser_tmp = Packet::serialize(&i).unwrap();
-    assert_eq!(i,ser_tmp.deserialize().unwrap())
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&i).unwrap();
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap())
   }
 
   #[test]
@@ -172,15 +177,16 @@ mod tests {
       tmp.push((i % 255) as u8);
     }
     let i = VarLen32(tmp);
-    let mut ser_tmp = Packet::serialize(&i).unwrap();
-    assert_eq!(i,ser_tmp.deserialize().unwrap())
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&i).unwrap();
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap())
   }
 
   #[test]
   fn test_varlen16_too_large(){
     let tmp:Vec<u8> = vec![0; (1u32 << 17) as usize];
     let i = VarLen16(tmp);
-    match Packet::serialize(&i){
+    match Packet::new(TEST_HEADER).unwrap().add(&i){
       Ok(_) => assert!(false, "this should throw an error as 2^17 bytes is too large for a varlen16"),
       Err(_) => assert!(true)
     };
@@ -192,7 +198,7 @@ mod tests {
   fn test_varlen32_too_large(){
     let tmp:Vec<u8> = vec![0; (1u64 << 32 + 1) as usize];
     let i = VarLen32(tmp);
-    match Packet::serialize(&i){
+    match Packet::new(TEST_HEADER).unwrap().add(&i){
       Ok(_) => assert!(false, "this should throw an error as 2^33 bytes is too large for a varlen32"),
       Err(_) => assert!(true)
     };
@@ -201,8 +207,9 @@ mod tests {
   #[test]
   fn test_serialize_varlen16_zero(){
     let i = VarLen16(vec![]);
-    let ser_tmp = Packet::serialize(&i).unwrap();
-    assert_eq!(ser_tmp,Packet(vec![0,0]));
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&i).unwrap();
+    assert_eq!(packet,Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0]));
   }
 
 }

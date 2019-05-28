@@ -36,14 +36,11 @@ impl<'de> Deserialize<'de> for RawEnd {
       {
         let mut res:Vec<u8> = vec![];
 
-        loop {
-          match seq.next_element(){
-            Ok(item) => match item{
-                Some(value) => res.push(value),
-                None => break
-            },
-            Err(_err) => break
-          }
+        while let Ok(item) = seq.next_element() {
+          res.push(match item{
+            Some(i) => i,
+            None => break
+          })
         }
         Ok(RawEnd(res))
       }
@@ -56,8 +53,9 @@ impl<'de> Deserialize<'de> for RawEnd {
 mod tests {
   use super::*;
   use serde::{Serialize,Deserialize};
-  use crate::networking::payloads::Ipv8Payload;
-  use crate::networking::serialization::Packet;
+  use crate::payloads::Ipv8Payload;
+  use crate::serialization::Packet;
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[derive(Debug, PartialEq, Serialize, Deserialize)]
   struct TestPayload1 {
@@ -72,16 +70,19 @@ mod tests {
   fn test_serialize_rawend(){
     let a = TestPayload1{test:RawEnd(vec![42,43])};
 
-    let ser_tmp = Packet::serialize(&a).unwrap();
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
 
-    assert_eq!(Packet(vec![42,43]),ser_tmp);
+    packet.add(&a).unwrap();
+
+    assert_eq!(Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,42,43]),packet);
   }
 
   # [test]
   fn test_deserialize_rawend(){
     let a = TestPayload1{test:RawEnd(vec![42,43,])};
 
-    let mut ser_tmp = Packet::serialize(&a).unwrap();
-    assert_eq!(a,ser_tmp.deserialize().unwrap());
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&a).unwrap();
+    assert_eq!(a,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 }

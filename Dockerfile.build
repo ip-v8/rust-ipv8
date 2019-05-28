@@ -1,0 +1,7 @@
+FROM kcov/kcov as kcov
+
+FROM rust:latest
+RUN rustup component add clippy
+COPY --from=kcov /lib/x86_64-linux-gnu/*.so* /lib/x86_64-linux-gnu/
+COPY --from=kcov /usr/lib/x86_64-linux-gnu/*.so* /usr/lib/x86_64-linux-gnu/
+COPY --from=kcov /usr/local/bin/kcov /usr/local/bin/

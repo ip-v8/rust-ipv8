@@ -1,11 +1,11 @@
-use super::super::address::Address;
-use super::super::serialization::rawend::RawEnd;
-use super::super::serialization::bits::Bits;
-use super::connectiontype::ConnectionType;
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde;
 use serde::de::{Deserialize, Deserializer};
-use crate::networking::payloads::Ipv8Payload;
+use crate::payloads::Ipv8Payload;
+use crate::payloads::connectiontype::ConnectionType;
+use crate::networking::address::Address;
+use crate::serialization::rawend::RawEnd;
+use crate::serialization::bits::Bits;
 
 #[derive(Debug, PartialEq)]
 pub struct IntroductionRequestPayload {
@@ -73,21 +73,18 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where D: Deserializer<'de>,{
     // first deserialize it to a temporary struct which literally represents the packer
-    let payload_temporary = IntroductionRequestPayloadPattern::deserialize(deserializer);
+    let payload_temporary = IntroductionRequestPayloadPattern::deserialize(deserializer)?;
 
     // now build the struct for real
-    match payload_temporary{
-      Ok(i) => Ok(IntroductionRequestPayload {
-        destination_address: i.0,
-        source_lan_address: i.1,
-        source_wan_address: i.2,
-        advice: i.3.bit7,
-        connection_type: ConnectionType::decode((i.3.bit0, i.3.bit1)),
-        identifier: i.4,
-        extra_bytes: i.5,
-      }),
-      Err(i) => Err(i) // on error just forward the error
-    }
+    Ok(IntroductionRequestPayload {
+      destination_address: payload_temporary.0,
+      source_lan_address: payload_temporary.1,
+      source_wan_address: payload_temporary.2,
+      advice: payload_temporary.3.bit7,
+      connection_type: ConnectionType::decode((payload_temporary.3.bit0, payload_temporary.3.bit1)),
+      identifier: payload_temporary.4,
+      extra_bytes: payload_temporary.5,
+    })
   }
 }
 
@@ -95,7 +92,8 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload{
 mod tests {
   use super::*;
   use std::net::Ipv4Addr;
-  use crate::networking::serialization::Packet;
+  use crate::serialization::Packet;
+  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[test]
   fn integration_test_creation() {
@@ -118,14 +116,16 @@ mod tests {
       extra_bytes: RawEnd(vec![43, 44]),
     };
 
-    let mut serialized = Packet::serialize(&i).unwrap();
+    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    packet.add(&i).unwrap();
     assert_eq!(
-      serialized,
+      packet,
       Packet(vec![
+        0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,
         127, 0, 0, 1,31, 64, 42, 42, 42, 42, 31, 64, 255, 255, 255, 0, 31 ,64, 131, 0, 42, 43,44
       ])
     );
 
-    assert_eq!(i,serialized.deserialize().unwrap());
+    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
   }
 }
