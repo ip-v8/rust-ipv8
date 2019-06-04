@@ -1,12 +1,12 @@
 [package]
 name = "ipv8"
 version = "0.1.0"
-authors = ["Dany Sluijk <dany@atlasdev.nl>"]
+authors = ["jonay2000 <jonabent@gmail.com>", "NULLx76 <victor@xirion.net>"]
 edition = "2018"
 description = "IPv8 implementation for rust."
-homepage = "https://ipv8.dany.dev"
+homepage = "https://github.com/ip-v8/rust-ipv8/"
 documentation = "https://rust-ipv8.dany.dev"
-repository = "https://github.com/dsluijk/rust-ipv8"
+repository = "https://github.com/ip-v8/rust-ipv8"
 readme = "readme.md"
 license-file = "license.md"
 
@@ -17,10 +17,11 @@ exclude = [
 ]
 
 [badges]
-travis-ci = { repository = "dsluijk/rust-ipv8", branch = "master" }
+travis-ci = { repository = "ip-v8/rust-ipv8", branch = "develop" }
 maintenance = { status = "experimental" }
 
 [dependencies]
+macros = { path = "macros" }
 serde = { version = "1.0", features = ["derive"] }
 bincode = "1.1.3"
 rust_sodium = "0.10.2"
@@ -40,3 +41,8 @@ opt-level = 3 # Ensures optimization level is set to the maximum
 [profile.bench]
 lto = true
 opt-level = 3
+
+[workspace]
+members = [
+    "macros",
+]

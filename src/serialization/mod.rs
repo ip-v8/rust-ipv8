@@ -2,6 +2,7 @@ pub mod bits;
 pub mod rawend;
 pub mod varlen;
 pub mod nestedpayload;
+pub mod headers;
 pub mod header;
 
 use bincode;
