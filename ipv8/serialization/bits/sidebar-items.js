@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Bits","This struct represents the bits inside an u8 by unpacking them into booleans. Mostly here to achieve feature parity with py-ipv8 see https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/serialization.py#L84."]]});

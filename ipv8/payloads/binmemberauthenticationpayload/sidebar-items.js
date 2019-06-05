@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BinMemberAuthenticationPayload","This struct represents the public key in a message. This is important because with this key the signature (at the end of a packet) can be verified."]]});
