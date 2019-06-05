@@ -8,7 +8,7 @@ matrix:
       rust: nightly
 
 before_install:
-  - cargo install grcov
+  - which grcov || cargo install grcov
 
 script:
   - export CARGO_INCREMENTAL=0
