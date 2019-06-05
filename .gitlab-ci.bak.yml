@@ -19,7 +19,7 @@ stages:
     changes:
       - src/**/*.rs
       - Cargo.*
-      - .gitlab-ci.yml
+      - .gitlab-ci.bak.yml
       - tests/**/*.rs
       - examples/**/*.rs
       - benches/**/*.rs
@@ -31,7 +31,7 @@ create_build_image:
   image: docker
   only:
     changes:
-      - .gitlab-ci.yml
+      - .gitlab-ci.bak.yml
       - Dockerfile.build
     refs:
       - schedules
