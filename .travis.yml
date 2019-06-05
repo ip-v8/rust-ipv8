@@ -12,11 +12,6 @@ matrix:
     - os: linux
       rust: nightly
 
-install:
-  - which grcov || cargo install grcov
-  -
-  -
-
 jobs:
   include:
     - stage: test
@@ -33,13 +28,11 @@ jobs:
           grcov ccov.zip -s src/ -t lcov --llvm --branch --ignore-not-existing --ignore-dir "/*" -o lcov.info;
           bash <(curl -s https://codecov.io/bash) -f lcov.info;
 
-    - script:
-        - cargo test
+    - script: cargo test
       name: "stable"
       rust: stable
 
-    - script:
-        - cargo test
+    - script: cargo test
       name: "beta"
       rust: beta
 
