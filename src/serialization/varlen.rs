@@ -135,13 +135,12 @@ impl Serialize for VarLen32 {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
   use crate::serialization::Packet;
 
   #[test]
   fn test_serialize_varlen16(){
     let i = VarLen16(vec![1,2,3,4,5,6,7,8,9,10]);
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
     assert_eq!(packet,Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,10,1,2,3,4,5,6,7,8,9,10]))
   }
@@ -149,15 +148,15 @@ mod tests {
   #[test]
   fn test_deserialize_varlen16(){
     let i = VarLen16(vec![1,2,3,4,5,6,7,8,9,10]);
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap())
+    assert_eq!(i,packet.start_deserialize().skip_header().unwrap().next_payload().unwrap())
   }
 
   #[test]
   fn test_serialize_varlen32(){
     let i = VarLen32(vec![1,2,3,4,5,6,7,8,9,10]);
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
     assert_eq!(packet,Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,10,1,2,3,4,5,6,7,8,9,10]));
   }
@@ -165,9 +164,9 @@ mod tests {
   #[test]
   fn test_deserialize_varlen32(){
     let i = VarLen32(vec![1,2,3,4,5,6,7,8,9,10]);
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap())
+    assert_eq!(i,packet.start_deserialize().skip_header().unwrap().next_payload().unwrap())
   }
 
   #[test]
@@ -177,16 +176,16 @@ mod tests {
       tmp.push((i % 255) as u8);
     }
     let i = VarLen32(tmp);
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap())
+    assert_eq!(i,packet.start_deserialize().skip_header().unwrap().next_payload().unwrap())
   }
 
   #[test]
   fn test_varlen16_too_large(){
     let tmp:Vec<u8> = vec![0; (1u32 << 17) as usize];
     let i = VarLen16(tmp);
-    match Packet::new(TEST_HEADER).unwrap().add(&i){
+    match Packet::new(create_test_header!()).unwrap().add(&i){
       Ok(_) => assert!(false, "this should throw an error as 2^17 bytes is too large for a varlen16"),
       Err(_) => assert!(true)
     };
@@ -198,7 +197,7 @@ mod tests {
   fn test_varlen32_too_large(){
     let tmp:Vec<u8> = vec![0; (1u64 << 32 + 1) as usize];
     let i = VarLen32(tmp);
-    match Packet::new(TEST_HEADER).unwrap().add(&i){
+    match Packet::new(create_test_header!()).unwrap().add(&i){
       Ok(_) => assert!(false, "this should throw an error as 2^33 bytes is too large for a varlen32"),
       Err(_) => assert!(true)
     };
@@ -207,7 +206,7 @@ mod tests {
   #[test]
   fn test_serialize_varlen16_zero(){
     let i = VarLen16(vec![]);
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
     assert_eq!(packet,Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0]));
   }

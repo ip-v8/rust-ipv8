@@ -1,9 +1,10 @@
+#[macro_use]
+pub mod header;
 pub mod bits;
 pub mod rawend;
 pub mod varlen;
 pub mod nestedpayload;
-pub mod headers;
-pub mod header;
+
 
 use bincode;
 use crate::payloads::Ipv8Payload;
@@ -56,17 +57,17 @@ impl PacketIterator{
     Ok(res)
   }
 
-  pub fn get_header<T>(&mut self) -> Result<T, Box<ErrorKind>>
-    where for<'de> T: Header + Serialize + Deserialize<'de>{
-    let res: T = bincode::config().big_endian().deserialize(&self.pntr.0[self.index ..])?;
-    self.index += bincode::config().big_endian().serialized_size(&res)? as usize;
+  pub fn get_header(&mut self) -> Result<Header, Box<ErrorKind>>{
+
+    let res: Header = bincode::config().big_endian().deserialize(&self.pntr.0[self.index ..])?;
+    self.index += res.size;
     Ok(res)
   }
 
-  pub fn skip_header<T>(mut self) -> Self
-    where T: Header{
-    self.index += T::size();
-    self
+  pub fn skip_header(mut self) -> Result<Self, Box<ErrorKind>>{
+    let res: Header = bincode::config().big_endian().deserialize(&self.pntr.0[self.index ..])?;
+    self.index += res.size;
+    Ok(self)
   }
 
   fn len(&self) -> usize {
@@ -100,8 +101,7 @@ impl PacketIterator{
 }
 
 impl Packet{
-  pub fn new<T>(header: T) -> Result<Self, Box<Error>>
-    where T: Header + Serialize {
+  pub fn new(header: Header) -> Result<Self, Box<Error>>{
     let mut res = Self(vec![]);
     res.0.extend(match bincode::config().big_endian().serialize(&header){
       Ok(i)=>i,
@@ -152,7 +152,6 @@ mod tests {
   use super::*;
   use serde::{Serialize,Deserialize};
   use rust_sodium::crypto::sign::ed25519;
-  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[derive(Debug, PartialEq, Serialize, Deserialize)]
   struct TestPayload1 {
@@ -216,7 +215,7 @@ mod tests {
   #[test]
   fn test_sign_verify_verylow(){
     let a = TestPayload1{test:42};
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&a).unwrap();
 
     let skey = openssl::pkey::PKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMFMCAQEEFQKu4aaDxyTSj92iquQP5CIdbagLP6AHBgUrgQQAAaEuAywABABQ76xopUysBuWInGkX+S4elFdpOQZphgLlc6ksoim+5DgUZEBPp+B2Dg==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
@@ -232,7 +231,7 @@ mod tests {
   #[test]
   fn test_sign_verify_low(){
     let a = TestPayload1{test:42};
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&a).unwrap();
 
     let skey = openssl::pkey::PKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMG0CAQEEHQ7vns0bhePCngPc4WeP3wnglzSrml0HdQ+jcpfAoAcGBSuBBAAaoUAD\nPgAEAe2ikH75P/vkdl1Bu8tP/WjOeB6LRxW11qGQNUmUAaFxQ7zff5eZyppMv7D0\n9sRcEuSNjk5nUQgTe6zV\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
@@ -248,7 +247,7 @@ mod tests {
   #[test]
   fn test_sign_verify_medium(){
     let a = TestPayload1{test:42};
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&a).unwrap();
 
     let skey = openssl::pkey::PKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMIGvAgEBBDNDkh1KSwaBgRj5GGcbYm2qWI5TyBVkOeMVkWWX5+8Dmd44OoSzmR5xCmc1DWuEsasIhhagBwYFK4EEACShbANqAAQAP5r6iYsyTkM7Hea2/tc95iGXV3oCXMLxSWiR/vF/zKjHkPClBN8BQBbBCMjpeS1xLZMUAUi2RoJN69jQevTG+vfhzBNqxIE0dazxbLMvx3wZ6Bol918H8oAa31axHKVaz3SbKLbDTw==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
@@ -264,7 +263,7 @@ mod tests {
   #[test]
   fn test_sign_verify_high(){
     let a = TestPayload1{test:42};
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&a).unwrap();
 
     let skey = openssl::pkey::PKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMIHuAgEBBEgCQPcwiTfJz3T0/fDqAgvtTO3fvCobbxvJAnsDKQwjJbK9Ak2njemFanI8BOGp/1Mi6nrjfJs9+8h9LhUIYsrJ2j7piRxo2SygBwYFK4EEACehgZUDgZIABAJW+0vOn4V4P7Drsg4IxTtrM7OLA5sUwnBxDyhDcyXfmAdmmtZabrTiBb5jozZ0rXkoUIGOUnaaYH+k+NlbDVBbXtIQbmwpOQTzMTTC/oJi5TJUFc6G3529hTLStV3lILPks4SPk2DPRDC4oC/jRpMXn9VphjzT4gjruhTxVaoEAyi3YmdQpIBXzWVD/lOOhQ==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
@@ -280,7 +279,7 @@ mod tests {
   #[test]
   fn test_sign_verify_ed25519(){
     let a = TestPayload1{test:42};
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&a).unwrap();
 
     let seed = ed25519::Seed::from_slice(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,]).unwrap();
@@ -305,7 +304,7 @@ mod tests {
     let b = TestPayload2{test:43};
     let c = TestPayload1{test:44};
 
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
 
     packet.add(&a).unwrap();
     packet.add(&b).unwrap();
@@ -320,12 +319,12 @@ mod tests {
     let b = TestPayload2{test:43};
     let c = TestPayload1{test:44};
 
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&a).unwrap();
     packet.add(&b).unwrap();
     packet.add(&c).unwrap();
 
-    let mut deser_iterator = packet.start_deserialize().skip_header::<DefaultHeader>();
+    let mut deser_iterator = packet.start_deserialize().skip_header().unwrap();
     assert_eq!(a,deser_iterator.next_payload().unwrap());
     assert_eq!(b,deser_iterator.next_payload().unwrap());
     assert_eq!(c,deser_iterator.next_payload().unwrap());
@@ -337,13 +336,13 @@ mod tests {
     let b = TestPayload2{test:43};
     let c = TestPayload1{test:44};
 
-    let mut ser_tmp = Packet::new(TEST_HEADER).unwrap();
+    let mut ser_tmp = Packet::new(create_test_header!()).unwrap();
     ser_tmp.add(&a).unwrap();
     ser_tmp.add(&b).unwrap();
     ser_tmp.add(&c).unwrap();
 
 
-    let mut deser_iterator = ser_tmp.start_deserialize().skip_header::<DefaultHeader>();
+    let mut deser_iterator = ser_tmp.start_deserialize().skip_header().unwrap();
     assert_eq!(a,deser_iterator.next_payload().unwrap());
     assert_eq!(b,deser_iterator.next_payload().unwrap());
     assert_eq!(c,deser_iterator.next_payload().unwrap());

@@ -67,15 +67,14 @@ impl Ipv8Payload for BinMemberAuthenticationPayload {
 mod tests {
   use super::*;
   use crate::serialization::Packet;
-  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[test]
   fn integration_test_creation() {
     let i = BinMemberAuthenticationPayload {
       public_key_bin: PublicKey::from_vec(vec![76,105,98,78,97,67,76,80,75,58,3,161,7,191,243,206,16,190,29,112,221,24,231,75,192,153,103,228,214,48,155,165,13,95,29,220,134,100,18,85,49,184,3,161,7,191,243,206,16,190,29,112,221,24,231,75,192,153,103,228,214,48,155,165,13,95,29,220,134,100,18,85,49,184,]).unwrap()
     };
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(i, packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
+    assert_eq!(i, packet.start_deserialize().skip_header().unwrap().next_payload().unwrap());
   }
 }

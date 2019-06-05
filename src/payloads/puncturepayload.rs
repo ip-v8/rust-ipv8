@@ -25,7 +25,6 @@ mod tests {
   use super::*;
   use crate::serialization::Packet;
   use std::net::Ipv4Addr;
-  use crate::serialization::header::{TEST_HEADER, DefaultHeader};
 
   #[test]
   fn integration_test_creation() {
@@ -41,7 +40,7 @@ mod tests {
       identifier: 42,
     };
 
-    let mut packet = Packet::new(TEST_HEADER).unwrap();
+    let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
 
     assert_eq!(
@@ -51,6 +50,6 @@ mod tests {
     );
 
     packet.add(&i);
-    assert_eq!(i,packet.start_deserialize().skip_header::<DefaultHeader>().next_payload().unwrap());
+    assert_eq!(i,packet.start_deserialize().skip_header().unwrap().next_payload().unwrap());
   }
 }
