@@ -51,7 +51,6 @@ jobs:
       name: "Clippy"
 
     - script: cargo fmt -- --check
-      env: ALLOW_FAILURE=true
       install: rustup component add rustfmt
       rust: stable
       name: "Rustfmt"
@@ -59,6 +58,7 @@ jobs:
     - stage: deploy
       script: cargo doc
       name: "Deploy docs on GitHub Pages"
+      if: branch = develop AND type != pull_request
       deploy:
         provider: pages
         skip_cleanup: true
