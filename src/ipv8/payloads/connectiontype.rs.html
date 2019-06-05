@@ -29,31 +29,31 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ConnectionType</span> {
-  <span class="ident">UNKNOWN</span>,
-  <span class="ident">PUBLIC</span>,
-  <span class="ident">SYMMETRICNAT</span>,
+    <span class="ident">UNKNOWN</span>,
+    <span class="ident">PUBLIC</span>,
+    <span class="ident">SYMMETRICNAT</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ConnectionType</span> {
-  <span class="doccomment">/// encodes a connection type into 2 booleans.</span>
-  <span class="doccomment">/// Combinations are chosen semi-arbitrarily but are standardized. Booleans are used to go into a BITS field in a packet.</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">bool</span>, <span class="ident">bool</span>) {
-    <span class="kw">match</span> <span class="self">self</span> {
-      <span class="ident">ConnectionType</span>::<span class="ident">UNKNOWN</span> <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="bool-val">false</span>),
-      <span class="ident">ConnectionType</span>::<span class="ident">PUBLIC</span> <span class="op">=&gt;</span> (<span class="bool-val">true</span>, <span class="bool-val">false</span>),
-      <span class="ident">ConnectionType</span>::<span class="ident">SYMMETRICNAT</span> <span class="op">=&gt;</span> (<span class="bool-val">true</span>, <span class="bool-val">true</span>),
+    <span class="doccomment">/// encodes a connection type into 2 booleans.</span>
+    <span class="doccomment">/// Combinations are chosen semi-arbitrarily but are standardized. Booleans are used to go into a BITS field in a packet.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">bool</span>, <span class="ident">bool</span>) {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">ConnectionType</span>::<span class="ident">UNKNOWN</span> <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="bool-val">false</span>),
+            <span class="ident">ConnectionType</span>::<span class="ident">PUBLIC</span> <span class="op">=&gt;</span> (<span class="bool-val">true</span>, <span class="bool-val">false</span>),
+            <span class="ident">ConnectionType</span>::<span class="ident">SYMMETRICNAT</span> <span class="op">=&gt;</span> (<span class="bool-val">true</span>, <span class="bool-val">true</span>),
+        }
     }
-  }
 
-  <span class="doccomment">/// Decodes two booleans into the corresponding connection type as encoded with the above encode method.</span>
-  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">bits</span>: (<span class="ident">bool</span>, <span class="ident">bool</span>)) <span class="op">-&gt;</span> <span class="self">Self</span> {
-    <span class="kw">match</span> <span class="ident">bits</span> {
-      (<span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=&gt;</span> <span class="ident">ConnectionType</span>::<span class="ident">UNKNOWN</span>,
-      (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=&gt;</span> <span class="ident">ConnectionType</span>::<span class="ident">PUBLIC</span>,
-      (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=&gt;</span> <span class="ident">ConnectionType</span>::<span class="ident">UNKNOWN</span>, <span class="comment">// not in py-ipv8 but this case is not specified and thus unknown</span>
-      (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=&gt;</span> <span class="ident">ConnectionType</span>::<span class="ident">SYMMETRICNAT</span>,
+    <span class="doccomment">/// Decodes two booleans into the corresponding connection type as encoded with the above encode method.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode</span>(<span class="ident">bits</span>: (<span class="ident">bool</span>, <span class="ident">bool</span>)) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="kw">match</span> <span class="ident">bits</span> {
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=&gt;</span> <span class="ident">ConnectionType</span>::<span class="ident">UNKNOWN</span>,
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=&gt;</span> <span class="ident">ConnectionType</span>::<span class="ident">PUBLIC</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=&gt;</span> <span class="ident">ConnectionType</span>::<span class="ident">UNKNOWN</span>, <span class="comment">// not in py-ipv8 but this case is not specified and thus unknown</span>
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=&gt;</span> <span class="ident">ConnectionType</span>::<span class="ident">SYMMETRICNAT</span>,
+        }
     }
-  }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../";window.currentCrate = "ipv8";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

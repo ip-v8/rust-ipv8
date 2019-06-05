@@ -40,48 +40,64 @@
 <span id="40">40</span>
 <span id="41">41</span>
 <span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Serialize</span>,<span class="ident">Deserialize</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">payloads</span>::<span class="ident">Ipv8Payload</span>;
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TimeDistributionPayload</span> {
-  <span class="doccomment">/// The global time in the system. Uses a lamport clock system.</span>
-  <span class="doccomment">/// Ipv8 stores global time values using, at most, 64 bits.</span>
-  <span class="doccomment">/// Therefore there is a finite number of global time values available.</span>
-  <span class="doccomment">/// To avoid malicious peers from quickly pushing the global time value to the point where none are left,</span>
-  <span class="doccomment">/// peers will only accept messages with a global time that is within a locally evaluated limit.</span>
-  <span class="doccomment">/// This limit is set to the median of the neighbors’ global time values plus a predefined margin.</span>
-  <span class="doccomment">/// https://en.wikipedia.org/wiki/Lamport_timestamps</span>
-  <span class="doccomment">/// (from dispersy docs. TODO: still up to date?)</span>
-  <span class="kw">pub</span> <span class="ident">global_time</span>: <span class="ident">u64</span>,
+    <span class="doccomment">/// The global time in the system. Uses a lamport clock system.</span>
+    <span class="doccomment">/// Ipv8 stores global time values using, at most, 64 bits.</span>
+    <span class="doccomment">/// Therefore there is a finite number of global time values available.</span>
+    <span class="doccomment">/// To avoid malicious peers from quickly pushing the global time value to the point where none are left,</span>
+    <span class="doccomment">/// peers will only accept messages with a global time that is within a locally evaluated limit.</span>
+    <span class="doccomment">/// This limit is set to the median of the neighbors’ global time values plus a predefined margin.</span>
+    <span class="doccomment">/// https://en.wikipedia.org/wiki/Lamport_timestamps</span>
+    <span class="doccomment">/// (from dispersy docs. TODO: still up to date?)</span>
+    <span class="kw">pub</span> <span class="ident">global_time</span>: <span class="ident">u64</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Ipv8Payload</span> <span class="kw">for</span> <span class="ident">TimeDistributionPayload</span> {
-  <span class="comment">// doesnt have anything but needed for the default implementation (as of right now)</span>
+    <span class="comment">// doesnt have anything but needed for the default implementation (as of right now)</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-  <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-  <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">Packet</span>;
-  <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::{<span class="ident">TEST_HEADER</span>, <span class="ident">DefaultHeader</span>};
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::{<span class="ident">DefaultHeader</span>, <span class="ident">TEST_HEADER</span>};
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">Packet</span>;
 
-  <span class="attribute">#[<span class="ident">test</span>]</span>
-  <span class="kw">fn</span> <span class="ident">integration_test_creation</span>() {
-    <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">TimeDistributionPayload</span> {
-      <span class="ident">global_time</span>: <span class="number">42u64</span>
-    };
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">integration_test_creation</span>() {
+        <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">TimeDistributionPayload</span> { <span class="ident">global_time</span>: <span class="number">42u64</span> };
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
-    <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>);
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
-      <span class="ident">packet</span>,
-      <span class="ident">Packet</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>,<span class="number">42</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">42</span>,<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">42</span>])
-    );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">i</span>,<span class="ident">packet</span>.<span class="ident">start_deserialize</span>().<span class="ident">skip_header</span>::<span class="op">&lt;</span><span class="ident">DefaultHeader</span><span class="op">&gt;</span>().<span class="ident">next_payload</span>().<span class="ident">unwrap</span>());
-  }
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">packet</span>,
+            <span class="ident">Packet</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                <span class="number">0</span>, <span class="number">42</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
+                <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">42</span>
+            ])
+        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">i</span>,
+            <span class="ident">packet</span>
+                .<span class="ident">start_deserialize</span>()
+                .<span class="ident">skip_header</span>::<span class="op">&lt;</span><span class="ident">DefaultHeader</span><span class="op">&gt;</span>()
+                .<span class="ident">next_payload</span>()
+                .<span class="ident">unwrap</span>()
+        );
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../";window.currentCrate = "ipv8";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
