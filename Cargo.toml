@@ -4,9 +4,9 @@ version = "0.1.0"
 authors = ["Dany Sluijk <dany@atlasdev.nl>"]
 edition = "2018"
 description = "IPv8 implementation for rust."
-homepage = "https://ipv8.dany.dev"
-documentation = "https://rust-ipv8.dany.dev"
-repository = "https://github.com/dsluijk/rust-ipv8"
+homepage = "https://ip-v8.github.io/rust-ipv8/ipv8/"
+documentation = "https://ip-v8.github.io/rust-ipv8/ipv8/"
+repository = "https://github.com/ip-v8/rust-ipv8"
 readme = "readme.md"
 license-file = "license.md"
 
@@ -17,7 +17,7 @@ exclude = [
 ]
 
 [badges]
-travis-ci = { repository = "dsluijk/rust-ipv8", branch = "master" }
+travis-ci = { repository = "ip-v8/rust-ipv8", branch = "develop" }
 maintenance = { status = "experimental" }
 
 [dependencies]

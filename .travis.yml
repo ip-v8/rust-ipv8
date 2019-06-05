@@ -58,12 +58,12 @@ jobs:
 
     - stage: deploy
       script: cargo doc
+      name: "Deploy docs on GitHub Pages"
       deploy:
-        name: "Deploy docs on GitHub Pages"
         provider: pages
         skip_cleanup: true
         github_token: $GITHUB_TOKEN
         keep_history: true
         local_dir: target/doc
         on:
-          branch: travis # FIXME: < change to develop before merge
+          branch: develop
