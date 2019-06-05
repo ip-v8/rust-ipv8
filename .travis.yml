@@ -50,22 +50,20 @@ jobs:
       rust: stable
       name: "Clippy"
 
-    - script: cargo fmt --check
+    - script: cargo fmt -- --check
       env: ALLOW_FAILURE=true
       install: rustup component add rustfmt
       rust: stable
       name: "Rustfmt"
 
-    - stage: before_deploy
-      name: "Generate docs"
-      script: cargo doc
-
     - stage: deploy
-      name: "GitHub Pages"
-      provider: pages
-      skip_cleanup: true
-      github_token: $GITHUB_TOKEN
-      keep_history: true
-      local_dir: target/doc
-      on:
-        branch: travis # FIXME: < change to develop before merge
+      script: cargo doc
+      deploy:
+        name: "Deploy docs on GitHub Pages"
+        provider: pages
+        skip_cleanup: true
+        github_token: $GITHUB_TOKEN
+        keep_history: true
+        local_dir: target/doc
+        on:
+          branch: travis # FIXME: < change to develop before merge
