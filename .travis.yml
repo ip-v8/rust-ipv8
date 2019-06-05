@@ -4,17 +4,25 @@ cache: cargo
 matrix:
   include:
     - os: linux
+      rust: stable
+
+    - os: linux
+      rust: beta
+
+    - os: linux
       rust: nightly
 
 install:
   - which grcov || cargo install grcov
-  - rustup component add rustfmt
-  - rustup component add clippy
+  -
+  -
 
 jobs:
   include:
     - stage: test
-      name: "Build, test and cov"
+      name: "nightly + coverage"
+      rust: nightly
+      install: which grcov || cargo install grcov
       script:
         - export CARGO_INCREMENTAL=0
         - export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads"
@@ -25,13 +33,28 @@ jobs:
           grcov ccov.zip -s src/ -t lcov --llvm --branch --ignore-not-existing --ignore-dir "/*" -o lcov.info;
           bash <(curl -s https://codecov.io/bash) -f lcov.info;
 
+    - script:
+        - cargo test
+      name: "stable"
+      rust: stable
+
+    - script:
+        - cargo test
+      name: "beta"
+      rust: beta
+
     - script: cargo bench # TODO: Export these benchmarks
+      rust: stable
       name: "Benchmarks"
 
     - script: cargo clippy # TODO: Enable failure
+      install: rustup component add clippy
+      rust: stable
       name: "Clippy"
 
     - script: cargo fmt # TODO: Enable failure
+      install: rustup component add rustfmt
+      rust: stable
       name: "rustfmt"
 
     - stage: before_deploy
