@@ -1,30 +1,49 @@
 language: rust
 cache: cargo
 
-
 matrix:
   include:
     - os: linux
       rust: nightly
 
-before_install:
+install:
   - which grcov || cargo install grcov
+  - rustup component add rustfmt
+  - rustup component add clippy
 
-script:
-  - export CARGO_INCREMENTAL=0
-  - export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads"
-  - cargo build --verbose $CARGO_OPTIONS
-  - cargo test --verbose $CARGO_OPTIONS
-  - |
-    zip -0 ccov.zip `find . \( -name "*ipv8*.gc*" \) -print`;
-    grcov ccov.zip -s src/ -t lcov --llvm --branch --ignore-not-existing --ignore-dir "/*" -o lcov.info;
-    bash <(curl -s https://codecov.io/bash) -f lcov.info;
+jobs:
+  include:
+    - stage: test
+      name: "Build, test and cov"
+      script:
+        - export CARGO_INCREMENTAL=0
+        - export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads"
+        - cargo build --verbose $CARGO_OPTIONS
+        - cargo test --verbose $CARGO_OPTIONS
+        - |
+          zip -0 ccov.zip `find . \( -name "*ipv8*.gc*" \) -print`;
+          grcov ccov.zip -s src/ -t lcov --llvm --branch --ignore-not-existing --ignore-dir "/*" -o lcov.info;
+          bash <(curl -s https://codecov.io/bash) -f lcov.info;
 
-deploy:
-  provider: pages
-  skip_cleanup: true
-  github_token: $GITHUB_TOKEN
-  keep_history: true
-  local_dir: target/doc
-  on:
-    branch: travis # FIXME: < change to develop before merge
+    - script: cargo bench # TODO: Export these benchmarks
+      name: "Benchmarks"
+
+    - script: cargo clippy # TODO: Enable failure
+      name: "Clippy"
+
+    - script: cargo fmt # TODO: Enable failure
+      name: "rustfmt"
+
+    - stage: before_deploy
+      name: "Generate docs"
+      script: cargo doc
+
+    - stage: deploy
+      name: "GH Pages"
+      provider: pages
+      skip_cleanup: true
+      github_token: $GITHUB_TOKEN
+      keep_history: true
+      local_dir: target/doc
+      on:
+        branch: travis # FIXME: < change to develop before merge
