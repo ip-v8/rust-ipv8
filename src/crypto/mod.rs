@@ -14,7 +14,10 @@ use std::os::raw::c_int;
 
 create_error!(SignatureError, "Invalid signature");
 create_error!(SizeError, "Invalid input size");
-create_error!(OpenSSLError,"OpenSSL had a rapid unscheduled disassembly (oops)");
+create_error!(
+    OpenSSLError,
+    "OpenSSL had a rapid unscheduled disassembly (oops)"
+);
 
 /// wrapper function for signing data using ed25519
 pub fn create_signature_ed25519(
@@ -88,7 +91,7 @@ pub fn verify_signature_openssl(
 mod tests {
     use crate::crypto::{
         create_signature_openssl, verify_signature_ed25519, verify_signature_openssl, SizeError,
-    };
+};
     use openssl::bn::BigNum;
     use rust_sodium::crypto::sign::ed25519;
     use std::error::Error;

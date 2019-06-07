@@ -1,10 +1,10 @@
-pub mod error;
-pub mod serialization;
 pub mod configuration;
 pub mod crypto;
+pub mod error;
 pub mod event;
 pub mod networking;
 pub mod payloads;
+pub mod serialization;
 
 use configuration::Config;
 
