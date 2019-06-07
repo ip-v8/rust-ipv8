@@ -1,10 +1,10 @@
-pub mod error;
 pub mod configuration;
+pub mod crypto;
+pub mod error;
 pub mod event;
 pub mod networking;
-pub mod serialization;
 pub mod payloads;
-pub mod crypto;
+pub mod serialization;
 
 use configuration::Config;
 
@@ -19,11 +19,11 @@ use configuration::Config;
 /// let ipv8_instance = IPv8::new(Config::default());
 /// ```
 pub struct IPv8 {
-  config: Config,
+    config: Config,
 }
 
 impl IPv8 {
-  pub fn new(config: configuration::Config) -> Self {
-    IPv8 { config }
-  }
+    pub fn new(config: configuration::Config) -> Self {
+        IPv8 { config }
+    }
 }

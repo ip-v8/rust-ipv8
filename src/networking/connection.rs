@@ -5,25 +5,23 @@ use std::net::{SocketAddr, UdpSocket};
 // please improve
 
 pub struct Connection {
-  socket: UdpSocket,
-  on_message: EventGenerator,
+    socket: UdpSocket,
+    on_message: EventGenerator,
 }
 
 impl Connection {
-  fn new(address: Address) -> Result<Self, String> {
-    let socketaddress = SocketAddr::from((address.address, address.port));
-    let socket = match UdpSocket::bind(socketaddress) {
-      Ok(i) => i,
-      Err(i) => return Err(format!("{:?}", i)),
-    };
+    fn new(address: Address) -> Result<Self, String> {
+        let socketaddress = SocketAddr::from((address.address, address.port));
+        let socket = match UdpSocket::bind(socketaddress) {
+            Ok(i) => i,
+            Err(i) => return Err(format!("{:?}", i)),
+        };
 
-    Ok(Connection {
-      socket,
-      on_message: EventGenerator::new(),
-    })
-  }
+        Ok(Connection {
+            socket,
+            on_message: EventGenerator::new(),
+        })
+    }
 
-  fn send(address: Address, data: Vec<u8>) {}
-
+    fn send(address: Address, data: Vec<u8>) {}
 }
-

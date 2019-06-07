@@ -1,33 +1,32 @@
 //! Module containing everything related to Nested payloads
 use crate::payloads::Ipv8Payload;
 use crate::serialization::varlen::VarLen16;
+use crate::serialization::Packet;
+use serde;
 use serde::de::Deserialize;
 use serde::de::Deserializer;
-use crate::serialization::Packet;
-use serde::ser::Serializer;
 use serde::ser::Serialize;
 use serde::ser::SerializeStruct;
-use serde;
+use serde::ser::Serializer;
 
-#[derive(PartialEq,Debug)]
-pub struct NestedPacket(
-  pub Packet
-);
+#[derive(PartialEq, Debug)]
+pub struct NestedPacket(pub Packet);
 
-impl Ipv8Payload for NestedPacket{
-  // doesnt have anything but needed for the default implementation (as of right now)
+impl Ipv8Payload for NestedPacket {
+    // doesnt have anything but needed for the default implementation (as of right now)
 }
 
 impl Serialize for NestedPacket {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let i = VarLen16((self.0).0.to_owned());
 
-    let i = VarLen16((self.0).0.to_owned());
-
-    let mut state = serializer.serialize_struct("NestedPacket", self.0.len())?;
-    state.serialize_field("payload", &i)?;
-    state.end()
-  }
+        let mut state = serializer.serialize_struct("NestedPacket", self.0.len())?;
+        state.serialize_field("payload", &i)?;
+        state.end()
+    }
 }
 
 #[derive(Debug, PartialEq, serde::Deserialize)]
@@ -37,107 +36,123 @@ impl Serialize for NestedPacket {
 struct NestedPayloadPattern(VarLen16);
 
 impl<'de> Deserialize<'de> for NestedPacket {
-  /// deserializes an IntroductionRequestPayload
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>,{
-    // first deserialize it to a temporary struct which literally represents the packer
-    let payload_temporary:NestedPayloadPattern = NestedPayloadPattern::deserialize(deserializer)?;
-    Ok(NestedPacket(Packet((payload_temporary.0).0)))
-  }
+    /// deserializes an IntroductionRequestPayload
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        // first deserialize it to a temporary struct which literally represents the packer
+        let payload_temporary: NestedPayloadPattern =
+            NestedPayloadPattern::deserialize(deserializer)?;
+        Ok(NestedPacket(Packet((payload_temporary.0).0)))
+    }
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use crate::serialization::Packet;
-  use serde;
+    use super::*;
+    use crate::serialization::Packet;
+    use serde;
 
-
-  #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-  struct TestPayload1 {
-    test:NestedPacket,
-  }
-
-  impl Ipv8Payload for TestPayload1 {
-    // doesnt have anything but needed for the default implementation (as of right now)
-  }
-
-  #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-  struct TestPayload2 {
-    test:u16,
-  }
-
-  impl Ipv8Payload for TestPayload2 {
-    // doesnt have anything but needed for the default implementation (as of right now)
-  }
-
-  #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-  struct TestPayload3 {
-
-  }
-
-  impl Ipv8Payload for TestPayload3 {
-    // doesnt have anything but needed for the default implementation (as of right now)
-  }
-
-  #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-  struct TestPayload4 {
-    test: Vec<u8>
-  }
-
-  impl Ipv8Payload for TestPayload4 {
-    // doesnt have anything but needed for the default implementation (as of right now)
-  }
-
-  #[test]
-  fn integration_test_creation() {
-    let mut packet = Packet::new(create_test_header!()).unwrap();
-    packet.add(&TestPayload2{test:10,}).unwrap();
-
-    let mut packet2 = Packet::new(create_test_header!()).unwrap();
-    packet2.add(&TestPayload2{test:10,}).unwrap();
-
-    let i = TestPayload1 {
-      test: NestedPacket(packet)
-    };
-    let mut newpacket = Packet::new(create_test_header!()).unwrap();
-    newpacket.add(&i).unwrap();
-
-    assert_eq!(i,newpacket.start_deserialize().skip_header().unwrap().next_payload().unwrap());
-  }
-
-  #[test]
-  fn test_empty() {
-    let mut packet = Packet::new(create_test_header!()).unwrap();
-    packet.add(&TestPayload3{}).unwrap();
-
-    let mut packet2 = Packet::new(create_test_header!()).unwrap();
-    packet2.add(&TestPayload3{}).unwrap();
-
-    let i = TestPayload1 {
-      test: NestedPacket(packet)
-    };
-
-    let mut newpacket = Packet::new(create_test_header!()).unwrap();
-    newpacket.add(&i).unwrap();
-
-    assert_eq!(i, newpacket.start_deserialize().skip_header().unwrap().next_payload().unwrap());
-  }
-
-  #[test]
-  fn test_too_large() {
-    let tmp:Vec<u8> = vec![0; (1u32 << 17) as usize];
-    let mut packet = Packet::new(create_test_header!()).unwrap();
-    packet.add(&TestPayload4{test:tmp}).unwrap();
-
-    let i = TestPayload1 {
-      test: NestedPacket(packet)
-    };
-
-    let mut packet = Packet::new(create_test_header!()).unwrap();
-    match packet.add(&i) {
-      Ok(_) => assert!(false),
-      Err(_) => assert!(true),
+    #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+    struct TestPayload1 {
+        test: NestedPacket,
     }
-  }
+
+    impl Ipv8Payload for TestPayload1 {
+        // doesnt have anything but needed for the default implementation (as of right now)
+    }
+
+    #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+    struct TestPayload2 {
+        test: u16,
+    }
+
+    impl Ipv8Payload for TestPayload2 {
+        // doesnt have anything but needed for the default implementation (as of right now)
+    }
+
+    #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+    struct TestPayload3 {}
+
+    impl Ipv8Payload for TestPayload3 {
+        // doesnt have anything but needed for the default implementation (as of right now)
+    }
+
+    #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+    struct TestPayload4 {
+        test: Vec<u8>,
+    }
+
+    impl Ipv8Payload for TestPayload4 {
+        // doesnt have anything but needed for the default implementation (as of right now)
+    }
+
+    #[test]
+    fn integration_test_creation() {
+        let mut packet = Packet::new(create_test_header!()).unwrap();
+        packet.add(&TestPayload2 { test: 10 }).unwrap();
+
+        let mut packet2 = Packet::new(create_test_header!()).unwrap();
+        packet2.add(&TestPayload2 { test: 10 }).unwrap();
+
+        let i = TestPayload1 {
+            test: NestedPacket(packet),
+        };
+        let mut newpacket = Packet::new(create_test_header!()).unwrap();
+        newpacket.add(&i).unwrap();
+
+        assert_eq!(
+            i,
+            newpacket
+                .start_deserialize()
+                .skip_header()
+                .unwrap()
+                .next_payload()
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn test_empty() {
+        let mut packet = Packet::new(create_test_header!()).unwrap();
+        packet.add(&TestPayload3 {}).unwrap();
+
+        let mut packet2 = Packet::new(create_test_header!()).unwrap();
+        packet2.add(&TestPayload3 {}).unwrap();
+
+        let i = TestPayload1 {
+            test: NestedPacket(packet),
+        };
+
+        let mut newpacket = Packet::new(create_test_header!()).unwrap();
+        newpacket.add(&i).unwrap();
+
+        assert_eq!(
+            i,
+            newpacket
+                .start_deserialize()
+                .skip_header()
+                .unwrap()
+                .next_payload()
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn test_too_large() {
+        let tmp: Vec<u8> = vec![0; (1u32 << 17) as usize];
+        let mut packet = Packet::new(create_test_header!()).unwrap();
+        packet.add(&TestPayload4 { test: tmp }).unwrap();
+
+        let i = TestPayload1 {
+            test: NestedPacket(packet),
+        };
+
+        let mut packet = Packet::new(create_test_header!()).unwrap();
+        match packet.add(&i) {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
+        }
+    }
 }
