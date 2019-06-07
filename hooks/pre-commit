@@ -1,0 +1,34 @@
+#!/bin/bash
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RC='\033[0m' # Reset Color
+
+PREFIX="${GREEN}[PRECOMMIT]${RC}"
+FAILURE="${RED}FAILED${RC}"
+WARNING="${RED}[WARNING]${RC}"
+SKIPPED="${YELLOW}SKIPPED${RC}"
+SUCCESS="${GREEN}ok${RC}"
+
+# Check if rustfmt is installed
+printf "${PREFIX} Checking for rustfmt ... "
+command -v cargo fmt &>/dev/null
+if [[ $? == 0 ]]; then
+	printf "${SUCCESS}\n"
+else
+	printf "${FAILURE}\n"
+	exit 1
+fi
+
+# Check rustfmt against the git tree
+printf "${PREFIX} Checking formatting ... "
+command cargo fmt -- --check > /dev/null
+if [[ $? == 0 ]]; then
+	printf "${SUCCESS}\n"
+	exit 0
+fi
+
+# If things went wrong
+printf "${FAILURE}\n"
+exit 1
