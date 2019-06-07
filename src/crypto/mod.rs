@@ -17,21 +17,22 @@ create_error!(SizeError, "Invalid input size");
 create_error!(OpenSSLError, "OpenSSL had a rapid unscheduled disassembly (oops)");
 
 /// wrapper function for signing data using ed25519
-pub fn create_signature_ed25519(data: &[u8], skey: ed25519::SecretKey) -> Result<ed25519::Signature, Box<Error>>{
+pub fn create_signature_ed25519(data: &[u8], skey: ed25519::SecretKey) -> Result<ed25519::Signature, Box<dyn Error>>{
   Ok(ed25519::sign_detached(data,&skey))
 }
 
 /// wrapper function for verifying data using ed25519
-pub fn verify_signature_ed25519(signature: Vec<u8>, data: &[u8], pkey: ed25519::PublicKey) -> Result<bool,Box<Error>>{
-  let verify = ed25519::verify_detached(&match ed25519::Signature::from_slice(&*signature) {
-    Some(i) => i,
-    None => return Err(Box::new(SignatureError))
-  },data, &pkey);
+pub fn verify_signature_ed25519(signature: Vec<u8>, data: &[u8], pkey: ed25519::PublicKey) -> Result<bool,Box<dyn Error>>{
+  let verify = ed25519::verify_detached(
+    &ed25519::Signature::from_slice(&*signature).ok_or(Box::new(SignatureError))?
+    ,data,
+    &pkey);
+
   Ok(verify)
 }
 
 /// wrapper function for signing data using openssl
-pub fn create_signature_openssl(data: &[u8], skey: openssl::pkey::PKey<Private>) -> Result<Vec<u8>, Box<Error>>{
+pub fn create_signature_openssl(data: &[u8], skey: openssl::pkey::PKey<Private>) -> Result<Vec<u8>, Box<dyn Error>>{
   if data.len() > c_int::max_value() as usize{
     return Err(Box::new(SizeError));
   }
@@ -52,7 +53,7 @@ pub fn create_signature_openssl(data: &[u8], skey: openssl::pkey::PKey<Private>)
 }
 
 /// wrapper function for verifying data using openssl
-pub fn verify_signature_openssl(signature: (BigNum, BigNum), data: &[u8], pkey: openssl::pkey::PKey<Public>) -> Result<bool,Box<Error>>{
+pub fn verify_signature_openssl(signature: (BigNum, BigNum), data: &[u8], pkey: openssl::pkey::PKey<Public>) -> Result<bool,Box<dyn Error>>{
   if data.len() > c_int::max_value() as usize{
     return Err(Box::new(SizeError));
   }
@@ -80,7 +81,7 @@ mod tests {
   #[test]
   fn ed25519_verify_signature_error() {
     let seed = ed25519::Seed::from_slice(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,]).unwrap();
-    let (pkey,skey) = ed25519::keypair_from_seed(&seed);
+    let (pkey,_) = ed25519::keypair_from_seed(&seed);
 
     match verify_signature_ed25519(vec![42], &vec![42], pkey) {
       Ok(_) => assert!(false, "This shouldn't happen as the signature is malformed thus we expect an error"),

@@ -1,14 +1,28 @@
+//! Module for the various types of keys
+//!
+//! When adding new key types follow these steps:
+//! 1. Add it the the PublicKey and PrivateKey enums
+//! 2. Change all the match statements testing for either an openssl or libnacl key (or if your key is not either of this, add yours)
+//! 3. Add your key to the list of consts below for signature length
+//! 4. add your constant to the macro sig_size.
+//!
+//! The length of the used signatures
+//!
+//! | Signature Type                   | pyipv8 | .size() | diff | (bits/8)*2 |
+//! |----------------------------------|--------|---------|------|------------|
+//! | VERY_LOW_SIGNATURE_LENGTH        |   42   |   50    |  8   |    42      |
+//! | LOW_SIGNATURE_LENGTH             |   60   |   66    |  6   |    58      |
+//! | MEDIUM_SIGNATURE_LENGTH          |  104   |   110   |  6   |    102     |
+//! | HIGH_SIGNATURE_LENGTH            |  144   |   153   |  9   |    144     |
+//! | ED25519_SIGNATURE_LENGTH         |   64   |   64    |  0   |    64      |
+
 use openssl;
 use rust_sodium::crypto::sign::ed25519;
 use std::fmt;
 
 // TODO: when ed25519 becomes available for rust OpenSSL, rust_sodium will be removed.
 
-// when adding new key types follow these steps
-// 1. Add it the the PublicKey and PrivateKey enums
-// 2. Change all the match statements testing for either an openssl or libnacl key (or if your key is not either of this, add yours)
-// 3. Add your key to the list of consts below for signature length
-// 4. add your constant to the macro sig_size.
+/// Enum containing all the types of public keys
 pub enum PublicKey {
   OpenSSLVeryLow(openssl::pkey::PKey<openssl::pkey::Public>),
   OpenSSLLow(openssl::pkey::PKey<openssl::pkey::Public>),
@@ -17,6 +31,7 @@ pub enum PublicKey {
   Ed25519(ed25519::PublicKey, ed25519::PublicKey), // First key is encryption key, second is verification key
 }
 
+/// Enum containg all the types of private keys
 pub enum PrivateKey {
   OpenSSLVeryLow(openssl::pkey::PKey<openssl::pkey::Private>),
   OpenSSLLow(openssl::pkey::PKey<openssl::pkey::Private>),
@@ -25,15 +40,14 @@ pub enum PrivateKey {
   Ed25519(ed25519::SecretKey, ed25519::SecretKey), // First key is encryption key, second is verification
 }
 
-// The length of the used signatures              pyipv8 | .size() | diff | bits/8*2
-const VERY_LOW_SIGNATURE_LENGTH: usize = 42;  //  42     |   50    |  8   | 42
-const LOW_SIGNATURE_LENGTH:      usize = 60;  //  60     |   66    |  6   | 58
-const MEDIUM_SIGNATURE_LENGTH:   usize = 104; //  104    |   110   |  6   | 102
-const HIGH_SIGNATURE_LENGTH:     usize = 144; //  144    |   153   |  9   | 144
-const ED25519_SIGNATURE_LENGTH:  usize = 64;  //  64     |   64    |  0   | 64
+const VERY_LOW_SIGNATURE_LENGTH: usize = 42;
+const LOW_SIGNATURE_LENGTH:      usize = 60;
+const MEDIUM_SIGNATURE_LENGTH:   usize = 104;
+const HIGH_SIGNATURE_LENGTH:     usize = 144;
+const ED25519_SIGNATURE_LENGTH:  usize = 64;
 
-// Macro for creating a size function which returns the signature length of the given key.
-// Created to avoid duplication between PrivateKey and PublicKey.
+/// Macro for creating a size function which returns the signature length of the given key.
+/// Created to avoid duplication between PrivateKey and PublicKey.
 macro_rules! sig_size {
     ($keytype: ident) => {
         pub fn size(&self) -> usize {
@@ -182,10 +196,10 @@ mod tests{
   #[test]
   fn test_from_vec_ed25519(){
     let seed = ed25519::Seed::from_slice(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,]).unwrap();
-    let (e_pkey,e_skey) = ed25519::keypair_from_seed(&seed);
+    let (e_pkey,_) = ed25519::keypair_from_seed(&seed);
 
     let seed = ed25519::Seed::from_slice(&[1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,]).unwrap();
-    let (s_pkey,s_skey) = ed25519::keypair_from_seed(&seed);
+    let (s_pkey,_) = ed25519::keypair_from_seed(&seed);
 
     let mut keyvec = vec![76, 105, 98, 78, 97, 67, 76, 80, 75, 58]; // libnaclPK:
     keyvec.extend_from_slice(&e_pkey.as_ref()); // Encryption key
@@ -227,7 +241,7 @@ mod tests{
   #[test]
   fn test_to_vec_ed25519(){
     let seed = ed25519::Seed::from_slice(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,]).unwrap();
-    let (pkey,skey) = ed25519::keypair_from_seed(&seed);
+    let (pkey,_) = ed25519::keypair_from_seed(&seed);
     let mut keyvec = vec![76, 105, 98, 78, 97, 67, 76, 80, 75, 58]; // libnaclPK:
     keyvec.extend_from_slice(&pkey.as_ref());
     keyvec.extend_from_slice(&pkey.as_ref());
