@@ -14,9 +14,9 @@ license-file = "license.md"
 crate-type = ["lib", "cdylib"]
 
 exclude = [
-  ".editorconfig",
-  ".travis.yml",
-  ".codeclimate.yml"
+    ".editorconfig",
+    ".travis.yml",
+    ".codeclimate.yml"
 ]
 
 [badges]

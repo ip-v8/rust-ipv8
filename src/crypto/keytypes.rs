@@ -57,7 +57,7 @@ macro_rules! sig_size {
                 $keytype::OpenSSLMedium(_) => MEDIUM_SIGNATURE_LENGTH,
                 $keytype::OpenSSLLow(_) => LOW_SIGNATURE_LENGTH,
                 $keytype::OpenSSLVeryLow(_) => VERY_LOW_SIGNATURE_LENGTH
-          }
+            }
         }
     };
 }

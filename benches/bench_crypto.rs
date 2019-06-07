@@ -52,8 +52,7 @@ fn openssl_verylow_benchmark(c: &mut Criterion) {
     let sig = Signature::from_bytes(&[42, 43, 44], PrivateKey::OpenSSLVeryLow(skey)).unwrap();
 
     assert!(sig.verify(&[42, 43, 44], PublicKey::OpenSSLVeryLow(pkey)));
-  }
-  ));
+    }));
 }
 
 fn openssl_low_benchmark(c: &mut Criterion) {
@@ -65,7 +64,7 @@ fn openssl_low_benchmark(c: &mut Criterion) {
     let sig = Signature::from_bytes(&[42, 43, 44], PrivateKey::OpenSSLLow(skey)).unwrap();
 
     assert!(sig.verify(&[42, 43, 44], PublicKey::OpenSSLLow(pkey)));
-  }));
+    }));
 }
 
 fn openssl_medium_benchmark(c: &mut Criterion) {
@@ -77,7 +76,7 @@ fn openssl_medium_benchmark(c: &mut Criterion) {
     let sig = Signature::from_bytes(&[42, 43, 44], PrivateKey::OpenSSLMedium(skey)).unwrap();
 
     assert!(sig.verify(&[42, 43, 44], PublicKey::OpenSSLMedium(pkey)));
-  }));
+    }));
 }
 
 fn openssl_high_benchmark(c: &mut Criterion) {
@@ -89,7 +88,7 @@ fn openssl_high_benchmark(c: &mut Criterion) {
     let sig = Signature::from_bytes(&[42, 43, 44], PrivateKey::OpenSSLHigh(skey)).unwrap();
 
     assert!(sig.verify(&[42, 43, 44], PublicKey::OpenSSLHigh(pkey)));
-  }));
+    }));
 }
 
 criterion_group!(
