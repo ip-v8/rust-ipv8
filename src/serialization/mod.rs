@@ -1,4 +1,4 @@
-#[macro_use]
+#![macro_use]
 pub mod header;
 pub mod bits;
 pub mod rawend;
@@ -38,6 +38,7 @@ impl PacketIterator{
     where for<'de> T: Deserialize<'de> + Ipv8Payload + Serialize
   {
     let res: T = bincode::config().big_endian().deserialize(&self.pntr.0[self.index ..])?;
+
     // the old solution was: self.index += size_of::<T>();
     // this doesnt work as it is not uncommon to return less bytes than was actually in the bytecode (lengths etc)
     // the code below works but is inefficient. TODO: create a more efficient way to do this.
@@ -53,7 +54,6 @@ impl PacketIterator{
     // it got 17,584,554 ns per iteration (where each iteration is 100000 serialize/deserializations
     // while the recalculation takes 11,965,294ns
     self.index += bincode::config().big_endian().serialized_size(&res)? as usize;
-
     Ok(res)
   }
 
@@ -76,7 +76,7 @@ impl PacketIterator{
 
   /// This should be in most cases the first method to be called when receiving a packet. It **assumes** there is a
   /// BinMemberAuthenticationPayload at the start of the message (AND DOES NOT CHECK IF IT IS OR NOT). It extracts it and the
-  /// with the sign put at the end by the sender by calling Packet.sign() verifies that the packet is still intact.
+  /// with the sign put at the end by the sender by calling Packet.sign() verifies that the packet is still inyhtact.
   ///
   /// If the public key has been acquired in any other way (i.e. there is no BinMemberAuthenticationPayload at the start)
   /// use the Packet.verify_with() function instead.
@@ -91,17 +91,18 @@ impl PacketIterator{
   /// Does the same thing as the Packet. verify method. Takes a public key as second argument instead of extracting it from the packet itself
   /// through a BinMemberAuthenticationPayload
   pub fn verify_with(&mut self, pkey: PublicKey) -> bool{
-    let signaturelength = pkey.size();
+    let keylength = pkey.size();
 
     let datalen = self.len();
-    let signature = Signature{signature:self.pntr.0[datalen-signaturelength..].to_vec()};
-    self.pntr.0.truncate(datalen - signaturelength);
+    let signature = Signature{signature:self.pntr.0[datalen-keylength..].to_vec()};
+    self.pntr.0.truncate(datalen - keylength);
     signature.verify(&*self.pntr.0,pkey)
   }
 }
 
 impl Packet{
-  pub fn new(header: Header) -> Result<Self, Box<Error>>{
+  /// Creates a new packet with a given header.
+  pub fn new(header: Header) -> Result<Self, Box<dyn Error>>{
     let mut res = Self(vec![]);
     res.0.extend(match bincode::config().big_endian().serialize(&header){
       Ok(i)=>i,
@@ -120,7 +121,7 @@ impl Packet{
   ///
   /// To verify signatures first transform the Packet into a PacketIterator with Packet.deserialize_multiple and then use the PacketIterator.verify() or
   /// PacketIterator.verify_with() method.
-  pub fn sign(mut self, skey: PrivateKey) -> Result<Self, Box<Error>>{
+  pub fn sign(mut self, skey: PrivateKey) -> Result<Self, Box<dyn Error>>{
     let signature = Signature::from_bytes(&*self.0, skey)?;
     self.add(&signature)?;
     // now this packet *must not* be modified anymore
@@ -310,7 +311,7 @@ mod tests {
     packet.add(&b).unwrap();
     packet.add(&c).unwrap();
 
-    assert_eq!(Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0, 42, 0, 0, 0, 43, 0, 44]),packet);
+    assert_eq!(Packet(vec![0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0, 42, 0, 0, 0, 43, 0, 44]),packet);
   }
 
   # [test]

@@ -6,7 +6,6 @@ use std::net::{SocketAddr, UdpSocket};
 
 pub struct Connection {
   socket: UdpSocket,
-
   on_message: EventGenerator,
 }
 

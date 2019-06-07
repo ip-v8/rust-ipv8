@@ -21,10 +21,8 @@ pub struct BinMemberAuthenticationPayload {
 impl Serialize for BinMemberAuthenticationPayload {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where S: Serializer {
-    let v = match self.public_key_bin.to_vec() {
-      Some(i) => i,
-      None => return Err(ser::Error::custom("The key was malformed in a way which made it unserializable."))
-    };
+
+    let v = self.public_key_bin.to_vec().ok_or(ser::Error::custom("The key was malformed in a way which made it unserializable."))?;
 
     let mut state = serializer.serialize_tuple(v.len() + 2)?;
     state.serialize_element(&(v.len() as u16))?;
@@ -47,14 +45,12 @@ impl<'de> Deserialize<'de> for BinMemberAuthenticationPayload {
     where D: Deserializer<'de>, {
     // first deserialize it to a temporary struct which literally represents the packer
     let payload_temporary = BinMemberAuthenticationPayloadPattern::deserialize(deserializer)?;
+    let public_key_bin = PublicKey::from_vec((payload_temporary.0).0).ok_or(de::Error::custom("The key was malformed in a way which made it undeserializable."))?;
 
     // now build the struct for real
     Ok(BinMemberAuthenticationPayload {
       // payload_temporary.0.0 is the zeroth element in IntroductionRequestPayloadPattern which has a varlen which has a vector as zeroth element
-      public_key_bin: match PublicKey::from_vec((payload_temporary.0).0) {
-        Some(i) => i,
-        None => return Err(de::Error::custom("The key was malformed in a way which made it undeserializable."))
-      }
+      public_key_bin
     })
   }
 }

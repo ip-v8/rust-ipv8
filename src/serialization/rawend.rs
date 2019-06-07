@@ -1,3 +1,4 @@
+//! Module containing everything related to RawEnd data structure
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde;
 use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
@@ -73,7 +74,7 @@ mod tests {
 
     packet.add(&a).unwrap();
 
-    assert_eq!(Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,42,43]),packet);
+    assert_eq!(Packet(vec![0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,42,43]),packet);
   }
 
   # [test]

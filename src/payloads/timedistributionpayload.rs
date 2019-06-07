@@ -30,11 +30,11 @@ mod tests {
     };
 
     let mut packet = Packet::new(create_test_header!()).unwrap();
-    packet.add(&i);
+    packet.add(&i).unwrap();
 
     assert_eq!(
       packet,
-      Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0, 0, 0, 0, 0, 0, 0, 42])
+      Packet(vec![0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0, 0, 0, 0, 0, 0, 0, 42])
     );
     assert_eq!(i,packet.start_deserialize().skip_header().unwrap().next_payload().unwrap());
   }

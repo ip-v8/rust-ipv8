@@ -10,6 +10,9 @@ repository = "https://github.com/ip-v8/rust-ipv8"
 readme = "readme.md"
 license-file = "license.md"
 
+[lib]
+crate-type = ["lib", "cdylib"]
+
 exclude = [
   ".editorconfig",
   ".travis.yml",

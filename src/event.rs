@@ -7,7 +7,7 @@ pub trait EventHandler {
 
 #[derive(Default)]
 pub struct EventGenerator {
-  handlers: Vec<Box<EventHandler>>,
+  handlers: Vec<Box<dyn EventHandler>>,
 }
 
 impl EventGenerator {
@@ -15,7 +15,7 @@ impl EventGenerator {
     EventGenerator { handlers: vec![] }
   }
 
-  pub fn register(&mut self, handler: Box<EventHandler>) {
+  pub fn register(&mut self, handler: Box<dyn EventHandler>) {
     self.handlers.push(handler);
   }
 }

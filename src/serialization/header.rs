@@ -1,14 +1,22 @@
+#![macro_use]
+//! Module containing everything related to headers
 use std::fmt;
 
 use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
 use serde::ser::{Serialize, Serializer};
 use serde::ser::SerializeTuple;
 
+/// Enum containg all the types of headers
 #[derive(PartialEq, Debug)]
 pub enum HeaderVersion {
+  /// The PyIPv8 header
   PyIPV8Header,
 }
 
+/// The struct for headers.
+///
+/// The `mid_hash` and `message_type` are Options and larger then they need to
+/// be for easier expansion later on.
 #[derive(PartialEq, Debug)]
 pub struct Header {
   pub size: usize, // This is a size that is hardcoded when a header is deserialized.
@@ -17,13 +25,15 @@ pub struct Header {
   pub message_type: Option<u64>,
 }
 
+
 impl Header{
-  pub fn py_ipv8_header(mid_hash: Vec<u8>, message_type: u64) -> Self {
+  /// Helper function for creating a PyIPv8 compliant Header
+  pub fn py_ipv8_header(mid_hash: [u8; 20], message_type: u8) -> Self {
     Header{
       size: PY_IPV8_HEADER_SIZE,
       version: HeaderVersion::PyIPV8Header,
-      mid_hash: Some(mid_hash),
-      message_type: Some(message_type),
+      mid_hash: Some(mid_hash.to_vec()),
+      message_type: Some(u64::from(message_type)),
     }
   }
 }
@@ -42,36 +52,49 @@ struct PyIPV8HeaderPattern(
   u8, // message type
 );
 
-// 2 bytes magic, 20 bytes hash, 1 byte message type
+/// 2 bytes magic + 20 bytes hash + 1 byte message type = 23 bytes
 const PY_IPV8_HEADER_SIZE: usize = 23;
 
 //------------end header constants------------
 
-/// makes the BinMemberAuthenticationPayload serializable.
-/// This is less than trivial as there is no 1:1 mapping between the serialized data and the payload struct.
-/// Some struct fields are combined into one byte to form the serialized data.
+/// makes the Header serializable.
 impl Serialize for Header {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where S: Serializer {
+
+    //! All types of headers need to be serialized differently
     match self.version {
       HeaderVersion::PyIPV8Header => {
-        // 23 is the size of the Python IPV8 Header.
         let mut state = serializer.serialize_tuple(PY_IPV8_HEADER_SIZE)?;
         match self.version{
-          HeaderVersion::PyIPV8Header => state.serialize_element(&(0002 as u16))?,
+          HeaderVersion::PyIPV8Header => state.serialize_element(&(2 as u16))?,
         }
-        for i in &self.mid_hash.clone() {
+
+        // Unwrap the hash
+        let hash = match &self.mid_hash {
+          Some(m) => m,
+          None => return Err(serde::ser::Error::custom("mid_hash was empty and this wasn't expected"))
+        };
+
+        // Serialize the hash
+        for i in hash {
           state.serialize_element(&i)?;
         }
-        state.serialize_element(&(self.message_type))?;
+
+        // unwrap the message type
+        let message_type: u8 = self.message_type.ok_or(serde::ser::Error::custom("Message type was empty and this wasn't expected"))? as u8;
+
+        // Serialize the message type
+        state.serialize_element(&message_type)?;
         state.end()
       }
     }
   }
 }
 
+// TODO: Comments
 impl<'de> Deserialize<'de> for Header {
-  /// deserializes an IntroductionRequestPayload
+  /// deserializes a Header
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where D: Deserializer<'de>, {
     // first deserialize it to a temporary struct which literally represents the packer
@@ -86,46 +109,43 @@ impl<'de> Deserialize<'de> for Header {
       fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
         where A: SeqAccess<'de>
       {
-        let mut version = None;
+        let version;
         let mut version_bytes: Vec<u8> = vec![];
 
+        #[allow(clippy::never_loop)] // We will make this a proper named block when that feature gets mainlined
         loop { // this block is here to be breaked out of or else return an error
-          version_bytes.push(match seq.next_element()? {Some(i) => i, None => return Err(
-            serde::de::Error::custom("No valid header type could be determined"))
-          });
-          version_bytes.push(match seq.next_element()? {Some(i) => i, None => return Err(
-            serde::de::Error::custom("No valid header type could be determined"))
-          });
 
-          if version_bytes.as_slice() == [0, 2] {
+          // Deserialize the first two bytes into `version_bytes`
+          version_bytes.push(seq.next_element()?.ok_or(serde::de::Error::custom("No valid header type could be determined"))?);
+          version_bytes.push(seq.next_element()?.ok_or(serde::de::Error::custom("No valid header type could be determined"))?);
+
+          // Check if they match the header version of PyIPv8: `0002`, if so set it and break out of
+          // the pseudo-loop
+          if version_bytes.as_slice() == [00, 02] {
             version = Some(HeaderVersion::PyIPV8Header);
             break;
           }
 
-          // version_bytes.push(match seq.next_element()? {Some(i) => i, None => return Err(
-          //   serde::de::Error::custom("No valid header type could be determined"))
-          // });
-          // version_bytes.push(match seq.next_element()? {Some(i) => i, None => return Err(
-          //   serde::de::Error::custom("No valid header type could be determined"))
-          // });
+          // FUTURE: Keep reading more bytes for larger headers until all options are exhausted
+          //
+          // version_bytes.push(seq.next_element()?.ok_or(serde::de::Error::custom("No valid header type could be determined"))?);
+          // version_bytes.push(seq.next_element()?.ok_or(serde::de::Error::custom("No valid header type could be determined"))?);
+          //
           // add checks for larger headers here
+
+          // Error when all header bytes are checked
           return Err(serde::de::Error::custom("No valid header type could be determined"));
         }
 
         match version {
           Some(i) => match i {
             HeaderVersion::PyIPV8Header => {
-              let mut mid_hash: Vec<u8> = vec![];
-              // Where 20 is the length of the mid hash
-              for _ in 0..20{
-                mid_hash.push(match seq.next_element()? {Some(i) => i, None => return Err(
-                  serde::de::Error::custom("No valid header type could be determined"))
-                });
-              }
+              let mut mid_hash: [u8; 20] = [0; 20]; // Init with zeroes
 
-              let message_type = match seq.next_element()? {Some(i) => i, None => return Err(
-                serde::de::Error::custom("No valid header type could be determined"))
-              };
+              for i in mid_hash.iter_mut() {
+                *i = seq.next_element()?.ok_or(serde::de::Error::custom("No valid header type could be determined"))?;
+              }
+              let message_type: u8 = seq.next_element()?.ok_or(serde::de::Error::custom("No valid header type could be determined"))?;
 
               Ok(Header::py_ipv8_header(
                 mid_hash,
@@ -133,7 +153,7 @@ impl<'de> Deserialize<'de> for Header {
               ))
             }
           },
-          None => return Err(serde::de::Error::custom("Somehow the header type was valid but the version None"))
+          None => Err(serde::de::Error::custom("Somehow the header type was valid but the version None"))
         }
       }
     }
@@ -143,13 +163,14 @@ impl<'de> Deserialize<'de> for Header {
   }
 }
 
+#[cfg(test)]
 macro_rules! create_test_header {
   () => {
     crate::serialization::header::Header {
       size: 23,
       version: crate::serialization::header::HeaderVersion::PyIPV8Header,
       mid_hash: Some(vec![0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,]),
-      message_type: Some(43)
+      message_type: Some(42)
     };
   };
 }
@@ -163,7 +184,7 @@ mod tests {
   #[test]
   fn integration_test_creation() {
     let h = Header::py_ipv8_header(
-      vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
       42
     );
 

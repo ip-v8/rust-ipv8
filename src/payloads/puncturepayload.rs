@@ -45,11 +45,11 @@ mod tests {
 
     assert_eq!(
       packet,
-      Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,
+      Packet(vec![0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,
                   127, 0, 0, 1, 31, 64, 42, 42, 42, 42, 31, 64, 0, 42, ])
     );
 
-    packet.add(&i);
+    packet.add(&i).unwrap();
     assert_eq!(i,packet.start_deserialize().skip_header().unwrap().next_payload().unwrap());
   }
 }

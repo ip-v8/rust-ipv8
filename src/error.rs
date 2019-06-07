@@ -1,3 +1,5 @@
+#![macro_use]
+#![doc(hidden)]
 macro_rules! create_error {
   ( $name: ident, $message: expr) => {
     #[derive(Debug)]
@@ -19,7 +21,6 @@ macro_rules! create_error {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
   use std::fmt;
   use std::error::Error;
 

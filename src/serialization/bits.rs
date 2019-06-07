@@ -4,8 +4,9 @@ use serde::de::{self, Deserialize, Deserializer, Visitor};
 use std::fmt;
 
 /// This struct represents the bits inside an u8 by unpacking them into booleans.
-/// Mostly here to achieve feature parity with py-ipv8
-/// see https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/serialization.py#L84.
+///
+/// Mostly here to achieve feature parity with py-ipv8 see
+/// [py-ipv8 code](https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/serialization.py#L84.)
 #[derive(Default, PartialEq, Debug)]
 pub struct Bits {
   pub bit0: bool,

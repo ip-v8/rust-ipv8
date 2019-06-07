@@ -1,3 +1,4 @@
+//! Module containing everything related to Nested payloads
 use crate::payloads::Ipv8Payload;
 use crate::serialization::varlen::VarLen16;
 use serde::de::Deserialize;
@@ -100,7 +101,7 @@ mod tests {
       test: NestedPacket(packet)
     };
     let mut newpacket = Packet::new(create_test_header!()).unwrap();
-    newpacket.add(&i);
+    newpacket.add(&i).unwrap();
 
     assert_eq!(i,newpacket.start_deserialize().skip_header().unwrap().next_payload().unwrap());
   }
@@ -118,7 +119,7 @@ mod tests {
     };
 
     let mut newpacket = Packet::new(create_test_header!()).unwrap();
-    newpacket.add(&i);
+    newpacket.add(&i).unwrap();
 
     assert_eq!(i, newpacket.start_deserialize().skip_header().unwrap().next_payload().unwrap());
   }
@@ -134,7 +135,7 @@ mod tests {
     };
 
     let mut packet = Packet::new(create_test_header!()).unwrap();
-    match packet.add(&i){
+    match packet.add(&i) {
       Ok(_) => assert!(false),
       Err(_) => assert!(true),
     }

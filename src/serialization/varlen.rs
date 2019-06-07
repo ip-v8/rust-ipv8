@@ -1,3 +1,4 @@
+//! Module containing everything related to the Varlen data structure
 use serde;
 use serde::de::{Deserialize, Deserializer, Visitor, SeqAccess};
 use serde::ser::{Error, Serialize, Serializer, SerializeStruct};
@@ -45,11 +46,11 @@ impl<'de> Deserialize<'de> for VarLen16 {
         let mut res:Vec<u8> = vec![];
 
         // first read the length from the sequence
-        let length:u16 = seq.next_element()?.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
+        let length:u16 = seq.next_element()?.ok_or(serde::de::Error::invalid_length(1, &self))?;
 
         // now read that many bytes from the sequence
         for _i in 0..length{
-          res.push(seq.next_element()?.ok_or_else(|| serde::de::Error::invalid_length(1, &self))?);
+          res.push(seq.next_element()?.ok_or(serde::de::Error::invalid_length(1, &self))?);
         }
 
         Ok(VarLen16(res))
@@ -142,7 +143,7 @@ mod tests {
     let i = VarLen16(vec![1,2,3,4,5,6,7,8,9,10]);
     let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(packet,Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,10,1,2,3,4,5,6,7,8,9,10]))
+    assert_eq!(packet,Packet(vec![0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,10,1,2,3,4,5,6,7,8,9,10]))
   }
 
   #[test]
@@ -150,7 +151,8 @@ mod tests {
     let i = VarLen16(vec![1,2,3,4,5,6,7,8,9,10]);
     let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(i,packet.start_deserialize().skip_header().unwrap().next_payload().unwrap())
+    let out: VarLen16 = packet.start_deserialize().skip_header().unwrap().next_payload().unwrap();
+    assert_eq!(i,out)
   }
 
   #[test]
@@ -158,7 +160,7 @@ mod tests {
     let i = VarLen32(vec![1,2,3,4,5,6,7,8,9,10]);
     let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(packet,Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,10,1,2,3,4,5,6,7,8,9,10]));
+    assert_eq!(packet,Packet(vec![0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0,0,10,1,2,3,4,5,6,7,8,9,10]));
   }
 
   #[test]
@@ -208,7 +210,7 @@ mod tests {
     let i = VarLen16(vec![]);
     let mut packet = Packet::new(create_test_header!()).unwrap();
     packet.add(&i).unwrap();
-    assert_eq!(packet,Packet(vec![0,42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0]));
+    assert_eq!(packet,Packet(vec![0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42,0,0]));
   }
 
 }
