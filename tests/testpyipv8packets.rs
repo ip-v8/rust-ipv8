@@ -2,6 +2,7 @@ use ipv8::networking::address::Address;
 use ipv8::payloads::connectiontype::ConnectionType;
 use ipv8::payloads::introductionrequestpayload::IntroductionRequestPayload;
 use ipv8::payloads::introductionresponsepayload::IntroductionResponsePayload;
+use ipv8::payloads::puncturepayload::PuncturePayload;
 use ipv8::payloads::puncturerequestpayload::PunctureRequestPayload;
 use ipv8::payloads::timedistributionpayload::TimeDistributionPayload;
 use ipv8::serialization::header::Header;
