@@ -15,17 +15,17 @@ SUCCESS="${GREEN}ok${RC}"
 printf "${PREFIX} Checking for rustfmt ... "
 command -v cargo fmt &>/dev/null
 if [[ $? == 0 ]]; then
-	printf "${SUCCESS}\n"
+    printf "${SUCCESS}\n"
 else
-	printf "${FAILURE}\n"
-	exit 1
+    printf "${FAILURE}\n"
+    exit 1
 fi
 
 # Check rustfmt against the git tree
 printf "${PREFIX} Checking formatting ... "
 command cargo fmt -- --check > /dev/null
 if [[ $? == 0 ]]; then
-	printf "${SUCCESS}\n"
+    printf "${SUCCESS}\n"
 	exit 0
 fi
 
