@@ -205,6 +205,10 @@
 <span id="205">205</span>
 <span id="206">206</span>
 <span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
@@ -228,6 +232,7 @@
     <span class="string">&quot;OpenSSL has had a rapid unscheduled disassembly (oops)&quot;</span>
 );
 
+<span class="doccomment">/// A struct containing a cryptographic signature</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Signature</span> {
     <span class="kw">pub</span> <span class="ident">signature</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
@@ -237,6 +242,7 @@
     <span class="comment">// this is just to allow it to be serialized to a packet. It isn&#39;t actually a &quot;payload&quot;</span>
 }
 
+<span class="doccomment">/// Make the signature serializable</span>
 <span class="kw">impl</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">Signature</span> {
     <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -251,7 +257,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Signature</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">skey</span>: <span class="ident">PrivateKey</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+    <span class="doccomment">/// Signature can be created from its binary string (bytes)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">skey</span>: <span class="ident">PrivateKey</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="comment">// this is before the match to prevent the skey value being &quot;partially borrowed&quot;</span>
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">skey</span>.<span class="ident">size</span>();
         <span class="kw">match</span> <span class="ident">skey</span> {
@@ -290,6 +297,7 @@
         }
     }
 
+    <span class="doccomment">/// Verify given data with this signature</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">pkey</span>: <span class="ident">PublicKey</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">pkey</span> {
             <span class="ident">PublicKey</span>::<span class="ident">Ed25519</span>(<span class="kw">_</span>, <span class="ident">key_verification</span>) <span class="op">=&gt;</span> {

@@ -337,18 +337,46 @@
 <span id="337">337</span>
 <span id="338">338</span>
 <span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Module for the various types of keys</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! When adding new key types follow these steps:</span>
+<span class="doccomment">//! 1. Add it the the PublicKey and PrivateKey enums</span>
+<span class="doccomment">//! 2. Change all the match statements testing for either an openssl or libnacl key (or if your key is not either of this, add yours)</span>
+<span class="doccomment">//! 3. Add your key to the list of consts below for signature length</span>
+<span class="doccomment">//! 4. add your constant to the macro sig_size.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The length of the used signatures</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! | Signature Type                   | pyipv8 | .size() | diff | (bits/8)*2 |</span>
+<span class="doccomment">//! |----------------------------------|--------|---------|------|------------|</span>
+<span class="doccomment">//! | VERY_LOW_SIGNATURE_LENGTH        |   42   |   50    |  8   |    42      |</span>
+<span class="doccomment">//! | LOW_SIGNATURE_LENGTH             |   60   |   66    |  6   |    58      |</span>
+<span class="doccomment">//! | MEDIUM_SIGNATURE_LENGTH          |  104   |   110   |  6   |    102     |</span>
+<span class="doccomment">//! | HIGH_SIGNATURE_LENGTH            |  144   |   153   |  9   |    144     |</span>
+<span class="doccomment">//! | ED25519_SIGNATURE_LENGTH         |   64   |   64    |  0   |    64      |</span>
+
 <span class="kw">use</span> <span class="ident">openssl</span>;
 <span class="kw">use</span> <span class="ident">rust_sodium</span>::<span class="ident">crypto</span>::<span class="ident">sign</span>::<span class="ident">ed25519</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
 <span class="comment">// TODO: when ed25519 becomes available for rust OpenSSL, rust_sodium will be removed.</span>
 
-<span class="comment">// when adding new key types follow these steps</span>
-<span class="comment">// 1. Add it the the PublicKey and PrivateKey enums</span>
-<span class="comment">// 2. Change all the match statements testing for either an openssl or libnacl key (or if your key is not either of this, add yours)</span>
-<span class="comment">// 3. Add your key to the list of consts below for signature length</span>
-<span class="comment">// 4. add your constant to the macro sig_size.</span>
+<span class="doccomment">/// Enum containing all the types of public keys</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PublicKey</span> {
     <span class="ident">OpenSSLVeryLow</span>(<span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">Public</span><span class="op">&gt;</span>),
     <span class="ident">OpenSSLLow</span>(<span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">Public</span><span class="op">&gt;</span>),
@@ -357,6 +385,7 @@
     <span class="ident">Ed25519</span>(<span class="ident">ed25519</span>::<span class="ident">PublicKey</span>, <span class="ident">ed25519</span>::<span class="ident">PublicKey</span>), <span class="comment">// First key is encryption key, second is verification key</span>
 }
 
+<span class="doccomment">/// Enum containg all the types of private keys</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PrivateKey</span> {
     <span class="ident">OpenSSLVeryLow</span>(<span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">Private</span><span class="op">&gt;</span>),
     <span class="ident">OpenSSLLow</span>(<span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span><span class="op">&lt;</span><span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">Private</span><span class="op">&gt;</span>),
@@ -365,15 +394,14 @@
     <span class="ident">Ed25519</span>(<span class="ident">ed25519</span>::<span class="ident">SecretKey</span>, <span class="ident">ed25519</span>::<span class="ident">SecretKey</span>), <span class="comment">// First key is encryption key, second is verification</span>
 }
 
-<span class="comment">// The length of the used signatures              pyipv8 | .size() | diff | bits/8*2</span>
-<span class="kw">const</span> <span class="ident">VERY_LOW_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">42</span>; <span class="comment">//  42     |   50    |  8   | 42</span>
-<span class="kw">const</span> <span class="ident">LOW_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">60</span>; <span class="comment">//  60     |   66    |  6   | 58</span>
-<span class="kw">const</span> <span class="ident">MEDIUM_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">104</span>; <span class="comment">//  104    |   110   |  6   | 102</span>
-<span class="kw">const</span> <span class="ident">HIGH_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">144</span>; <span class="comment">//  144    |   153   |  9   | 144</span>
-<span class="kw">const</span> <span class="ident">ED25519_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span>; <span class="comment">//  64     |   64    |  0   | 64</span>
+<span class="kw">const</span> <span class="ident">VERY_LOW_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">42</span>;
+<span class="kw">const</span> <span class="ident">LOW_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">60</span>;
+<span class="kw">const</span> <span class="ident">MEDIUM_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">104</span>;
+<span class="kw">const</span> <span class="ident">HIGH_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">144</span>;
+<span class="kw">const</span> <span class="ident">ED25519_SIGNATURE_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span>;
 
-<span class="comment">// Macro for creating a size function which returns the signature length of the given key.</span>
-<span class="comment">// Created to avoid duplication between PrivateKey and PublicKey.</span>
+<span class="doccomment">/// Macro for creating a size function which returns the signature length of the given key.</span>
+<span class="doccomment">/// Created to avoid duplication between PrivateKey and PublicKey.</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">sig_size</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">keytype</span>: <span class="ident">ident</span>) <span class="op">=&gt;</span> {
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
@@ -383,7 +411,7 @@
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">keytype</span>::<span class="ident">OpenSSLMedium</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">MEDIUM_SIGNATURE_LENGTH</span>,
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">keytype</span>::<span class="ident">OpenSSLLow</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">LOW_SIGNATURE_LENGTH</span>,
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">keytype</span>::<span class="ident">OpenSSLVeryLow</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">VERY_LOW_SIGNATURE_LENGTH</span>
-          }
+            }
         }
     };
 }
@@ -558,14 +586,14 @@
             <span class="number">24</span>, <span class="number">25</span>, <span class="number">26</span>, <span class="number">27</span>, <span class="number">28</span>, <span class="number">29</span>, <span class="number">30</span>, <span class="number">31</span>,
         ])
         .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> (<span class="ident">e_pkey</span>, <span class="ident">e_skey</span>) <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">keypair_from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>);
+        <span class="kw">let</span> (<span class="ident">e_pkey</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">keypair_from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>);
 
         <span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">Seed</span>::<span class="ident">from_slice</span>(<span class="kw-2">&amp;</span>[
             <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>, <span class="number">13</span>, <span class="number">14</span>, <span class="number">15</span>, <span class="number">16</span>, <span class="number">17</span>, <span class="number">18</span>, <span class="number">19</span>, <span class="number">20</span>, <span class="number">21</span>, <span class="number">22</span>, <span class="number">23</span>,
             <span class="number">24</span>, <span class="number">25</span>, <span class="number">26</span>, <span class="number">27</span>, <span class="number">28</span>, <span class="number">29</span>, <span class="number">30</span>, <span class="number">31</span>,
         ])
         .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> (<span class="ident">s_pkey</span>, <span class="ident">s_skey</span>) <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">keypair_from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>);
+        <span class="kw">let</span> (<span class="ident">s_pkey</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">keypair_from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keyvec</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">76</span>, <span class="number">105</span>, <span class="number">98</span>, <span class="number">78</span>, <span class="number">97</span>, <span class="number">67</span>, <span class="number">76</span>, <span class="number">80</span>, <span class="number">75</span>, <span class="number">58</span>]; <span class="comment">// libnaclPK:</span>
         <span class="ident">keyvec</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">e_pkey</span>.<span class="ident">as_ref</span>()); <span class="comment">// Encryption key</span>
@@ -664,7 +692,7 @@
             <span class="number">24</span>, <span class="number">25</span>, <span class="number">26</span>, <span class="number">27</span>, <span class="number">28</span>, <span class="number">29</span>, <span class="number">30</span>, <span class="number">31</span>,
         ])
         .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> (<span class="ident">pkey</span>, <span class="ident">skey</span>) <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">keypair_from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>);
+        <span class="kw">let</span> (<span class="ident">pkey</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">keypair_from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keyvec</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">76</span>, <span class="number">105</span>, <span class="number">98</span>, <span class="number">78</span>, <span class="number">97</span>, <span class="number">67</span>, <span class="number">76</span>, <span class="number">80</span>, <span class="number">75</span>, <span class="number">58</span>]; <span class="comment">// libnaclPK:</span>
         <span class="ident">keyvec</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>.<span class="ident">as_ref</span>());
         <span class="ident">keyvec</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">pkey</span>.<span class="ident">as_ref</span>());

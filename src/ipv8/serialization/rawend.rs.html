@@ -104,7 +104,9 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
+<span id="107">107</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Module containing everything related to RawEnd data structure</span>
 <span class="kw">use</span> <span class="ident">serde</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">de</span>::{<span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">SeqAccess</span>, <span class="ident">Visitor</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">ser</span>::{<span class="ident">Serialize</span>, <span class="ident">SerializeStruct</span>, <span class="ident">Serializer</span>};
@@ -162,7 +164,6 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">payloads</span>::<span class="ident">Ipv8Payload</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::{<span class="ident">DefaultHeader</span>, <span class="ident">TEST_HEADER</span>};
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">Packet</span>;
     <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -181,13 +182,13 @@
             <span class="ident">test</span>: <span class="ident">RawEnd</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">42</span>, <span class="number">43</span>]),
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
 
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">Packet</span>(<span class="macro">vec</span><span class="macro">!</span>[
-                <span class="number">0</span>, <span class="number">42</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">43</span>
+                <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">43</span>
             ]),
             <span class="ident">packet</span>
         );
@@ -199,13 +200,14 @@
             <span class="ident">test</span>: <span class="ident">RawEnd</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">42</span>, <span class="number">43</span>]),
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">a</span>,
             <span class="ident">packet</span>
                 .<span class="ident">start_deserialize</span>()
-                .<span class="ident">skip_header</span>::<span class="op">&lt;</span><span class="ident">DefaultHeader</span><span class="op">&gt;</span>()
+                .<span class="ident">skip_header</span>()
+                .<span class="ident">unwrap</span>()
                 .<span class="ident">next_payload</span>()
                 .<span class="ident">unwrap</span>()
         );

@@ -25,7 +25,6 @@
 <span id="25">25</span>
 <span id="26">26</span>
 <span id="27">27</span>
-<span id="28">28</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="kw">super</span>::<span class="ident">event</span>::<span class="ident">EventGenerator</span>, <span class="ident">address</span>::<span class="ident">Address</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">SocketAddr</span>, <span class="ident">UdpSocket</span>};
@@ -35,7 +34,6 @@
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Connection</span> {
     <span class="ident">socket</span>: <span class="ident">UdpSocket</span>,
-
     <span class="ident">on_message</span>: <span class="ident">EventGenerator</span>,
 }
 

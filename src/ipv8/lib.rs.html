@@ -24,24 +24,32 @@
 <span id="24">24</span>
 <span id="25">25</span>
 <span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="comment">//#![allow(warnings)]</span>
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">serialization</span>;
+
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">configuration</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">crypto</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">event</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">networking</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">payloads</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">serialization</span>;
 
 <span class="kw">use</span> <span class="ident">configuration</span>::<span class="ident">Config</span>;
 
-<span class="doccomment">/**
- * The IPv8 instance.
- *
- * This struct is how you can interact with the network.
- */</span>
+<span class="doccomment">/// The IPv8 instance.</span>
+<span class="doccomment">/// This struct is how you can interact with the network.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// To create a new IPv8 instance with the default configuration do this:</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use ipv8::IPv8;</span>
+<span class="doccomment">/// use ipv8::configuration::Config;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let ipv8_instance = IPv8::new(Config::default());</span>
+<span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IPv8</span> {
     <span class="ident">config</span>: <span class="ident">Config</span>,
 }

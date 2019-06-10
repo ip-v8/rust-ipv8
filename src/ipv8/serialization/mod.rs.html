@@ -376,12 +376,8 @@
 <span id="376">376</span>
 <span id="377">377</span>
 <span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="attribute">#![<span class="ident">macro_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bits</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">header</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">nestedpayload</span>;
@@ -421,6 +417,7 @@
         <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">T</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">config</span>()
             .<span class="ident">big_endian</span>()
             .<span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>[<span class="self">self</span>.<span class="ident">index</span>..])<span class="question-mark">?</span>;
+
         <span class="comment">// the old solution was: self.index += size_of::&lt;T&gt;();</span>
         <span class="comment">// this doesnt work as it is not uncommon to return less bytes than was actually in the bytecode (lengths etc)</span>
         <span class="comment">// the code below works but is inefficient. TODO: create a more efficient way to do this.</span>
@@ -436,27 +433,23 @@
         <span class="comment">// it got 17,584,554 ns per iteration (where each iteration is 100000 serialize/deserializations</span>
         <span class="comment">// while the recalculation takes 11,965,294ns</span>
         <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">bincode</span>::<span class="ident">config</span>().<span class="ident">big_endian</span>().<span class="ident">serialized_size</span>(<span class="kw-2">&amp;</span><span class="ident">res</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;
-
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_header</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorKind</span><span class="op">&gt;&gt;</span>
-    <span class="kw">where</span>
-        <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">T</span>: <span class="ident">Header</span> <span class="op">+</span> <span class="ident">Serialize</span> <span class="op">+</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
-    {
-        <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">T</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">config</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_header</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorKind</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">Header</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">config</span>()
             .<span class="ident">big_endian</span>()
             .<span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>[<span class="self">self</span>.<span class="ident">index</span>..])<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">bincode</span>::<span class="ident">config</span>().<span class="ident">big_endian</span>().<span class="ident">serialized_size</span>(<span class="kw-2">&amp;</span><span class="ident">res</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">res</span>.<span class="ident">size</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip_header</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Header</span>,
-    {
-        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">T</span>::<span class="ident">size</span>();
-        <span class="self">self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip_header</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorKind</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">Header</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">config</span>()
+            .<span class="ident">big_endian</span>()
+            .<span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>[<span class="self">self</span>.<span class="ident">index</span>..])<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">res</span>.<span class="ident">size</span>;
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
@@ -465,7 +458,7 @@
 
     <span class="doccomment">/// This should be in most cases the first method to be called when receiving a packet. It **assumes** there is a</span>
     <span class="doccomment">/// BinMemberAuthenticationPayload at the start of the message (AND DOES NOT CHECK IF IT IS OR NOT). It extracts it and the</span>
-    <span class="doccomment">/// with the sign put at the end by the sender by calling Packet.sign() verifies that the packet is still intact.</span>
+    <span class="doccomment">/// with the sign put at the end by the sender by calling Packet.sign() verifies that the packet is still inyhtact.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the public key has been acquired in any other way (i.e. there is no BinMemberAuthenticationPayload at the start)</span>
     <span class="doccomment">/// use the Packet.verify_with() function instead.</span>
@@ -480,22 +473,20 @@
     <span class="doccomment">/// Does the same thing as the Packet. verify method. Takes a public key as second argument instead of extracting it from the packet itself</span>
     <span class="doccomment">/// through a BinMemberAuthenticationPayload</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_with</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pkey</span>: <span class="ident">PublicKey</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">signaturelength</span> <span class="op">=</span> <span class="ident">pkey</span>.<span class="ident">size</span>();
+        <span class="kw">let</span> <span class="ident">keylength</span> <span class="op">=</span> <span class="ident">pkey</span>.<span class="ident">size</span>();
 
         <span class="kw">let</span> <span class="ident">datalen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">Signature</span> {
-            <span class="ident">signature</span>: <span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>[<span class="ident">datalen</span> <span class="op">-</span> <span class="ident">signaturelength</span>..].<span class="ident">to_vec</span>(),
+            <span class="ident">signature</span>: <span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>[<span class="ident">datalen</span> <span class="op">-</span> <span class="ident">keylength</span>..].<span class="ident">to_vec</span>(),
         };
-        <span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>.<span class="ident">truncate</span>(<span class="ident">datalen</span> <span class="op">-</span> <span class="ident">signaturelength</span>);
+        <span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>.<span class="ident">truncate</span>(<span class="ident">datalen</span> <span class="op">-</span> <span class="ident">keylength</span>);
         <span class="ident">signature</span>.<span class="ident">verify</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>, <span class="ident">pkey</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Packet</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">header</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Header</span> <span class="op">+</span> <span class="ident">Serialize</span>,
-    {
+    <span class="doccomment">/// Creates a new packet with a given header.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">header</span>: <span class="ident">Header</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">Self</span>(<span class="macro">vec</span><span class="macro">!</span>[]);
         <span class="ident">res</span>.<span class="number">0</span>
             .<span class="ident">extend</span>(<span class="kw">match</span> <span class="ident">bincode</span>::<span class="ident">config</span>().<span class="ident">big_endian</span>().<span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="ident">header</span>) {
@@ -515,7 +506,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// To verify signatures first transform the Packet into a PacketIterator with Packet.deserialize_multiple and then use the PacketIterator.verify() or</span>
     <span class="doccomment">/// PacketIterator.verify_with() method.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">skey</span>: <span class="ident">PrivateKey</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">skey</span>: <span class="ident">PrivateKey</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">Signature</span>::<span class="ident">from_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>, <span class="ident">skey</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">signature</span>)<span class="question-mark">?</span>;
         <span class="comment">// now this packet *must not* be modified anymore</span>
@@ -547,7 +538,6 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::{<span class="ident">DefaultHeader</span>, <span class="ident">TEST_HEADER</span>};
     <span class="kw">use</span> <span class="ident">rust_sodium</span>::<span class="ident">crypto</span>::<span class="ident">sign</span>::<span class="ident">ed25519</span>;
     <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -613,7 +603,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_sign_verify_verylow</span>() {
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">TestPayload1</span> { <span class="ident">test</span>: <span class="number">42</span> };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">skey</span> <span class="op">=</span> <span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span>::<span class="ident">private_key_from_pem</span>(<span class="string">&quot;-----BEGIN EC PRIVATE KEY-----\nMFMCAQEEFQKu4aaDxyTSj92iquQP5CIdbagLP6AHBgUrgQQAAaEuAywABABQ76xopUysBuWInGkX+S4elFdpOQZphgLlc6ksoim+5DgUZEBPp+B2Dg==\n-----END EC PRIVATE KEY-----&quot;</span>.<span class="ident">as_bytes</span>()).<span class="ident">unwrap</span>();
@@ -629,7 +619,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_sign_verify_low</span>() {
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">TestPayload1</span> { <span class="ident">test</span>: <span class="number">42</span> };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">skey</span> <span class="op">=</span> <span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span>::<span class="ident">private_key_from_pem</span>(<span class="string">&quot;-----BEGIN EC PRIVATE KEY-----\nMG0CAQEEHQ7vns0bhePCngPc4WeP3wnglzSrml0HdQ+jcpfAoAcGBSuBBAAaoUAD\nPgAEAe2ikH75P/vkdl1Bu8tP/WjOeB6LRxW11qGQNUmUAaFxQ7zff5eZyppMv7D0\n9sRcEuSNjk5nUQgTe6zV\n-----END EC PRIVATE KEY-----&quot;</span>.<span class="ident">as_bytes</span>()).<span class="ident">unwrap</span>();
@@ -645,7 +635,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_sign_verify_medium</span>() {
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">TestPayload1</span> { <span class="ident">test</span>: <span class="number">42</span> };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">skey</span> <span class="op">=</span> <span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span>::<span class="ident">private_key_from_pem</span>(<span class="string">&quot;-----BEGIN EC PRIVATE KEY-----\nMIGvAgEBBDNDkh1KSwaBgRj5GGcbYm2qWI5TyBVkOeMVkWWX5+8Dmd44OoSzmR5xCmc1DWuEsasIhhagBwYFK4EEACShbANqAAQAP5r6iYsyTkM7Hea2/tc95iGXV3oCXMLxSWiR/vF/zKjHkPClBN8BQBbBCMjpeS1xLZMUAUi2RoJN69jQevTG+vfhzBNqxIE0dazxbLMvx3wZ6Bol918H8oAa31axHKVaz3SbKLbDTw==\n-----END EC PRIVATE KEY-----&quot;</span>.<span class="ident">as_bytes</span>()).<span class="ident">unwrap</span>();
@@ -661,7 +651,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_sign_verify_high</span>() {
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">TestPayload1</span> { <span class="ident">test</span>: <span class="number">42</span> };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">skey</span> <span class="op">=</span> <span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span>::<span class="ident">private_key_from_pem</span>(<span class="string">&quot;-----BEGIN EC PRIVATE KEY-----\nMIHuAgEBBEgCQPcwiTfJz3T0/fDqAgvtTO3fvCobbxvJAnsDKQwjJbK9Ak2njemFanI8BOGp/1Mi6nrjfJs9+8h9LhUIYsrJ2j7piRxo2SygBwYFK4EEACehgZUDgZIABAJW+0vOn4V4P7Drsg4IxTtrM7OLA5sUwnBxDyhDcyXfmAdmmtZabrTiBb5jozZ0rXkoUIGOUnaaYH+k+NlbDVBbXtIQbmwpOQTzMTTC/oJi5TJUFc6G3529hTLStV3lILPks4SPk2DPRDC4oC/jRpMXn9VphjzT4gjruhTxVaoEAyi3YmdQpIBXzWVD/lOOhQ==\n-----END EC PRIVATE KEY-----&quot;</span>.<span class="ident">as_bytes</span>()).<span class="ident">unwrap</span>();
@@ -677,7 +667,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_sign_verify_ed25519</span>() {
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">TestPayload1</span> { <span class="ident">test</span>: <span class="number">42</span> };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">Seed</span>::<span class="ident">from_slice</span>(<span class="kw-2">&amp;</span>[
@@ -710,7 +700,7 @@
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">TestPayload2</span> { <span class="ident">test</span>: <span class="number">43</span> };
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">TestPayload1</span> { <span class="ident">test</span>: <span class="number">44</span> };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
 
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">unwrap</span>();
@@ -718,7 +708,7 @@
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">Packet</span>(<span class="macro">vec</span><span class="macro">!</span>[
-                <span class="number">0</span>, <span class="number">42</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">0</span>, <span class="number">0</span>,
+                <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">0</span>, <span class="number">0</span>,
                 <span class="number">0</span>, <span class="number">43</span>, <span class="number">0</span>, <span class="number">44</span>
             ]),
             <span class="ident">packet</span>
@@ -731,12 +721,12 @@
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">TestPayload2</span> { <span class="ident">test</span>: <span class="number">43</span> };
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">TestPayload1</span> { <span class="ident">test</span>: <span class="number">44</span> };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">unwrap</span>();
         <span class="ident">packet</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deser_iterator</span> <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">start_deserialize</span>().<span class="ident">skip_header</span>::<span class="op">&lt;</span><span class="ident">DefaultHeader</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deser_iterator</span> <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">start_deserialize</span>().<span class="ident">skip_header</span>().<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">deser_iterator</span>.<span class="ident">next_payload</span>().<span class="ident">unwrap</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">b</span>, <span class="ident">deser_iterator</span>.<span class="ident">next_payload</span>().<span class="ident">unwrap</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>, <span class="ident">deser_iterator</span>.<span class="ident">next_payload</span>().<span class="ident">unwrap</span>());
@@ -748,12 +738,12 @@
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">TestPayload2</span> { <span class="ident">test</span>: <span class="number">43</span> };
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">TestPayload1</span> { <span class="ident">test</span>: <span class="number">44</span> };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ser_tmp</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">TEST_HEADER</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ser_tmp</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
         <span class="ident">ser_tmp</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>).<span class="ident">unwrap</span>();
         <span class="ident">ser_tmp</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">unwrap</span>();
         <span class="ident">ser_tmp</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deser_iterator</span> <span class="op">=</span> <span class="ident">ser_tmp</span>.<span class="ident">start_deserialize</span>().<span class="ident">skip_header</span>::<span class="op">&lt;</span><span class="ident">DefaultHeader</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deser_iterator</span> <span class="op">=</span> <span class="ident">ser_tmp</span>.<span class="ident">start_deserialize</span>().<span class="ident">skip_header</span>().<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">deser_iterator</span>.<span class="ident">next_payload</span>().<span class="ident">unwrap</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">b</span>, <span class="ident">deser_iterator</span>.<span class="ident">next_payload</span>().<span class="ident">unwrap</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>, <span class="ident">deser_iterator</span>.<span class="ident">next_payload</span>().<span class="ident">unwrap</span>());

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["DefaultHeader",""]],"trait":[["Header",""]]});
+initSidebarItems({"enum":[["HeaderVersion","Enum containg all the types of headers"]],"struct":[["Header","The struct for headers."]]});

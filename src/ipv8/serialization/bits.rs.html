@@ -172,6 +172,7 @@
 <span id="172">172</span>
 <span id="173">173</span>
 <span id="174">174</span>
+<span id="175">175</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">de</span>::{<span class="self">self</span>, <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Visitor</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">ser</span>::{<span class="ident">Serialize</span>, <span class="ident">SerializeStruct</span>, <span class="ident">Serializer</span>};
@@ -179,8 +180,9 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 
 <span class="doccomment">/// This struct represents the bits inside an u8 by unpacking them into booleans.</span>
-<span class="doccomment">/// Mostly here to achieve feature parity with py-ipv8</span>
-<span class="doccomment">/// see https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/serialization.py#L84.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Mostly here to achieve feature parity with py-ipv8 see</span>
+<span class="doccomment">/// [py-ipv8 code](https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/serialization.py#L84.)</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bits</span> {
     <span class="kw">pub</span> <span class="ident">bit0</span>: <span class="ident">bool</span>,

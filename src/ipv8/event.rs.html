@@ -29,7 +29,7 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EventGenerator</span> {
-    <span class="ident">handlers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">EventHandler</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">handlers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">EventHandler</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">EventGenerator</span> {
@@ -37,7 +37,7 @@
         <span class="ident">EventGenerator</span> { <span class="ident">handlers</span>: <span class="macro">vec</span><span class="macro">!</span>[] }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">handler</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">EventHandler</span><span class="op">&gt;</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">handler</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">EventHandler</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">handlers</span>.<span class="ident">push</span>(<span class="ident">handler</span>);
     }
 }
