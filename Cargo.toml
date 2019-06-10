@@ -1,7 +1,7 @@
 [package]
 name = "ipv8"
 version = "0.1.0"
-authors = ["jonay2000 <jonabent@gmail.com>", "NULLx76 <victor@xirion.net>"]
+authors = ["jonay2000 <jonabent@gmail.com>", "NULLx76 <victor@xirion.net>", "Dany Sluijk <dany@atlasdev.nl>"]
 edition = "2018"
 description = "IPv8 implementation for rust."
 homepage = "https://ip-v8.github.io/rust-ipv8/ipv8/"
