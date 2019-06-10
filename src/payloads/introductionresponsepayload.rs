@@ -124,7 +124,6 @@ impl<'de> Deserialize<'de> for IntroductionResponsePayload {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serialization::header::{DefaultHeader, TEST_HEADER};
     use crate::serialization::Packet;
     use std::net::Ipv4Addr;
 
@@ -157,14 +156,14 @@ mod tests {
             extra_bytes: RawEnd(vec![43, 44]),
         };
 
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&i).unwrap();
         assert_eq!(
             packet,
             Packet(vec![
-                0, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 127, 0, 0,
-                1, 31, 64, 42, 42, 42, 42, 31, 65, 255, 255, 255, 0, 31, 66, 43, 43, 43, 43, 31,
-                67, 4, 44, 44, 44, 31, 68, 3, 0, 42, 43, 44
+                0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 127, 0, 0, 1,
+                31, 64, 42, 42, 42, 42, 31, 65, 255, 255, 255, 0, 31, 66, 43, 43, 43, 43, 31, 67,
+                4, 44, 44, 44, 31, 68, 3, 0, 42, 43, 44
             ])
         );
 
@@ -197,7 +196,8 @@ mod tests {
             },
             packet
                 .start_deserialize()
-                .skip_header::<DefaultHeader>()
+                .skip_header()
+                .unwrap()
                 .next_payload()
                 .unwrap()
         );

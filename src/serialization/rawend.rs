@@ -1,3 +1,4 @@
+//! Module containing everything related to RawEnd data structure
 use serde;
 use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
@@ -55,7 +56,6 @@ impl<'de> Deserialize<'de> for RawEnd {
 mod tests {
     use super::*;
     use crate::payloads::Ipv8Payload;
-    use crate::serialization::header::{DefaultHeader, TEST_HEADER};
     use crate::serialization::Packet;
     use serde::{Deserialize, Serialize};
 
@@ -74,13 +74,13 @@ mod tests {
             test: RawEnd(vec![42, 43]),
         };
 
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
 
         packet.add(&a).unwrap();
 
         assert_eq!(
             Packet(vec![
-                0, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 42, 43
+                0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 42, 43
             ]),
             packet
         );
@@ -92,13 +92,14 @@ mod tests {
             test: RawEnd(vec![42, 43]),
         };
 
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&a).unwrap();
         assert_eq!(
             a,
             packet
                 .start_deserialize()
-                .skip_header::<DefaultHeader>()
+                .skip_header()
+                .unwrap()
                 .next_payload()
                 .unwrap()
         );

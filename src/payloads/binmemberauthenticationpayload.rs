@@ -23,14 +23,9 @@ impl Serialize for BinMemberAuthenticationPayload {
     where
         S: Serializer,
     {
-        let v = match self.public_key_bin.to_vec() {
-            Some(i) => i,
-            None => {
-                return Err(ser::Error::custom(
-                    "The key was malformed in a way which made it unserializable.",
-                ))
-            }
-        };
+        let v = self.public_key_bin.to_vec().ok_or(ser::Error::custom(
+            "The key was malformed in a way which made it unserializable.",
+        ))?;
 
         let mut state = serializer.serialize_tuple(v.len() + 2)?;
         state.serialize_element(&(v.len() as u16))?;
@@ -55,18 +50,14 @@ impl<'de> Deserialize<'de> for BinMemberAuthenticationPayload {
     {
         // first deserialize it to a temporary struct which literally represents the packer
         let payload_temporary = BinMemberAuthenticationPayloadPattern::deserialize(deserializer)?;
+        let public_key_bin = PublicKey::from_vec((payload_temporary.0).0).ok_or(
+            de::Error::custom("The key was malformed in a way which made it undeserializable."),
+        )?;
 
         // now build the struct for real
         Ok(BinMemberAuthenticationPayload {
             // payload_temporary.0.0 is the zeroth element in IntroductionRequestPayloadPattern which has a varlen which has a vector as zeroth element
-            public_key_bin: match PublicKey::from_vec((payload_temporary.0).0) {
-                Some(i) => i,
-                None => {
-                    return Err(de::Error::custom(
-                        "The key was malformed in a way which made it undeserializable.",
-                    ))
-                }
-            },
+            public_key_bin,
         })
     }
 }
@@ -78,7 +69,6 @@ impl Ipv8Payload for BinMemberAuthenticationPayload {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serialization::header::{DefaultHeader, TEST_HEADER};
     use crate::serialization::Packet;
 
     #[test]
@@ -92,13 +82,14 @@ mod tests {
             ])
             .unwrap(),
         };
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&i).unwrap();
         assert_eq!(
             i,
             packet
                 .start_deserialize()
-                .skip_header::<DefaultHeader>()
+                .skip_header()
+                .unwrap()
                 .next_payload()
                 .unwrap()
         );

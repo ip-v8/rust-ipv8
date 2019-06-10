@@ -23,7 +23,7 @@ create_error!(
 pub fn create_signature_ed25519(
     data: &[u8],
     skey: ed25519::SecretKey,
-) -> Result<ed25519::Signature, Box<Error>> {
+) -> Result<ed25519::Signature, Box<dyn Error>> {
     Ok(ed25519::sign_detached(data, &skey))
 }
 
@@ -32,15 +32,13 @@ pub fn verify_signature_ed25519(
     signature: Vec<u8>,
     data: &[u8],
     pkey: ed25519::PublicKey,
-) -> Result<bool, Box<Error>> {
+) -> Result<bool, Box<dyn Error>> {
     let verify = ed25519::verify_detached(
-        &match ed25519::Signature::from_slice(&*signature) {
-            Some(i) => i,
-            None => return Err(Box::new(SignatureError)),
-        },
+        &ed25519::Signature::from_slice(&*signature).ok_or(Box::new(SignatureError))?,
         data,
         &pkey,
     );
+
     Ok(verify)
 }
 
@@ -48,7 +46,7 @@ pub fn verify_signature_ed25519(
 pub fn create_signature_openssl(
     data: &[u8],
     skey: openssl::pkey::PKey<Private>,
-) -> Result<Vec<u8>, Box<Error>> {
+) -> Result<Vec<u8>, Box<dyn Error>> {
     if data.len() > c_int::max_value() as usize {
         return Err(Box::new(SizeError));
     }
@@ -73,7 +71,7 @@ pub fn verify_signature_openssl(
     signature: (BigNum, BigNum),
     data: &[u8],
     pkey: openssl::pkey::PKey<Public>,
-) -> Result<bool, Box<Error>> {
+) -> Result<bool, Box<dyn Error>> {
     if data.len() > c_int::max_value() as usize {
         return Err(Box::new(SizeError));
     }
@@ -93,7 +91,7 @@ pub fn verify_signature_openssl(
 mod tests {
     use crate::crypto::{
         create_signature_openssl, verify_signature_ed25519, verify_signature_openssl, SizeError,
-    };
+};
     use openssl::bn::BigNum;
     use rust_sodium::crypto::sign::ed25519;
     use std::error::Error;
@@ -106,7 +104,7 @@ mod tests {
             24, 25, 26, 27, 28, 29, 30, 31,
         ])
         .unwrap();
-        let (pkey, skey) = ed25519::keypair_from_seed(&seed);
+        let (pkey, _) = ed25519::keypair_from_seed(&seed);
 
         match verify_signature_ed25519(vec![42], &vec![42], pkey) {
             Ok(_) => assert!(

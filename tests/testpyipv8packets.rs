@@ -1,14 +1,12 @@
 use ipv8::networking::address::Address;
-use ipv8::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
 use ipv8::payloads::connectiontype::ConnectionType;
 use ipv8::payloads::introductionrequestpayload::IntroductionRequestPayload;
 use ipv8::payloads::introductionresponsepayload::IntroductionResponsePayload;
 use ipv8::payloads::puncturepayload::PuncturePayload;
 use ipv8::payloads::puncturerequestpayload::PunctureRequestPayload;
 use ipv8::payloads::timedistributionpayload::TimeDistributionPayload;
-use ipv8::serialization::header::DefaultHeader;
+use ipv8::serialization::header::Header;
 use ipv8::serialization::rawend::RawEnd;
-use ipv8::serialization::varlen::VarLen16;
 use ipv8::serialization::Packet;
 use std::net::Ipv4Addr;
 
@@ -34,17 +32,16 @@ fn test_packet_1() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 186, 243, 14, 217, 25, 43, 163, 84, 205, 215, 177, 115, 224, 239, 44, 50, 128, 39,
                 241, 211
             ],
-            message_type: 245,
-        }
+            245,
+        )
     );
 
     assert!(deserializer.verify());
@@ -105,17 +102,16 @@ fn test_packet_2() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 185, 95, 161, 221, 207, 171, 191, 187, 161, 96, 240, 60, 68, 25, 173, 73, 171, 20,
                 227, 143
             ],
-            message_type: 249,
-        }
+            249,
+        )
     );
 
     assert!(deserializer.verify());
@@ -160,17 +156,16 @@ fn test_packet_3() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 185, 95, 161, 221, 207, 171, 191, 187, 161, 96, 240, 60, 68, 25, 173, 73, 171, 20,
                 227, 143
             ],
-            message_type: 249,
-        }
+            249,
+        )
     );
 
     assert!(deserializer.verify());
@@ -216,17 +211,16 @@ fn test_packet_4() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 185, 95, 161, 221, 207, 171, 191, 187, 161, 96, 240, 60, 68, 25, 173, 73, 171, 20,
                 227, 143
             ],
-            message_type: 249,
-        }
+            249,
+        )
     );
 
     assert!(deserializer.verify());
@@ -272,17 +266,16 @@ fn test_packet_5() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 185, 95, 161, 221, 207, 171, 191, 187, 161, 96, 240, 60, 68, 25, 173, 73, 171, 20,
                 227, 143
             ],
-            message_type: 249,
-        }
+            249,
+        )
     );
 
     assert!(deserializer.verify());
@@ -328,17 +321,16 @@ fn test_packet_6() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 180, 44, 147, 209, 103, 160, 252, 74, 8, 67, 249, 23, 212, 191, 30, 158, 187, 52,
                 14, 196
             ],
-            message_type: 249,
-        }
+            249,
+        )
     );
 
     assert!(deserializer.verify());
@@ -384,17 +376,16 @@ fn test_packet_7() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 185, 95, 161, 221, 207, 171, 191, 187, 161, 96, 240, 60, 68, 25, 173, 73, 171, 20,
                 227, 143
             ],
-            message_type: 249,
-        }
+            249,
+        )
     );
 
     assert!(deserializer.verify());
@@ -440,18 +431,17 @@ fn test_packet_8() {
         0xc1, 0xb3, 0x53, 0x92, 0x1f, 0x58, 0xb6, 0x81, 0x0d,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
 
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 185, 95, 161, 221, 207, 171, 191, 187, 161, 96, 240, 60, 68, 25, 173, 73, 171, 20,
                 227, 143,
             ],
-            message_type: 245,
-        }
+            245,
+        )
     );
 
     assert!(deserializer.verify());
@@ -513,18 +503,17 @@ fn test_packet_9() {
         0xe7, 0x6f, 0xea, 0x90, 0x43, 0xfd, 0x5f, 0x93, 0x04,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
 
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 185, 95, 161, 221, 207, 171, 191, 187, 161, 96, 240, 60, 68, 25, 173, 73, 171, 20,
                 227, 143,
             ],
-            message_type: 245,
-        }
+            245,
+        )
     );
 
     assert!(deserializer.verify());
@@ -592,20 +581,19 @@ fn test_packet_10() {
         0xa2,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
 
     assert!(deserializer.verify());
 
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 126, 49, 54, 133, 193, 145, 42, 20, 18, 121, 248, 36, 143, 200, 219, 88, 153, 197,
                 223, 90
             ],
-            message_type: 246
-        }
+            246
+        )
     );
 
     let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
@@ -664,20 +652,19 @@ fn test_packet_11() {
         0xa3,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
 
     assert!(deserializer.verify());
 
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 126, 49, 54, 133, 193, 145, 42, 20, 18, 121, 248, 36, 143, 200, 219, 88, 153, 197,
                 223, 90
             ],
-            message_type: 246
-        }
+            246
+        )
     );
 
     let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
@@ -736,20 +723,19 @@ fn test_packet_12() {
         0xb8,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
 
     assert!(deserializer.verify());
 
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 126, 49, 54, 133, 193, 145, 42, 20, 18, 121, 248, 36, 143, 200, 219, 88, 153, 197,
                 223, 90
             ],
-            message_type: 246
-        }
+            246
+        )
     );
 
     let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
@@ -807,20 +793,19 @@ fn test_packet_13() {
         0x56,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
 
     assert!(deserializer.verify());
 
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 126, 49, 54, 133, 193, 145, 42, 20, 18, 121, 248, 36, 143, 200, 219, 88, 153, 197,
                 223, 90
             ],
-            message_type: 246
-        }
+            246
+        )
     );
 
     let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
@@ -878,20 +863,19 @@ fn test_packet_14() {
         0xd8,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
 
     assert!(deserializer.verify());
 
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 126, 49, 54, 133, 193, 145, 42, 20, 18, 121, 248, 36, 143, 200, 219, 88, 153, 197,
                 223, 90
             ],
-            message_type: 246
-        }
+            246
+        )
     );
 
     let time: TimeDistributionPayload = deserializer.next_payload().unwrap();
@@ -944,20 +928,19 @@ fn test_packet_15() {
         0x0b,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: DefaultHeader = deserializer.get_header().unwrap();
+    let header: Header = deserializer.get_header().unwrap();
 
     assert!(deserializer.verify());
 
     assert_eq!(
         header,
-        DefaultHeader {
-            version: 2,
-            mid_hash: [
+        Header::py_ipv8_header(
+            [
                 186, 243, 14, 217, 25, 43, 163, 84, 205, 215, 177, 115, 224, 239, 44, 50, 128, 39,
                 241, 211,
             ],
-            message_type: 246
-        }
+            246
+        )
     );
 
     let time: TimeDistributionPayload = deserializer.next_payload().unwrap();

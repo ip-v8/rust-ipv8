@@ -20,6 +20,7 @@ create_error!(
     "OpenSSL has had a rapid unscheduled disassembly (oops)"
 );
 
+/// A struct containing a cryptographic signature
 #[derive(PartialEq, Debug)]
 pub struct Signature {
     pub signature: Vec<u8>,
@@ -29,6 +30,7 @@ impl Ipv8Payload for Signature {
     // this is just to allow it to be serialized to a packet. It isn't actually a "payload"
 }
 
+/// Make the signature serializable
 impl Serialize for Signature {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -43,7 +45,8 @@ impl Serialize for Signature {
 }
 
 impl Signature {
-    pub fn from_bytes(data: &[u8], skey: PrivateKey) -> Result<Self, Box<Error>> {
+    /// Signature can be created from its binary string (bytes)
+    pub fn from_bytes(data: &[u8], skey: PrivateKey) -> Result<Self, Box<dyn Error>> {
         // this is before the match to prevent the skey value being "partially borrowed"
         let size = skey.size();
         match skey {
@@ -82,6 +85,7 @@ impl Signature {
         }
     }
 
+    /// Verify given data with this signature
     pub fn verify(&self, data: &[u8], pkey: PublicKey) -> bool {
         match pkey {
             PublicKey::Ed25519(_, key_verification) => {

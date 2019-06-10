@@ -1,3 +1,4 @@
+#![macro_use]
 pub mod bits;
 pub mod header;
 pub mod nestedpayload;
@@ -37,6 +38,7 @@ impl PacketIterator {
         let res: T = bincode::config()
             .big_endian()
             .deserialize(&self.pntr.0[self.index..])?;
+
         // the old solution was: self.index += size_of::<T>();
         // this doesnt work as it is not uncommon to return less bytes than was actually in the bytecode (lengths etc)
         // the code below works but is inefficient. TODO: create a more efficient way to do this.
@@ -52,27 +54,23 @@ impl PacketIterator {
         // it got 17,584,554 ns per iteration (where each iteration is 100000 serialize/deserializations
         // while the recalculation takes 11,965,294ns
         self.index += bincode::config().big_endian().serialized_size(&res)? as usize;
-
         Ok(res)
     }
 
-    pub fn get_header<T>(&mut self) -> Result<T, Box<ErrorKind>>
-    where
-        for<'de> T: Header + Serialize + Deserialize<'de>,
-    {
-        let res: T = bincode::config()
+    pub fn get_header(&mut self) -> Result<Header, Box<ErrorKind>> {
+        let res: Header = bincode::config()
             .big_endian()
             .deserialize(&self.pntr.0[self.index..])?;
-        self.index += bincode::config().big_endian().serialized_size(&res)? as usize;
+        self.index += res.size;
         Ok(res)
     }
 
-    pub fn skip_header<T>(mut self) -> Self
-    where
-        T: Header,
-    {
-        self.index += T::size();
-        self
+    pub fn skip_header(mut self) -> Result<Self, Box<ErrorKind>> {
+        let res: Header = bincode::config()
+            .big_endian()
+            .deserialize(&self.pntr.0[self.index..])?;
+        self.index += res.size;
+        Ok(self)
     }
 
     fn len(&self) -> usize {
@@ -81,7 +79,7 @@ impl PacketIterator {
 
     /// This should be in most cases the first method to be called when receiving a packet. It **assumes** there is a
     /// BinMemberAuthenticationPayload at the start of the message (AND DOES NOT CHECK IF IT IS OR NOT). It extracts it and the
-    /// with the sign put at the end by the sender by calling Packet.sign() verifies that the packet is still intact.
+    /// with the sign put at the end by the sender by calling Packet.sign() verifies that the packet is still inyhtact.
     ///
     /// If the public key has been acquired in any other way (i.e. there is no BinMemberAuthenticationPayload at the start)
     /// use the Packet.verify_with() function instead.
@@ -96,22 +94,20 @@ impl PacketIterator {
     /// Does the same thing as the Packet. verify method. Takes a public key as second argument instead of extracting it from the packet itself
     /// through a BinMemberAuthenticationPayload
     pub fn verify_with(&mut self, pkey: PublicKey) -> bool {
-        let signaturelength = pkey.size();
+        let keylength = pkey.size();
 
         let datalen = self.len();
         let signature = Signature {
-            signature: self.pntr.0[datalen - signaturelength..].to_vec(),
+            signature: self.pntr.0[datalen - keylength..].to_vec(),
         };
-        self.pntr.0.truncate(datalen - signaturelength);
+        self.pntr.0.truncate(datalen - keylength);
         signature.verify(&*self.pntr.0, pkey)
     }
 }
 
 impl Packet {
-    pub fn new<T>(header: T) -> Result<Self, Box<Error>>
-    where
-        T: Header + Serialize,
-    {
+    /// Creates a new packet with a given header.
+    pub fn new(header: Header) -> Result<Self, Box<dyn Error>> {
         let mut res = Self(vec![]);
         res.0
             .extend(match bincode::config().big_endian().serialize(&header) {
@@ -131,7 +127,7 @@ impl Packet {
     ///
     /// To verify signatures first transform the Packet into a PacketIterator with Packet.deserialize_multiple and then use the PacketIterator.verify() or
     /// PacketIterator.verify_with() method.
-    pub fn sign(mut self, skey: PrivateKey) -> Result<Self, Box<Error>> {
+    pub fn sign(mut self, skey: PrivateKey) -> Result<Self, Box<dyn Error>> {
         let signature = Signature::from_bytes(&*self.0, skey)?;
         self.add(&signature)?;
         // now this packet *must not* be modified anymore
@@ -163,7 +159,6 @@ impl Packet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::serialization::header::{DefaultHeader, TEST_HEADER};
     use rust_sodium::crypto::sign::ed25519;
     use serde::{Deserialize, Serialize};
 
@@ -229,7 +224,7 @@ mod tests {
     #[test]
     fn test_sign_verify_verylow() {
         let a = TestPayload1 { test: 42 };
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&a).unwrap();
 
         let skey = openssl::pkey::PKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMFMCAQEEFQKu4aaDxyTSj92iquQP5CIdbagLP6AHBgUrgQQAAaEuAywABABQ76xopUysBuWInGkX+S4elFdpOQZphgLlc6ksoim+5DgUZEBPp+B2Dg==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
@@ -245,7 +240,7 @@ mod tests {
     #[test]
     fn test_sign_verify_low() {
         let a = TestPayload1 { test: 42 };
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&a).unwrap();
 
         let skey = openssl::pkey::PKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMG0CAQEEHQ7vns0bhePCngPc4WeP3wnglzSrml0HdQ+jcpfAoAcGBSuBBAAaoUAD\nPgAEAe2ikH75P/vkdl1Bu8tP/WjOeB6LRxW11qGQNUmUAaFxQ7zff5eZyppMv7D0\n9sRcEuSNjk5nUQgTe6zV\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
@@ -261,7 +256,7 @@ mod tests {
     #[test]
     fn test_sign_verify_medium() {
         let a = TestPayload1 { test: 42 };
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&a).unwrap();
 
         let skey = openssl::pkey::PKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMIGvAgEBBDNDkh1KSwaBgRj5GGcbYm2qWI5TyBVkOeMVkWWX5+8Dmd44OoSzmR5xCmc1DWuEsasIhhagBwYFK4EEACShbANqAAQAP5r6iYsyTkM7Hea2/tc95iGXV3oCXMLxSWiR/vF/zKjHkPClBN8BQBbBCMjpeS1xLZMUAUi2RoJN69jQevTG+vfhzBNqxIE0dazxbLMvx3wZ6Bol918H8oAa31axHKVaz3SbKLbDTw==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
@@ -277,7 +272,7 @@ mod tests {
     #[test]
     fn test_sign_verify_high() {
         let a = TestPayload1 { test: 42 };
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&a).unwrap();
 
         let skey = openssl::pkey::PKey::private_key_from_pem("-----BEGIN EC PRIVATE KEY-----\nMIHuAgEBBEgCQPcwiTfJz3T0/fDqAgvtTO3fvCobbxvJAnsDKQwjJbK9Ak2njemFanI8BOGp/1Mi6nrjfJs9+8h9LhUIYsrJ2j7piRxo2SygBwYFK4EEACehgZUDgZIABAJW+0vOn4V4P7Drsg4IxTtrM7OLA5sUwnBxDyhDcyXfmAdmmtZabrTiBb5jozZ0rXkoUIGOUnaaYH+k+NlbDVBbXtIQbmwpOQTzMTTC/oJi5TJUFc6G3529hTLStV3lILPks4SPk2DPRDC4oC/jRpMXn9VphjzT4gjruhTxVaoEAyi3YmdQpIBXzWVD/lOOhQ==\n-----END EC PRIVATE KEY-----".as_bytes()).unwrap();
@@ -293,7 +288,7 @@ mod tests {
     #[test]
     fn test_sign_verify_ed25519() {
         let a = TestPayload1 { test: 42 };
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&a).unwrap();
 
         let seed = ed25519::Seed::from_slice(&[
@@ -326,7 +321,7 @@ mod tests {
         let b = TestPayload2 { test: 43 };
         let c = TestPayload1 { test: 44 };
 
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
 
         packet.add(&a).unwrap();
         packet.add(&b).unwrap();
@@ -334,7 +329,7 @@ mod tests {
 
         assert_eq!(
             Packet(vec![
-                0, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 0, 42, 0, 0,
+                0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 0, 42, 0, 0,
                 0, 43, 0, 44
             ]),
             packet
@@ -347,12 +342,12 @@ mod tests {
         let b = TestPayload2 { test: 43 };
         let c = TestPayload1 { test: 44 };
 
-        let mut packet = Packet::new(TEST_HEADER).unwrap();
+        let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&a).unwrap();
         packet.add(&b).unwrap();
         packet.add(&c).unwrap();
 
-        let mut deser_iterator = packet.start_deserialize().skip_header::<DefaultHeader>();
+        let mut deser_iterator = packet.start_deserialize().skip_header().unwrap();
         assert_eq!(a, deser_iterator.next_payload().unwrap());
         assert_eq!(b, deser_iterator.next_payload().unwrap());
         assert_eq!(c, deser_iterator.next_payload().unwrap());
@@ -364,12 +359,12 @@ mod tests {
         let b = TestPayload2 { test: 43 };
         let c = TestPayload1 { test: 44 };
 
-        let mut ser_tmp = Packet::new(TEST_HEADER).unwrap();
+        let mut ser_tmp = Packet::new(create_test_header!()).unwrap();
         ser_tmp.add(&a).unwrap();
         ser_tmp.add(&b).unwrap();
         ser_tmp.add(&c).unwrap();
 
-        let mut deser_iterator = ser_tmp.start_deserialize().skip_header::<DefaultHeader>();
+        let mut deser_iterator = ser_tmp.start_deserialize().skip_header().unwrap();
         assert_eq!(a, deser_iterator.next_payload().unwrap());
         assert_eq!(b, deser_iterator.next_payload().unwrap());
         assert_eq!(c, deser_iterator.next_payload().unwrap());
