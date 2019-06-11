@@ -23,7 +23,7 @@ fi
 
 # Check rustfmt against the git tree
 printf "${PREFIX} Checking formatting ... "
-command cargo fmt -- --check > /dev/null
+command cargo +stable fmt -- --check > /dev/null
 if [[ $? == 0 ]]; then
     printf "${SUCCESS}\n"
     exit 0
