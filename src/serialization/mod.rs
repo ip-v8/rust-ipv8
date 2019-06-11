@@ -57,14 +57,6 @@ impl PacketDeserializer {
         Ok(res)
     }
 
-    pub fn pop_header(&mut self) -> Result<Header, Box<ErrorKind>> {
-        let res: Header = bincode::config()
-            .big_endian()
-            .deserialize(&self.pntr.0[self.index..])?;
-        self.index += res.size;
-        Ok(res)
-    }
-
     pub fn peek_header(&self) -> Result<Header, Box<ErrorKind>> {
         let res: Header = bincode::config()
             .big_endian()
@@ -72,11 +64,14 @@ impl PacketDeserializer {
         Ok(res)
     }
 
-    pub fn skip_header(mut self) -> Result<Self, Box<ErrorKind>> {
-        let res: Header = bincode::config()
-            .big_endian()
-            .deserialize(&self.pntr.0[self.index..])?;
+    pub fn pop_header(&mut self) -> Result<Header, Box<ErrorKind>> {
+        let res = self.peek_header()?;
         self.index += res.size;
+        Ok(res)
+    }
+
+    pub fn skip_header(mut self) -> Result<Self, Box<ErrorKind>> {
+        self.pop_header()?;
         Ok(self)
     }
 
@@ -231,7 +226,7 @@ mod tests {
     #[test]
     fn test_peek_header() {
         let packet = Packet::new(create_test_header!()).unwrap();
-        let mut deserializer = packet.start_deserialize();
+        let deserializer = packet.start_deserialize();
         let header1 = deserializer.peek_header().unwrap();
         let header2 = deserializer.peek_header().unwrap();
 

@@ -10,10 +10,10 @@ pub struct Config {
     pub socketaddress: Address,
 
     /// The registry containing all the communities
-    pub communities: CommunityRegistry
+    pub communities: CommunityRegistry,
 }
 
-impl Default for Config{
+impl Default for Config {
     fn default() -> Self {
         Config {
             socketaddress: Address {

@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use crate::networking::address::Address;
 use std::fmt;
 
-pub mod basecommunity;
 pub mod peer;
 
 create_error!(
@@ -116,7 +115,7 @@ pub trait Community {
     //    where
     //        Self: Sized;
 
-    /// Returns the hash of our master p
+    /// Returns the hash of our master peer public key
     fn get_mid(&self) -> Option<Vec<u8>>;
 
     /// Gets called whenever a packet is received directed at this community
@@ -137,7 +136,7 @@ pub trait Community {
             );
             Ok(())
         }
-        return match header.message_type.ok_or(HeaderUnwrapError)? {
+        match header.message_type.ok_or(HeaderUnwrapError)? {
             255 => warn_deprecated("reserved-255", address),
             254 => warn_deprecated("on-missing-sequence", address),
             253 => warn_deprecated("missing-proof", address),
@@ -156,7 +155,7 @@ pub trait Community {
             236 => warn_deprecated("dynamic-settings", address),
             235 => warn_deprecated("missing-last-message", address),
             _ => self.on_receive(header, deserializer, address),
-        };
+        }
     }
 
     fn on_receive(
@@ -183,7 +182,7 @@ impl CommunityRegistry {
     /// Forwards the message to the corresponding community
     pub fn forward_message(&self, packet: Packet, address: Address) -> Result<(), Box<dyn Error>> {
         // deserialize the header
-        let mut deserializer = packet.start_deserialize();
+        let deserializer = packet.start_deserialize();
 
         // We use peek here instead of get, even though we give the header along with the receive call
         // this is because at this point, the header is not verified yet so we still assume the message is valid.
