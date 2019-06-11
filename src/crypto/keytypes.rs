@@ -16,9 +16,11 @@
 //! | HIGH_SIGNATURE_LENGTH            |  144   |   153   |  9   |    144     |
 //! | ED25519_SIGNATURE_LENGTH         |   64   |   64    |  0   |    64      |
 
-use openssl;
-use rust_sodium::crypto::sign::ed25519;
 use std::fmt;
+
+use openssl;
+use openssl::sha::sha1;
+use rust_sodium::crypto::sign::ed25519;
 
 // TODO: when ed25519 becomes available for rust OpenSSL, rust_sodium will be removed.
 
@@ -128,6 +130,10 @@ impl PublicKey {
             //get the type of key and convert it to a PublicKey enum type
             Some(m)
         }
+    }
+
+    pub fn sha1(&self) -> Option<[u8; 20]> {
+        Some(sha1(&self.to_vec()?))
     }
 }
 
@@ -349,5 +355,26 @@ mod tests {
                 .unwrap(),
             keyvec
         );
+    }
+
+    #[test]
+    fn test_sha1() {
+        let keyvec = vec![
+            48, 64, 48, 16, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 5, 43, 129, 4, 0, 1, 3, 44, 0, 4,
+            0, 80, 239, 172, 104, 165, 76, 172, 6, 229, 136, 156, 105, 23, 249, 46, 30, 148, 87,
+            105, 57, 6, 105, 134, 2, 229, 115, 169, 44, 162, 41, 190, 228, 56, 20, 100, 64, 79,
+            167, 224, 118, 14,
+        ];
+
+        let key = PublicKey::from_vec(keyvec.clone()).unwrap();
+        let sha1sum = key.sha1().unwrap();
+
+        assert_eq!(
+            [
+                254, 127, 138, 49, 67, 126, 206, 58, 169, 85, 132, 14, 211, 247, 13, 170, 244, 166,
+                152, 180,
+            ],
+            sha1sum
+        )
     }
 }
