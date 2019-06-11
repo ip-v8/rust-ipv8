@@ -91,7 +91,7 @@ pub fn verify_signature_openssl(
 mod tests {
     use crate::crypto::{
         create_signature_openssl, verify_signature_ed25519, verify_signature_openssl, SizeError,
-};
+    };
     use openssl::bn::BigNum;
     use rust_sodium::crypto::sign::ed25519;
     use std::error::Error;
