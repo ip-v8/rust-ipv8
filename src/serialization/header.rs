@@ -105,9 +105,9 @@ impl Serialize for Header {
                 }
 
                 // unwrap the message type
-                let message_type: u8 = self.message_type.ok_or(serde::ser::Error::custom(
-                    "Message type was empty and this wasn't expected",
-                ))? as u8;
+                let message_type: u8 = self.message_type.ok_or_else(|| {
+                    serde::ser::Error::custom("Message type was empty and this wasn't expected")
+                })? as u8;
 
                 // Serialize the message type
                 state.serialize_element(&message_type)?;
@@ -146,16 +146,16 @@ impl<'de> Deserialize<'de> for Header {
                     // this block is here to be breaked out of or else return an error
 
                     // Deserialize the first two bytes into `version_bytes`
-                    version_bytes.push(seq.next_element()?.ok_or(serde::de::Error::custom(
-                        "No valid header type could be determined",
-                    ))?);
-                    version_bytes.push(seq.next_element()?.ok_or(serde::de::Error::custom(
-                        "No valid header type could be determined",
-                    ))?);
+                    version_bytes.push(seq.next_element()?.ok_or_else(|| {
+                        serde::de::Error::custom("No valid header type could be determined")
+                    })?);
+                    version_bytes.push(seq.next_element()?.ok_or_else(|| {
+                        serde::de::Error::custom("No valid header type could be determined")
+                    })?);
 
                     // Check if they match the header version of PyIPv8: `0002`, if so set it and break out of
                     // the pseudo-loop
-                    if version_bytes.as_slice() == [00, 02] {
+                    if version_bytes.as_slice() == [0, 2] {
                         version = Some(HeaderVersion::PyIPV8Header);
                         break;
                     }
@@ -179,14 +179,15 @@ impl<'de> Deserialize<'de> for Header {
                             let mut mid_hash: [u8; 20] = [0; 20]; // Init with zeroes
 
                             for i in mid_hash.iter_mut() {
-                                *i = seq.next_element()?.ok_or(serde::de::Error::custom(
-                                    "No valid header type could be determined",
-                                ))?;
+                                *i = seq.next_element()?.ok_or_else(|| {
+                                    serde::de::Error::custom(
+                                        "No valid header type could be determined",
+                                    )
+                                })?;
                             }
-                            let message_type: u8 =
-                                seq.next_element()?.ok_or(serde::de::Error::custom(
-                                    "No valid header type could be determined",
-                                ))?;
+                            let message_type: u8 = seq.next_element()?.ok_or_else(|| {
+                                serde::de::Error::custom("No valid header type could be determined")
+                            })?;
 
                             Ok(Header::py_ipv8_header(mid_hash, message_type))
                         }

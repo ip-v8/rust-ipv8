@@ -1,8 +1,19 @@
 use crate::networking::address::Address;
 use std::net::Ipv4Addr;
 use crate::community::CommunityRegistry;
+use std::time::Duration;
 
 pub struct Config {
+    /// the amount of space reserved for queueing up incoming messages (messages)
+    pub queuesize: usize,
+    /// the size of the buffer reserved for incoming messages (bytes)
+    pub buffersize: usize,
+    /// frequency at which polling times out and events are checked (ms)
+    /// None is as fast as possible
+    pub pollinterval: Option<Duration>,
+    /// the max number of threads to use in the network manager. 0 is #cores
+    pub threadcount: usize,
+
     /// Default list of host used for peer discovery
     pub default_hosts: Vec<Address>,
     /// from py-ipv8 configuration. UDP socket address.
@@ -16,6 +27,13 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
+            queuesize: 100,
+            buffersize: 2048,
+            pollinterval: None,
+
+            // zero means equal to number of cores
+            threadcount: 0,
+
             socketaddress: Address {
                 address: Ipv4Addr::new(0, 0, 0, 0),
                 port: 8090,

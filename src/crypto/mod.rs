@@ -9,7 +9,6 @@ use openssl::sign::Signer;
 use rust_sodium;
 use rust_sodium::crypto::sign::ed25519;
 use std::error::Error;
-use std::fmt;
 use std::os::raw::c_int;
 
 create_error!(SignatureError, "Invalid signature");
@@ -34,7 +33,7 @@ pub fn verify_signature_ed25519(
     pkey: ed25519::PublicKey,
 ) -> Result<bool, Box<dyn Error>> {
     let verify = ed25519::verify_detached(
-        &ed25519::Signature::from_slice(&*signature).ok_or(Box::new(SignatureError))?,
+        &ed25519::Signature::from_slice(&*signature).ok_or_else(|| Box::new(SignatureError))?,
         data,
         &pkey,
     );
