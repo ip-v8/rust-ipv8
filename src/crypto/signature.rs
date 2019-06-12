@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::fmt;
 
 use openssl::bn::BigNum;
 use serde::ser::SerializeTuple;
