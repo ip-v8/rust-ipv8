@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CurveError",""],["KeyError",""],["OpenSSLError",""],["Signature","A struct containing a cryptographic signature"]]});
+initSidebarItems({"struct":[["Signature","A struct containing a cryptographic signature"]]});

@@ -317,6 +317,20 @@
 <span id="317">317</span>
 <span id="318">318</span>
 <span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::{<span class="ident">Packet</span>, <span class="ident">PacketDeserializer</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">Header</span>;
@@ -336,7 +350,10 @@
     <span class="string">&quot;No community with matching mid found&quot;</span>
 );
 
-<span class="doccomment">/// # Example Community</span>
+<span class="doccomment">/// # Community struct</span>
+<span class="doccomment">/// This is the main struct defining a community</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ## Example Community</span>
 <span class="doccomment">/// This is an example of how to create a community</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// _**Note:** Try to avoid the use of .unwrap() in actual production code, this is just an example_</span>
@@ -477,6 +494,10 @@
         }
     }
 
+    <span class="doccomment">/// This method called for every incoming message, directed at this community, which is not captured.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Messages are captured whenever they have a reserved message_type (235 ~ 255). These are used for legacy support</span>
+    <span class="doccomment">/// and some default responses which every community should give.</span>
     <span class="kw">fn</span> <span class="ident">on_receive</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">header</span>: <span class="ident">Header</span>,
@@ -485,12 +506,17 @@
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span>;
 }
 
+<span class="doccomment">/// Every different kind of community is registered here with it&#39;s MID.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// So that incoming messages can be distributed to the right communities. Makes use of a hashmap to achieve</span>
+<span class="doccomment">/// O(1) lookup time.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CommunityRegistry</span> {
     <span class="comment">// mid, community</span>
     <span class="ident">communities</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Community</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CommunityRegistry</span> {
+    <span class="doccomment">/// Adds a community to the registry.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_community</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Community</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>
             .<span class="ident">communities</span>
@@ -524,6 +550,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CommunityRegistry</span> {
+    <span class="doccomment">/// Returns a new community registry with all the built-in communities already registered.</span>
+    <span class="doccomment">/// All custom communities can be added with the [add_community](#method.add_community) method.</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">communities</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
