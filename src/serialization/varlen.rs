@@ -44,13 +44,13 @@ impl<'de> Deserialize<'de> for VarLen16 {
                 // first read the length from the sequence
                 let length: u16 = seq
                     .next_element()?
-                    .ok_or(serde::de::Error::invalid_length(1, &self))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
 
                 // now read that many bytes from the sequence
                 for _i in 0..length {
                     res.push(
                         seq.next_element()?
-                            .ok_or(serde::de::Error::invalid_length(1, &self))?,
+                            .ok_or_else(|| serde::de::Error::invalid_length(1, &self))?,
                     );
                 }
 

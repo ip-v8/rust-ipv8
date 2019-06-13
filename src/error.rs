@@ -5,13 +5,13 @@ macro_rules! create_error {
         #[derive(Debug)]
         pub struct $name;
 
-        impl fmt::Display for $name {
-            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                 write!(f, $message)
             }
         }
 
-        impl Error for $name {
+        impl std::error::Error for $name {
             fn description(&self) -> &str {
                 $message
             }
@@ -22,7 +22,6 @@ macro_rules! create_error {
 #[cfg(test)]
 mod tests {
     use std::error::Error;
-    use std::fmt;
 
     #[test]
     fn test_errors() {

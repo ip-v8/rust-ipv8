@@ -14,12 +14,17 @@ use bincode;
 use bincode::ErrorKind;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
-use std::fmt;
 
 create_error!(HeaderError, "The supplied header was invalid");
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Packet(pub Vec<u8>);
+
+impl Clone for Packet {
+    fn clone(&self) -> Packet {
+        Packet(self.0.to_vec())
+    }
+}
 
 #[derive(Debug, PartialEq)]
 pub struct PacketDeserializer {
@@ -117,6 +122,10 @@ impl Packet {
                 Err(_) => return Err(Box::new(HeaderError)),
             });
         Ok(res)
+    }
+
+    pub fn raw(&self) -> &[u8] {
+        &*self.0
     }
 
     /// Signs a packet. After this, new payloads must under no circumstances be added as this will
@@ -222,6 +231,17 @@ mod tests {
     //      }
     //    });
     //  }
+
+    #[test]
+    fn test_raw() {
+        let header = create_test_header!();
+        let packet = Packet::new(header).unwrap();
+        let raw = packet.raw();
+        assert_eq!(
+            raw,
+            &[0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42,]
+        )
+    }
 
     #[test]
     fn test_peek_header() {

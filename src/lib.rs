@@ -12,6 +12,8 @@ pub mod networking;
 pub mod payloads;
 
 use configuration::Config;
+use crate::networking::NetworkManager;
+use std::error::Error;
 
 /// The IPv8 instance.
 /// This struct is how you can interact with the network.
@@ -25,10 +27,20 @@ use configuration::Config;
 /// ```
 pub struct IPv8 {
     pub config: Config,
+    pub networkmanager: NetworkManager,
 }
 
 impl IPv8 {
-    pub fn new(config: configuration::Config) -> Self {
-        IPv8 { config }
+    pub fn new(config: configuration::Config) -> Result<Self, Box<dyn Error>> {
+        let networkmanager =
+            NetworkManager::new(&config.socketaddress, config.threadcount.to_owned())?;
+        Ok(IPv8 {
+            config,
+            networkmanager,
+        })
+    }
+
+    pub fn start(self) {
+        self.networkmanager.start(&self.config);
     }
 }

@@ -3,7 +3,6 @@ use crate::serialization::header::Header;
 use std::error::Error;
 use std::collections::HashMap;
 use crate::networking::address::Address;
-use std::fmt;
 
 pub mod peer;
 
@@ -89,7 +88,7 @@ create_error!(InsertionError, "Error inserting community into hashmap");
 /// let community = TestCommunity::new().unwrap();
 /// let mid = community.get_mid();
 /// config.communities.add_community(Box::new(community));
-/// let ipv8 = IPv8::new(config);
+/// let ipv8 = IPv8::new(config).unwrap();
 ///
 /// // now simulate a packet coming in
 ///
