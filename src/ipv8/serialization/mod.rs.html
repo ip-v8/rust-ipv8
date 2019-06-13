@@ -376,6 +376,18 @@
 <span id="376">376</span>
 <span id="377">377</span>
 <span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">macro_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bits</span>;
@@ -401,13 +413,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Packet</span>(<span class="kw">pub</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>);
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PacketIterator</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PacketDeserializer</span> {
     <span class="kw">pub</span> <span class="ident">pntr</span>: <span class="ident">Packet</span>,
     <span class="kw">pub</span> <span class="ident">index</span>: <span class="ident">usize</span>,
 }
 
 <span class="doccomment">/// iterates over a packet to extract it&#39;s possibly multiple payloads</span>
-<span class="kw">impl</span> <span class="ident">PacketIterator</span> {
+<span class="kw">impl</span> <span class="ident">PacketDeserializer</span> {
     <span class="doccomment">/// Deserializes a stream of bytes into an ipv8 payload. Which payload is inferred by the type of T which is generic.</span>
     <span class="doccomment">/// T has to be deserializable and implement the Ipv8Payload trait.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_payload</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorKind</span><span class="op">&gt;&gt;</span>
@@ -436,19 +448,21 @@
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_header</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorKind</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peek_header</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorKind</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">Header</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">config</span>()
             .<span class="ident">big_endian</span>()
             .<span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>[<span class="self">self</span>.<span class="ident">index</span>..])<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_header</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorKind</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_header</span>()<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">res</span>.<span class="ident">size</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip_header</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorKind</span><span class="op">&gt;&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">Header</span> <span class="op">=</span> <span class="ident">bincode</span>::<span class="ident">config</span>()
-            .<span class="ident">big_endian</span>()
-            .<span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pntr</span>.<span class="number">0</span>[<span class="self">self</span>.<span class="ident">index</span>..])<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">index</span> <span class="op">+=</span> <span class="ident">res</span>.<span class="ident">size</span>;
+        <span class="self">self</span>.<span class="ident">pop_header</span>()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 
@@ -514,8 +528,8 @@
     }
 
     <span class="doccomment">/// Deserializes a stream of bytes into ipv8 payloads.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_deserialize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">PacketIterator</span> {
-        <span class="ident">PacketIterator</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_deserialize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">PacketDeserializer</span> {
+        <span class="ident">PacketDeserializer</span> {
             <span class="ident">pntr</span>: <span class="self">self</span>,
             <span class="ident">index</span>: <span class="number">0</span>,
         }
@@ -599,6 +613,16 @@
     <span class="comment">//      }</span>
     <span class="comment">//    });</span>
     <span class="comment">//  }</span>
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_peek_header</span>() {
+        <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">deserializer</span> <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">start_deserialize</span>();
+        <span class="kw">let</span> <span class="ident">header1</span> <span class="op">=</span> <span class="ident">deserializer</span>.<span class="ident">peek_header</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">header2</span> <span class="op">=</span> <span class="ident">deserializer</span>.<span class="ident">peek_header</span>().<span class="ident">unwrap</span>();
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header1</span>, <span class="ident">header2</span>);
+    }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_sign_verify_verylow</span>() {

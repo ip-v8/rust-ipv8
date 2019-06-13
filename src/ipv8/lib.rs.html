@@ -28,10 +28,18 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
+
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">serialization</span>;
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">community</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">configuration</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">crypto</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">event</span>;
@@ -48,10 +56,10 @@
 <span class="doccomment">/// use ipv8::IPv8;</span>
 <span class="doccomment">/// use ipv8::configuration::Config;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let ipv8_instance = IPv8::new(Config::default());</span>
+<span class="doccomment">/// let ipv8 = IPv8::new(Config::default());</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IPv8</span> {
-    <span class="ident">config</span>: <span class="ident">Config</span>,
+    <span class="kw">pub</span> <span class="ident">config</span>: <span class="ident">Config</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">IPv8</span> {

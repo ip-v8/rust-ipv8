@@ -8,6 +8,7 @@ ALIASES["foreign_types_shared"] = {};
 ALIASES["ipv8"] = {};
 ALIASES["lazy_static"] = {};
 ALIASES["libc"] = {};
+ALIASES["log"] = {};
 ALIASES["openssl"] = {};
 ALIASES["openssl_sys"] = {};
 ALIASES["proc_macro2"] = {};
