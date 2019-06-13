@@ -1,6 +1,10 @@
+#[macro_use]
+extern crate log;
+
 pub mod error;
 pub mod serialization;
 
+pub mod community;
 pub mod configuration;
 pub mod crypto;
 pub mod event;
@@ -17,10 +21,10 @@ use configuration::Config;
 /// use ipv8::IPv8;
 /// use ipv8::configuration::Config;
 ///
-/// let ipv8_instance = IPv8::new(Config::default());
+/// let ipv8 = IPv8::new(Config::default());
 /// ```
 pub struct IPv8 {
-    config: Config,
+    pub config: Config,
 }
 
 impl IPv8 {

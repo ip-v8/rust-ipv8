@@ -32,7 +32,7 @@ fn test_packet_1() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
     assert_eq!(
         header,
         Header::py_ipv8_header(
@@ -102,7 +102,7 @@ fn test_packet_2() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
     assert_eq!(
         header,
         Header::py_ipv8_header(
@@ -156,7 +156,7 @@ fn test_packet_3() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
     assert_eq!(
         header,
         Header::py_ipv8_header(
@@ -211,7 +211,7 @@ fn test_packet_4() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
     assert_eq!(
         header,
         Header::py_ipv8_header(
@@ -266,7 +266,7 @@ fn test_packet_5() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
     assert_eq!(
         header,
         Header::py_ipv8_header(
@@ -321,7 +321,7 @@ fn test_packet_6() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
     assert_eq!(
         header,
         Header::py_ipv8_header(
@@ -376,7 +376,7 @@ fn test_packet_7() {
     ]);
     let mut deserializer = data.start_deserialize();
 
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
     assert_eq!(
         header,
         Header::py_ipv8_header(
@@ -431,7 +431,7 @@ fn test_packet_8() {
         0xc1, 0xb3, 0x53, 0x92, 0x1f, 0x58, 0xb6, 0x81, 0x0d,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
 
     assert_eq!(
         header,
@@ -503,7 +503,7 @@ fn test_packet_9() {
         0xe7, 0x6f, 0xea, 0x90, 0x43, 0xfd, 0x5f, 0x93, 0x04,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
 
     assert_eq!(
         header,
@@ -581,7 +581,7 @@ fn test_packet_10() {
         0xa2,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
 
     assert!(deserializer.verify());
 
@@ -652,7 +652,7 @@ fn test_packet_11() {
         0xa3,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
 
     assert!(deserializer.verify());
 
@@ -723,7 +723,7 @@ fn test_packet_12() {
         0xb8,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
 
     assert!(deserializer.verify());
 
@@ -793,7 +793,7 @@ fn test_packet_13() {
         0x56,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
 
     assert!(deserializer.verify());
 
@@ -863,7 +863,7 @@ fn test_packet_14() {
         0xd8,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
 
     assert!(deserializer.verify());
 
@@ -928,7 +928,7 @@ fn test_packet_15() {
         0x0b,
     ]);
     let mut deserializer = data.start_deserialize();
-    let header: Header = deserializer.get_header().unwrap();
+    let header: Header = deserializer.pop_header().unwrap();
 
     assert!(deserializer.verify());
 

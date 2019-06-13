@@ -22,13 +22,13 @@ create_error!(HeaderError, "The supplied header was invalid");
 pub struct Packet(pub Vec<u8>);
 
 #[derive(Debug, PartialEq)]
-pub struct PacketIterator {
+pub struct PacketDeserializer {
     pub pntr: Packet,
     pub index: usize,
 }
 
 /// iterates over a packet to extract it's possibly multiple payloads
-impl PacketIterator {
+impl PacketDeserializer {
     /// Deserializes a stream of bytes into an ipv8 payload. Which payload is inferred by the type of T which is generic.
     /// T has to be deserializable and implement the Ipv8Payload trait.
     pub fn next_payload<T>(&mut self) -> Result<T, Box<ErrorKind>>
@@ -57,19 +57,21 @@ impl PacketIterator {
         Ok(res)
     }
 
-    pub fn get_header(&mut self) -> Result<Header, Box<ErrorKind>> {
+    pub fn peek_header(&self) -> Result<Header, Box<ErrorKind>> {
         let res: Header = bincode::config()
             .big_endian()
             .deserialize(&self.pntr.0[self.index..])?;
+        Ok(res)
+    }
+
+    pub fn pop_header(&mut self) -> Result<Header, Box<ErrorKind>> {
+        let res = self.peek_header()?;
         self.index += res.size;
         Ok(res)
     }
 
     pub fn skip_header(mut self) -> Result<Self, Box<ErrorKind>> {
-        let res: Header = bincode::config()
-            .big_endian()
-            .deserialize(&self.pntr.0[self.index..])?;
-        self.index += res.size;
+        self.pop_header()?;
         Ok(self)
     }
 
@@ -135,8 +137,8 @@ impl Packet {
     }
 
     /// Deserializes a stream of bytes into ipv8 payloads.
-    pub fn start_deserialize(self) -> PacketIterator {
-        PacketIterator {
+    pub fn start_deserialize(self) -> PacketDeserializer {
+        PacketDeserializer {
             pntr: self,
             index: 0,
         }
@@ -220,6 +222,16 @@ mod tests {
     //      }
     //    });
     //  }
+
+    #[test]
+    fn test_peek_header() {
+        let packet = Packet::new(create_test_header!()).unwrap();
+        let deserializer = packet.start_deserialize();
+        let header1 = deserializer.peek_header().unwrap();
+        let header2 = deserializer.peek_header().unwrap();
+
+        assert_eq!(header1, header2);
+    }
 
     #[test]
     fn test_sign_verify_verylow() {

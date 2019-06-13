@@ -13,17 +13,18 @@ SUCCESS="${GREEN}ok${RC}"
 
 # Check if rustfmt is installed
 printf "${PREFIX} Checking for rustfmt ... "
-command -v cargo fmt &>/dev/null
-if [[ $? == 0 ]]; then
+OUT=$(cargo +stable fmt --version 2>&1 > /dev/null ) # Save the output of the command to OUT for later printing
+if [[ $? -eq 0 ]]; then
     printf "${SUCCESS}\n"
 else
     printf "${FAILURE}\n"
+    printf "${OUT}\n"
     exit 1
 fi
 
 # Check rustfmt against the git tree
 printf "${PREFIX} Checking formatting ... "
-command cargo fmt -- --check > /dev/null
+command cargo +stable fmt -- --check > /dev/null
 if [[ $? == 0 ]]; then
     printf "${SUCCESS}\n"
     exit 0

@@ -1,5 +1,6 @@
 use crate::networking::address::Address;
 use std::net::Ipv4Addr;
+use crate::community::CommunityRegistry;
 
 pub struct Config {
     /// Default list of host used for peer discovery
@@ -7,6 +8,9 @@ pub struct Config {
     /// from py-ipv8 configuration. UDP socket address.
     /// There split up in "address" and "port"
     pub socketaddress: Address,
+
+    /// The registry containing all the communities
+    pub communities: CommunityRegistry,
 }
 
 impl Default for Config {
@@ -16,6 +20,8 @@ impl Default for Config {
                 address: Ipv4Addr::new(0, 0, 0, 0),
                 port: 8090,
             },
+
+            communities: CommunityRegistry::default(),
 
             default_hosts: vec![
                 // Dispersy
