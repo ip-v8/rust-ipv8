@@ -206,6 +206,117 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::{<span class="ident">Packet</span>, <span class="ident">PacketDeserializer</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">Header</span>;
@@ -224,11 +335,13 @@
     <span class="ident">UnknownCommunityError</span>,
     <span class="string">&quot;No community with matching mid found&quot;</span>
 );
-<span class="macro">create_error</span><span class="macro">!</span>(<span class="ident">InsertionError</span>, <span class="string">&quot;Error inserting community into hashmap&quot;</span>);
 
-<span class="doccomment">/// Example Community</span>
+<span class="doccomment">/// # Example Community</span>
+<span class="doccomment">/// This is an example of how to create a community</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// _**Note:** Try to avoid the use of .unwrap() in actual production code, this is just an example_</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// use ipv8::community::peer::Peer;</span>
 <span class="doccomment">/// use ipv8::community::Community;</span>
@@ -289,6 +402,7 @@
 <span class="doccomment">///         # assert_eq!(header.version, PyIPV8Header);</span>
 <span class="doccomment">///         # assert_eq!(header.message_type, Some(42));</span>
 <span class="doccomment">///         // Do some stuff here like to distribute the message based on it&#39;s message_type (in the header)</span>
+<span class="doccomment">///         // and check it&#39;s signature</span>
 <span class="doccomment">///         Ok(())</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">/// }</span>
@@ -311,7 +425,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// // Normally you would want to sign the packet here</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// // Yeet the packet</span>
+<span class="doccomment">/// // Send the packet</span>
 <span class="doccomment">/// ipv8.config.communities.forward_message(packet,Address{</span>
 <span class="doccomment">///     address: Ipv4Addr::new(42,42,42,42),</span>
 <span class="doccomment">///     port: 42,</span>
@@ -319,15 +433,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Community</span> {
-    <span class="comment">//    fn new() -&gt; Option&lt;Self&gt;</span>
-    <span class="comment">//    where</span>
-    <span class="comment">//        Self: Sized;</span>
-
     <span class="doccomment">/// Returns the hash of our master peer public key</span>
     <span class="kw">fn</span> <span class="ident">get_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;&gt;</span>;
 
     <span class="doccomment">/// Gets called whenever a packet is received directed at this community</span>
     <span class="doccomment">/// DO NOT OVERRIDE</span>
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="kw">fn</span> <span class="ident">receive</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">header</span>: <span class="ident">Header</span>,
@@ -381,10 +492,14 @@
 
 <span class="kw">impl</span> <span class="ident">CommunityRegistry</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_community</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Community</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
-        <span class="self">self</span>.<span class="ident">communities</span>
+        <span class="kw">match</span> <span class="self">self</span>
+            .<span class="ident">communities</span>
             .<span class="ident">insert</span>(<span class="ident">item</span>.<span class="ident">get_mid</span>().<span class="ident">ok_or</span>(<span class="ident">MidError</span>)<span class="question-mark">?</span>, <span class="ident">item</span>)
-            .<span class="ident">ok_or</span>(<span class="ident">InsertionError</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
+        {
+            <span class="comment">// none means the key wasn&#39;t already present in the map, some means it was and it returns it.</span>
+            <span class="comment">// We don&#39;t care about this.</span>
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
+        }
     }
 
     <span class="doccomment">/// Forwards the message to the corresponding community</span>
@@ -413,6 +528,113 @@
         <span class="self">Self</span> {
             <span class="ident">communities</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
         }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_networking</span>() {
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">community</span>::<span class="ident">peer</span>::<span class="ident">Peer</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">community</span>::<span class="ident">Community</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">Header</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::{<span class="ident">PacketDeserializer</span>, <span class="ident">Packet</span>};
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Ipv4Addr</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">IPv8</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">Config</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">HeaderVersion</span>::<span class="ident">PyIPV8Header</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">crypto</span>::<span class="ident">keytypes</span>::<span class="ident">PublicKey</span>;
+
+        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TestCommunity</span> {
+            <span class="ident">peer</span>: <span class="ident">Peer</span>,
+        }
+
+        <span class="kw">impl</span> <span class="ident">TestCommunity</span> {
+            <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+                <span class="comment">// Use the highest available key</span>
+                <span class="kw">let</span> <span class="ident">pk</span>: <span class="ident">PublicKey</span> <span class="op">=</span> <span class="ident">PublicKey</span>::<span class="ident">from_vec</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                    <span class="number">48</span>, <span class="number">129</span>, <span class="number">167</span>, <span class="number">48</span>, <span class="number">16</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">42</span>, <span class="number">134</span>, <span class="number">72</span>, <span class="number">206</span>, <span class="number">61</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">6</span>, <span class="number">5</span>, <span class="number">43</span>, <span class="number">129</span>, <span class="number">4</span>, <span class="number">0</span>,
+                    <span class="number">39</span>, <span class="number">3</span>, <span class="number">129</span>, <span class="number">146</span>, <span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">86</span>, <span class="number">251</span>, <span class="number">75</span>, <span class="number">206</span>, <span class="number">159</span>, <span class="number">133</span>, <span class="number">120</span>, <span class="number">63</span>, <span class="number">176</span>, <span class="number">235</span>, <span class="number">178</span>,
+                    <span class="number">14</span>, <span class="number">8</span>, <span class="number">197</span>, <span class="number">59</span>, <span class="number">107</span>, <span class="number">51</span>, <span class="number">179</span>, <span class="number">139</span>, <span class="number">3</span>, <span class="number">155</span>, <span class="number">20</span>, <span class="number">194</span>, <span class="number">112</span>, <span class="number">113</span>, <span class="number">15</span>, <span class="number">40</span>, <span class="number">67</span>, <span class="number">115</span>,
+                    <span class="number">37</span>, <span class="number">223</span>, <span class="number">152</span>, <span class="number">7</span>, <span class="number">102</span>, <span class="number">154</span>, <span class="number">214</span>, <span class="number">90</span>, <span class="number">110</span>, <span class="number">180</span>, <span class="number">226</span>, <span class="number">5</span>, <span class="number">190</span>, <span class="number">99</span>, <span class="number">163</span>, <span class="number">54</span>, <span class="number">116</span>,
+                    <span class="number">173</span>, <span class="number">121</span>, <span class="number">40</span>, <span class="number">80</span>, <span class="number">129</span>, <span class="number">142</span>, <span class="number">82</span>, <span class="number">118</span>, <span class="number">154</span>, <span class="number">96</span>, <span class="number">127</span>, <span class="number">164</span>, <span class="number">248</span>, <span class="number">217</span>, <span class="number">91</span>, <span class="number">13</span>, <span class="number">80</span>,
+                    <span class="number">91</span>, <span class="number">94</span>, <span class="number">210</span>, <span class="number">16</span>, <span class="number">110</span>, <span class="number">108</span>, <span class="number">41</span>, <span class="number">57</span>, <span class="number">4</span>, <span class="number">243</span>, <span class="number">49</span>, <span class="number">52</span>, <span class="number">194</span>, <span class="number">254</span>, <span class="number">130</span>, <span class="number">98</span>, <span class="number">229</span>, <span class="number">50</span>,
+                    <span class="number">84</span>, <span class="number">21</span>, <span class="number">206</span>, <span class="number">134</span>, <span class="number">223</span>, <span class="number">157</span>, <span class="number">189</span>, <span class="number">133</span>, <span class="number">50</span>, <span class="number">210</span>, <span class="number">181</span>, <span class="number">93</span>, <span class="number">229</span>, <span class="number">32</span>, <span class="number">179</span>, <span class="number">228</span>, <span class="number">179</span>,
+                    <span class="number">132</span>, <span class="number">143</span>, <span class="number">147</span>, <span class="number">96</span>, <span class="number">207</span>, <span class="number">68</span>, <span class="number">48</span>, <span class="number">184</span>, <span class="number">160</span>, <span class="number">47</span>, <span class="number">227</span>, <span class="number">70</span>, <span class="number">147</span>, <span class="number">23</span>, <span class="number">159</span>, <span class="number">213</span>, <span class="number">105</span>,
+                    <span class="number">134</span>, <span class="number">60</span>, <span class="number">211</span>, <span class="number">226</span>, <span class="number">8</span>, <span class="number">235</span>, <span class="number">186</span>, <span class="number">20</span>, <span class="number">241</span>, <span class="number">85</span>, <span class="number">170</span>, <span class="number">4</span>, <span class="number">3</span>, <span class="number">40</span>, <span class="number">183</span>, <span class="number">98</span>, <span class="number">103</span>, <span class="number">80</span>,
+                    <span class="number">164</span>, <span class="number">128</span>, <span class="number">87</span>, <span class="number">205</span>, <span class="number">101</span>, <span class="number">67</span>, <span class="number">254</span>, <span class="number">83</span>, <span class="number">142</span>, <span class="number">133</span>,
+                ])<span class="question-mark">?</span>;
+                <span class="comment">// Actually create the community</span>
+                <span class="prelude-val">Some</span>(<span class="ident">TestCommunity</span> {
+                    <span class="ident">peer</span>: <span class="ident">Peer</span>::<span class="ident">new</span>(
+                        <span class="ident">pk</span>,
+                        <span class="ident">Address</span> {
+                            <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>),
+                            <span class="ident">port</span>: <span class="number">0</span>,
+                        },
+                        <span class="bool-val">true</span>,
+                    ),
+                })
+            }
+        }
+
+        <span class="kw">impl</span> <span class="ident">Community</span> <span class="kw">for</span> <span class="ident">TestCommunity</span> {
+            <span class="comment">// Returns the hash of our master peer</span>
+            <span class="kw">fn</span> <span class="ident">get_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">peer</span>.<span class="ident">get_sha1</span>()<span class="question-mark">?</span>.<span class="ident">to_vec</span>())
+            }
+
+            <span class="comment">// The function which will be called when the community receives a packet</span>
+            <span class="kw">fn</span> <span class="ident">on_receive</span>(
+                <span class="kw-2">&amp;</span><span class="self">self</span>,
+                <span class="ident">header</span>: <span class="ident">Header</span>,
+                <span class="ident">deserializer</span>: <span class="ident">PacketDeserializer</span>,
+                <span class="ident">_address</span>: <span class="ident">Address</span>,
+            ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header</span>.<span class="ident">mid_hash</span>, <span class="self">self</span>.<span class="ident">get_mid</span>());
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header</span>.<span class="ident">version</span>, <span class="ident">PyIPV8Header</span>);
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header</span>.<span class="ident">message_type</span>, <span class="prelude-val">Some</span>(<span class="number">42</span>));
+                <span class="prelude-val">Ok</span>(())
+            }
+        }
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">Config</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="ident">community</span> <span class="op">=</span> <span class="ident">TestCommunity</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">mid</span> <span class="op">=</span> <span class="ident">community</span>.<span class="ident">get_mid</span>();
+
+        <span class="ident">config</span>
+            .<span class="ident">communities</span>
+            .<span class="ident">add_community</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">community</span>))
+            .<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">ipv8</span> <span class="op">=</span> <span class="ident">IPv8</span>::<span class="ident">new</span>(<span class="ident">config</span>).<span class="ident">unwrap</span>();
+
+        <span class="comment">// now simulate a packet coming in</span>
+        <span class="comment">// Create a packet to test the community with</span>
+        <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">Header</span> {
+            <span class="ident">size</span>: <span class="number">23</span>,
+            <span class="ident">version</span>: <span class="ident">PyIPV8Header</span>,
+            <span class="ident">mid_hash</span>: <span class="ident">mid</span>,
+            <span class="ident">message_type</span>: <span class="prelude-val">Some</span>(<span class="number">42</span>),
+        })
+        .<span class="ident">unwrap</span>();
+
+        <span class="comment">// Normally you would want to sign the packet here</span>
+
+        <span class="comment">// Send the packet</span>
+        <span class="ident">ipv8</span>.<span class="ident">config</span>
+            .<span class="ident">communities</span>
+            .<span class="ident">forward_message</span>(
+                <span class="ident">packet</span>,
+                <span class="ident">Address</span> {
+                    <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>),
+                    <span class="ident">port</span>: <span class="number">42</span>,
+                },
+            )
+            .<span class="ident">unwrap</span>();
     }
 }
 </pre></div>

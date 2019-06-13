@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["community",""],["configuration",""],["crypto",""],["event",""],["networking",""],["payloads",""],["serialization",""]],"struct":[["IPv8","The IPv8 instance. This struct is how you can interact with the network."]]});
+initSidebarItems({"mod":[["community",""],["configuration",""],["crypto",""],["networking",""],["payloads",""],["serialization",""]],"struct":[["IPv8","The IPv8 instance. This struct is how you can interact with the network."]]});
