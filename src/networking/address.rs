@@ -40,4 +40,14 @@ mod tests {
             bincode::deserialize(&bincode::serialize(&i).unwrap()).unwrap()
         );
     }
+
+    #[test]
+    fn test_fmt() {
+        let i = Address {
+            address: Ipv4Addr::new(127, 0, 0, 1),
+            port: 8000,
+        };
+
+        assert_eq!("Ipv4Addr: (127.0.0.1, 8000)", format!("{}", i))
+    }
 }

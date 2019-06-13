@@ -16,10 +16,14 @@ pub mod address;
 create_error!(SocketCreationError, "The socket creation failed");
 create_error!(ListenError, "An error occured during the listening");
 
+/// Any struct implementing this method can become a receiver of incoming network packets.
+/// under normal operation, only the IPV8 struct should be a receiver of these and it should distribute it
+/// through its CommunityRegistry to communities
 pub trait Receiver {
     fn on_receive(&self, packet: Packet, address: Address);
 }
 
+/// This struct manages the sockets and receives incoming messages.
 pub struct NetworkManager {
     receivers: Vec<Box<dyn Receiver + Send + Sync>>,
     socket: UdpSocket,
@@ -27,9 +31,13 @@ pub struct NetworkManager {
 }
 
 impl NetworkManager {
+    /// Creates a new networkmanager. This creates a receiver socket and builds a new threadpool on which
+    /// all messages are distributed.
     pub fn new(address: &Address, threadcount: usize) -> Result<Self, Box<dyn Error>> {
         let socket = UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address.address), address.port))
             .or(Err(SocketCreationError))?;
+
+        trace!("Starting on {}", address);
 
         let pool = ThreadPoolBuilder::new()
             .num_threads(threadcount)
@@ -44,6 +52,12 @@ impl NetworkManager {
         Ok(nm)
     }
 
+    /// Starts the networkmanager. This spawns a new thread in which it will listen for incoming messages.
+    ///
+    /// This method consumes self as it is transferred to the new thread. After this no receievers can be added to it.
+    ///
+    /// Returns a `JoinHandle<()>` which can be used to block until the networkmanager stops listening.
+    /// Under normal operation this never happens so this marks the end of the program.
     pub fn start(self, configuration: &Config) -> JoinHandle<()> {
         let queuesize = configuration.queuesize.to_owned();
         let buffersize = configuration.buffersize.to_owned();
@@ -59,7 +73,7 @@ impl NetworkManager {
         })
     }
 
-    pub fn listen(
+    fn listen(
         self,
         queuesize: usize,
         buffersize: usize,
@@ -112,10 +126,12 @@ impl NetworkManager {
         }
     }
 
+    /// Adds a receiver to the networkmanager. Can only happen before the networkmanager is started.
     pub fn add_receiver(&mut self, receiver: Box<dyn Receiver + Send + Sync>) {
         self.receivers.push(receiver)
     }
 
+    /// Sends a Packet to the specified address.
     pub fn send(address: Address, packet: Packet) -> Result<(), Box<dyn Error>> {
         unimplemented!(
             "Trying to send {:?} to {:?} but sending is not implemented",
@@ -139,7 +155,7 @@ mod tests {
     use std::time::Duration;
     use crate::networking::Receiver;
     use std::thread;
-    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::{AtomicUsize, Ordering, AtomicU16};
 
     static BEFORE: Once = Once::new();
 
@@ -158,16 +174,20 @@ mod tests {
         // start ipv8
         let mut config = Config::default();
         let address = Ipv4Addr::new(0, 0, 0, 0);
-        static RECV_PORT: u16 = 8090;
-        static SEND_PORT: u16 = 30240;
 
-        config.socketaddress = Address {
-            address,
-            port: RECV_PORT,
-        };
+        config.socketaddress = Address { address, port: 0 };
         config.buffersize = 2048;
 
         let mut ipv8 = IPv8::new(config).unwrap();
+
+        let sender_socket = UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address), 0)).unwrap();
+
+        static SEND_PORT: AtomicU16 = AtomicU16::new(0);
+
+        let recv_port: u16 = ipv8.networkmanager.socket.local_addr().unwrap().port();
+        let send_port: u16 = sender_socket.local_addr().unwrap().port();
+
+        SEND_PORT.store(send_port, Ordering::SeqCst);
 
         lazy_static! {
             static ref OGPACKET: Packet = Packet::new(create_test_header!()).unwrap();
@@ -180,10 +200,10 @@ mod tests {
         impl Receiver for AReceiver {
             fn on_receive(&self, packet: Packet, address: Address) {
                 assert_eq!(OGPACKET.raw(), packet.raw());
-                assert_eq!(SEND_PORT, address.port);
+                assert_eq!(SEND_PORT.load(Ordering::SeqCst), address.port);
 
                 // Count each packet
-                PACKET_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                PACKET_COUNTER.fetch_add(1, Ordering::SeqCst);
             }
         }
 
@@ -194,11 +214,8 @@ mod tests {
         thread::sleep(Duration::from_millis(300));
 
         // now try to send ipv8 a message
-        let sender_socket =
-            UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address), SEND_PORT)).unwrap();
-
         sender_socket
-            .connect(SocketAddr::new(IpAddr::V4(address), RECV_PORT))
+            .connect(SocketAddr::new(IpAddr::V4(address), recv_port))
             .unwrap();
 
         let a = sender_socket.send(OGPACKET.raw()).unwrap();
