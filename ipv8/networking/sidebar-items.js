@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["address",""],["connection",""],["connector",""]]});
+initSidebarItems({"mod":[["address",""]],"struct":[["ListenError",""],["NetworkManager",""],["SocketCreationError",""]],"trait":[["Receiver",""]]});
