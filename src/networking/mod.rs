@@ -139,7 +139,6 @@ mod tests {
     use std::time::Duration;
     use crate::networking::Receiver;
     use std::thread;
-    use std::cmp::Ordering;
     use std::sync::atomic::AtomicUsize;
 
     static BEFORE: Once = Once::new();
@@ -159,25 +158,32 @@ mod tests {
         // start ipv8
         let mut config = Config::default();
         let address = Ipv4Addr::new(0, 0, 0, 0);
-        let port = 8090;
+        static RECV_PORT: u16 = 8090;
+        static SEND_PORT: u16 = 30240;
 
-        config.socketaddress = Address { address, port };
+        config.socketaddress = Address {
+            address,
+            port: RECV_PORT,
+        };
         config.buffersize = 2048;
 
         let mut ipv8 = IPv8::new(config).unwrap();
 
         lazy_static! {
-            static ref OGPacket: Packet = Packet::new(create_test_header!()).unwrap();
+            static ref OGPACKET: Packet = Packet::new(create_test_header!()).unwrap();
         }
 
-        static C: AtomicUsize = AtomicUsize::new(0);
+        static PACKET_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
         //create receiver
         struct AReceiver;
         impl Receiver for AReceiver {
             fn on_receive(&self, packet: Packet, address: Address) {
-                assert_eq!(packet.raw(), OGPacket.raw());
-                C.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                assert_eq!(OGPACKET.raw(), packet.raw());
+                assert_eq!(SEND_PORT, address.port);
+
+                // Count each packet
+                PACKET_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
             }
         }
 
@@ -188,23 +194,24 @@ mod tests {
         thread::sleep(Duration::from_millis(300));
 
         // now try to send ipv8 a message
-        let sender_socket = UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address), 0)).unwrap();
+        let sender_socket =
+            UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address), SEND_PORT)).unwrap();
 
         sender_socket
-            .connect(SocketAddr::new(IpAddr::V4(address), port))
+            .connect(SocketAddr::new(IpAddr::V4(address), RECV_PORT))
             .unwrap();
 
-        let a = sender_socket.send(OGPacket.raw()).unwrap();
-        assert_eq!(a, OGPacket.raw().len());
+        let a = sender_socket.send(OGPACKET.raw()).unwrap();
+        assert_eq!(a, OGPACKET.raw().len());
 
         thread::sleep(Duration::from_millis(20));
 
-        let b = sender_socket.send(OGPacket.raw()).unwrap();
-        assert_eq!(b, OGPacket.raw().len());
+        let b = sender_socket.send(OGPACKET.raw()).unwrap();
+        assert_eq!(b, OGPACKET.raw().len());
 
         thread::sleep(Duration::from_millis(20));
 
         // a poor man's `verify(AReceiver, times(2)).on_receiver();`
-        assert_eq!(2, C.load(std::sync::atomic::Ordering::SeqCst));
+        assert_eq!(2, PACKET_COUNTER.load(std::sync::atomic::Ordering::SeqCst));
     }
 }
