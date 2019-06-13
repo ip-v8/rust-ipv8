@@ -7,7 +7,6 @@ pub mod serialization;
 pub mod community;
 pub mod configuration;
 pub mod crypto;
-pub mod event;
 pub mod networking;
 pub mod payloads;
 

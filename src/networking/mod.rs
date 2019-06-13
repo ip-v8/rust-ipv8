@@ -31,6 +31,8 @@ impl NetworkManager {
         let socket = UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address.address), address.port))
             .or(Err(SocketCreationError))?;
 
+        trace!("Starting on {}", address);
+
         let pool = ThreadPoolBuilder::new()
             .num_threads(threadcount)
             .breadth_first()
@@ -139,7 +141,7 @@ mod tests {
     use std::time::Duration;
     use crate::networking::Receiver;
     use std::thread;
-    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::{AtomicUsize, Ordering, AtomicU16};
 
     static BEFORE: Once = Once::new();
 
@@ -158,16 +160,20 @@ mod tests {
         // start ipv8
         let mut config = Config::default();
         let address = Ipv4Addr::new(0, 0, 0, 0);
-        static RECV_PORT: u16 = 8090;
-        static SEND_PORT: u16 = 30240;
 
-        config.socketaddress = Address {
-            address,
-            port: RECV_PORT,
-        };
+        config.socketaddress = Address { address, port: 0 };
         config.buffersize = 2048;
 
         let mut ipv8 = IPv8::new(config).unwrap();
+
+        let sender_socket = UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address), 0)).unwrap();
+
+        static SEND_PORT: AtomicU16 = AtomicU16::new(0);
+
+        let recv_port: u16 = ipv8.networkmanager.socket.local_addr().unwrap().port();
+        let send_port: u16 = sender_socket.local_addr().unwrap().port();
+
+        SEND_PORT.store(send_port, Ordering::SeqCst);
 
         lazy_static! {
             static ref OGPACKET: Packet = Packet::new(create_test_header!()).unwrap();
@@ -180,10 +186,10 @@ mod tests {
         impl Receiver for AReceiver {
             fn on_receive(&self, packet: Packet, address: Address) {
                 assert_eq!(OGPACKET.raw(), packet.raw());
-                assert_eq!(SEND_PORT, address.port);
+                assert_eq!(SEND_PORT.load(Ordering::SeqCst), address.port);
 
                 // Count each packet
-                PACKET_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                PACKET_COUNTER.fetch_add(1, Ordering::SeqCst);
             }
         }
 
@@ -194,11 +200,8 @@ mod tests {
         thread::sleep(Duration::from_millis(300));
 
         // now try to send ipv8 a message
-        let sender_socket =
-            UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address), SEND_PORT)).unwrap();
-
         sender_socket
-            .connect(SocketAddr::new(IpAddr::V4(address), RECV_PORT))
+            .connect(SocketAddr::new(IpAddr::V4(address), recv_port))
             .unwrap();
 
         let a = sender_socket.send(OGPACKET.raw()).unwrap();
