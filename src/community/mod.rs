@@ -16,7 +16,10 @@ create_error!(
     "No community with matching mid found"
 );
 
-/// # Example Community
+/// # Community struct
+/// This is the main struct defining a community
+///
+/// ## Example Community
 /// This is an example of how to create a community
 ///
 /// _**Note:** Try to avoid the use of .unwrap() in actual production code, this is just an example_
@@ -157,6 +160,10 @@ pub trait Community {
         }
     }
 
+    /// This method called for every incoming message, directed at this community, which is not captured.
+    ///
+    /// Messages are captured whenever they have a reserved message_type (235 ~ 255). These are used for legacy support
+    /// and some default responses which every community should give.
     fn on_receive(
         &self,
         header: Header,
@@ -165,12 +172,17 @@ pub trait Community {
     ) -> Result<(), Box<dyn Error>>;
 }
 
+/// Every different kind of community is registered here with it's MID.
+///
+/// So that incoming messages can be distributed to the right communities. Makes use of a hashmap to achieve
+/// O(1) lookup time.
 pub struct CommunityRegistry {
     // mid, community
     communities: HashMap<Vec<u8>, Box<dyn Community>>,
 }
 
 impl CommunityRegistry {
+    /// Adds a community to the registry.
     pub fn add_community(&mut self, item: Box<dyn Community>) -> Result<(), Box<dyn Error>> {
         match self
             .communities
@@ -204,6 +216,8 @@ impl CommunityRegistry {
 }
 
 impl Default for CommunityRegistry {
+    /// Returns a new community registry with all the built-in communities already registered.
+    /// All custom communities can be added with the [add_community](#method.add_community) method.
     fn default() -> Self {
         Self {
             communities: HashMap::new(),

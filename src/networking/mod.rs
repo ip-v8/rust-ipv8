@@ -16,10 +16,14 @@ pub mod address;
 create_error!(SocketCreationError, "The socket creation failed");
 create_error!(ListenError, "An error occured during the listening");
 
+/// Any struct implementing this method can become a receiver of incoming network packets.
+/// under normal operation, only the IPV8 struct should be a receiver of these and it should distribute it
+/// through its CommunityRegistry to communities
 pub trait Receiver {
     fn on_receive(&self, packet: Packet, address: Address);
 }
 
+/// This struct manages the sockets and receives incoming messages.
 pub struct NetworkManager {
     receivers: Vec<Box<dyn Receiver + Send + Sync>>,
     socket: UdpSocket,
@@ -27,6 +31,8 @@ pub struct NetworkManager {
 }
 
 impl NetworkManager {
+    /// Creates a new networkmanager. This creates a receiver socket and builds a new threadpool on which
+    /// all messages are distributed.
     pub fn new(address: &Address, threadcount: usize) -> Result<Self, Box<dyn Error>> {
         let socket = UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address.address), address.port))
             .or(Err(SocketCreationError))?;
@@ -46,6 +52,12 @@ impl NetworkManager {
         Ok(nm)
     }
 
+    /// Starts the networkmanager. This spawns a new thread in which it will listen for incoming messages.
+    ///
+    /// This method consumes self as it is transferred to the new thread. After this no receievers can be added to it.
+    ///
+    /// Returns a `JoinHandle<()>` which can be used to block until the networkmanager stops listening.
+    /// Under normal operation this never happens so this marks the end of the program.
     pub fn start(self, configuration: &Config) -> JoinHandle<()> {
         let queuesize = configuration.queuesize.to_owned();
         let buffersize = configuration.buffersize.to_owned();
@@ -61,7 +73,7 @@ impl NetworkManager {
         })
     }
 
-    pub fn listen(
+    fn listen(
         self,
         queuesize: usize,
         buffersize: usize,
@@ -114,10 +126,12 @@ impl NetworkManager {
         }
     }
 
+    /// Adds a receiver to the networkmanager. Can only happen before the networkmanager is started.
     pub fn add_receiver(&mut self, receiver: Box<dyn Receiver + Send + Sync>) {
         self.receivers.push(receiver)
     }
 
+    /// Sends a Packet to the specified address.
     pub fn send(address: Address, packet: Packet) -> Result<(), Box<dyn Error>> {
         unimplemented!(
             "Trying to send {:?} to {:?} but sending is not implemented",
