@@ -36,6 +36,10 @@ jobs:
       rust: stable
 
     - script: cargo test
+      name: "macOS Stable"
+      rust: stable
+
+    - script: cargo test
       name: "Beta"
       rust: beta
 
