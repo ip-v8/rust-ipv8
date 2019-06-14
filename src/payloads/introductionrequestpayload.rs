@@ -1,4 +1,3 @@
-use crate::networking::address::Address;
 use crate::payloads::connectiontype::ConnectionType;
 use crate::payloads::Ipv8Payload;
 use crate::serialization::bits::Bits;
@@ -6,6 +5,7 @@ use crate::serialization::rawend::RawEnd;
 use serde;
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
+use crate::networking::address::Address;
 
 #[derive(Debug, PartialEq)]
 pub struct IntroductionRequestPayload {
@@ -111,23 +111,25 @@ impl<'de> Deserialize<'de> for IntroductionRequestPayload {
 mod tests {
     use super::*;
     use crate::serialization::Packet;
-    use std::net::Ipv4Addr;
+    use std::net::{Ipv4Addr, IpAddr, SocketAddr};
+    use crate::networking::address::Address;
 
     #[test]
     fn integration_test_creation() {
         let i = IntroductionRequestPayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(127, 0, 0, 1),
-                port: 8000,
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(42, 42, 42, 42),
-                port: 8000,
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(255, 255, 255, 0),
-                port: 8000,
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                8000,
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(42, 42, 42, 42)),
+                8000,
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(255, 255, 255, 0)),
+                8000,
+            )),
+
             advice: true,
             connection_type: ConnectionType::decode((true, true)),
             identifier: 42,

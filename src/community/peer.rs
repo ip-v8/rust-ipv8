@@ -3,8 +3,8 @@ use crate::networking::address::Address;
 
 pub struct Peer {
     key: PublicKey,
-    address: Address,
-    intro: bool,
+    pub address: Address,
+    pub intro: bool,
 }
 
 impl Peer {
@@ -25,8 +25,9 @@ impl Peer {
 mod tests {
     use crate::community::peer::Peer;
     use crate::crypto::keytypes::PublicKey;
+
+    use std::net::{Ipv4Addr, SocketAddr, IpAddr};
     use crate::networking::address::Address;
-    use std::net::Ipv4Addr;
 
     fn get_key() -> PublicKey {
         let keyvec = vec![
@@ -39,10 +40,10 @@ mod tests {
     }
 
     fn get_addr() -> Address {
-        Address {
-            address: Ipv4Addr::new(42, 42, 42, 42),
-            port: 42,
-        }
+        Address(SocketAddr::new(
+            IpAddr::V4(Ipv4Addr::new(42, 42, 42, 42)),
+            8000,
+        ))
     }
 
     #[test]

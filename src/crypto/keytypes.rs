@@ -21,8 +21,11 @@ use std::fmt;
 use openssl;
 use openssl::sha::sha1;
 use rust_sodium::crypto::sign::ed25519;
+use std::error::Error;
 
 // TODO: when ed25519 becomes available for rust OpenSSL, rust_sodium will be removed.
+
+create_error!(KeyCreationError, "Error creating a Key");
 
 /// Enum containing all the types of public keys
 pub enum PublicKey {
@@ -90,7 +93,7 @@ impl PublicKey {
         })
     }
 
-    pub fn from_vec(data: Vec<u8>) -> Option<Self> {
+    pub fn from_vec(data: Vec<u8>) -> Result<Self, Box<dyn Error>> {
         // literally "LibNaCLPK:"
         let ed25519prefix = &[76, 105, 98, 78, 97, 67, 76, 80, 75, 58];
 
@@ -99,36 +102,35 @@ impl PublicKey {
             // divide by two to get the cutoff point for the two keys (encryption,verify)
             let key_length = (data.len() - ed25519prefix.len()) / 2;
 
-            let key_encryption = ed25519::PublicKey::from_slice(
+            let key_encryption = match ed25519::PublicKey::from_slice(
                 &data[ed25519prefix.len()..ed25519prefix.len() + key_length],
-            )?;
-            let key_verification =
-                ed25519::PublicKey::from_slice(&data[ed25519prefix.len() + key_length as usize..])?;
+            ) {
+                Some(k) => k,
+                None => return Err(Box::new(KeyCreationError)),
+            };
 
-            Some(PublicKey::Ed25519(key_encryption, key_verification))
+            let key_verification =
+                ed25519::PublicKey::from_slice(&data[ed25519prefix.len() + key_length as usize..])
+                    .ok_or(KeyCreationError)?;
+
+            Ok(PublicKey::Ed25519(key_encryption, key_verification))
         } else {
             // openssl DER encoded. Pem always is base64 encoded DER with a header and trailer. py-ipv8 appends these headers and trailers
             // which is very inefficient. We just keep it as DER as that's basically how we get it from the deserialization process.
-            let pkey = match openssl::pkey::PKey::public_key_from_der(&*data) {
-                Ok(i) => i,
-                Err(_) => return None,
-            };
+            let pkey = openssl::pkey::PKey::public_key_from_der(&*data)?;
 
-            let eckey = match (*pkey).ec_key() {
-                Ok(i) => i,
-                Err(_) => return None,
-            };
+            let eckey = (*pkey).ec_key()?;
 
-            let m = match eckey.group().curve_name()? {
+            let m = match eckey.group().curve_name().ok_or(KeyCreationError)? {
                 openssl::nid::Nid::SECT163K1 => PublicKey::OpenSSLVeryLow(pkey),
                 openssl::nid::Nid::SECT233K1 => PublicKey::OpenSSLLow(pkey),
                 openssl::nid::Nid::SECT409K1 => PublicKey::OpenSSLMedium(pkey),
                 openssl::nid::Nid::SECT571R1 => PublicKey::OpenSSLHigh(pkey),
-                _ => return None,
+                _ => return Err(Box::new(KeyCreationError)),
             };
 
             //get the type of key and convert it to a PublicKey enum type
-            Some(m)
+            Ok(m)
         }
     }
 

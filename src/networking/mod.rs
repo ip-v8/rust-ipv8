@@ -1,5 +1,3 @@
-use std::net::{SocketAddr, IpAddr};
-use crate::networking::address::Address;
 use crate::serialization::Packet;
 use std::error::Error;
 use mio::net::UdpSocket;
@@ -10,6 +8,7 @@ use mio::{Poll, Token, Events, Ready, PollOpt};
 use crate::configuration::Config;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::time::Duration;
+use crate::networking::address::Address;
 
 pub mod address;
 
@@ -26,28 +25,37 @@ pub trait Receiver {
 /// This struct manages the sockets and receives incoming messages.
 pub struct NetworkManager {
     receivers: Vec<Box<dyn Receiver + Send + Sync>>,
-    socket: UdpSocket,
+    receiving_socket: UdpSocket,
+    sending_socket: UdpSocket,
     threadpool: ThreadPool,
 }
 
 impl NetworkManager {
     /// Creates a new networkmanager. This creates a receiver socket and builds a new threadpool on which
     /// all messages are distributed.
-    pub fn new(address: &Address, threadcount: usize) -> Result<Self, Box<dyn Error>> {
-        let socket = UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address.address), address.port))
-            .or(Err(SocketCreationError))?;
+    pub fn new(
+        sending_address: &Address,
+        receiving_address: &Address,
+        threadcount: usize,
+    ) -> Result<Self, Box<dyn Error>> {
+        let receiving_socket =
+            UdpSocket::bind(&receiving_address.0).or(Err(SocketCreationError))?;
 
-        trace!("Starting on {}", address);
+        let sending_socket = UdpSocket::bind(&sending_address.0).or(Err(SocketCreationError))?;
 
-        let pool = ThreadPoolBuilder::new()
-            .num_threads(threadcount)
-            .breadth_first()
-            .build()?;
+        trace!(
+            "Starting, sending_address: {:?}, receiving_address: {:?}",
+            sending_address,
+            receiving_address
+        );
+
+        let pool = ThreadPoolBuilder::new().num_threads(threadcount).build()?;
 
         let nm = Self {
             threadpool: pool,
             receivers: vec![],
-            socket,
+            receiving_socket,
+            sending_socket,
         };
         Ok(nm)
     }
@@ -89,7 +97,12 @@ impl NetworkManager {
         let mut tmp_buf = vec![0; buffersize];
         let buffer = tmp_buf.as_mut_slice();
 
-        poll.register(&self.socket, RECEIVER, Ready::readable(), PollOpt::edge())?;
+        poll.register(
+            &self.receiving_socket,
+            RECEIVER,
+            Ready::readable(),
+            PollOpt::edge(),
+        )?;
 
         loop {
             poll.poll(&mut events, pollinterval)?;
@@ -97,30 +110,18 @@ impl NetworkManager {
             for _ in events.iter() {
                 debug!("handling event");
 
-                let (recv_size, address) = self.socket.recv_from(buffer)?;
+                let (recv_size, address) = self.receiving_socket.recv_from(buffer)?;
 
                 let packet = Packet(buffer[..recv_size].to_vec()).clone();
 
-                let ip = match address.ip() {
-                    IpAddr::V4(a) => a,
-                    IpAddr::V6(_) => {
-                        warn!("Unexpectedly received ipv6 packet");
-                        continue;
-                    }
-                };
-
                 // use our own threadpool
-                self.threadpool.install(|| {
-                    // iterate over the receivers asynchronously and non blocking
-                    self.receivers.par_iter().for_each(|r| {
-                        r.on_receive(
-                            packet.clone(),
-                            Address {
-                                address: ip.to_owned(),
-                                port: address.port(),
-                            },
-                        );
-                    });
+                self.threadpool.scope_fifo(|s| {
+                    s.spawn_fifo(|_| {
+                        // iterate over the receivers asynchronously and non blocking
+                        self.receivers.par_iter().for_each(|r| {
+                            r.on_receive(packet.clone(), Address(address));
+                        });
+                    })
                 });
             }
         }
@@ -132,12 +133,9 @@ impl NetworkManager {
     }
 
     /// Sends a Packet to the specified address.
-    pub fn send(address: Address, packet: Packet) -> Result<(), Box<dyn Error>> {
-        unimplemented!(
-            "Trying to send {:?} to {:?} but sending is not implemented",
-            packet,
-            address
-        )
+    pub fn send(&self, address: &Address, packet: Packet) -> Result<(), Box<dyn Error>> {
+        self.sending_socket.send_to(packet.raw(), &address.0)?;
+        Ok(())
     }
 }
 
@@ -148,7 +146,7 @@ mod tests {
     use crate::IPv8;
     use crate::configuration::Config;
     use mio::net::UdpSocket;
-    use crate::networking::address::Address;
+
     use std::net::{Ipv4Addr, SocketAddr, IpAddr};
     use crate::serialization::Packet;
     use std::sync::Once;
@@ -156,6 +154,7 @@ mod tests {
     use crate::networking::Receiver;
     use std::thread;
     use std::sync::atomic::{AtomicUsize, Ordering, AtomicU16};
+    use crate::networking::address::Address;
 
     static BEFORE: Once = Once::new();
 
@@ -175,7 +174,8 @@ mod tests {
         let mut config = Config::default();
         let address = Ipv4Addr::new(0, 0, 0, 0);
 
-        config.socketaddress = Address { address, port: 0 };
+        config.receiving_address = Address(SocketAddr::new(IpAddr::V4(address), 8090));
+        config.sending_address = Address(SocketAddr::new(IpAddr::V4(address), 0));
         config.buffersize = 2048;
 
         let mut ipv8 = IPv8::new(config).unwrap();
@@ -184,7 +184,12 @@ mod tests {
 
         static SEND_PORT: AtomicU16 = AtomicU16::new(0);
 
-        let recv_port: u16 = ipv8.networkmanager.socket.local_addr().unwrap().port();
+        let recv_port: u16 = ipv8
+            .networkmanager
+            .receiving_socket
+            .local_addr()
+            .unwrap()
+            .port();
         let send_port: u16 = sender_socket.local_addr().unwrap().port();
 
         SEND_PORT.store(send_port, Ordering::SeqCst);
@@ -200,7 +205,7 @@ mod tests {
         impl Receiver for AReceiver {
             fn on_receive(&self, packet: Packet, address: Address) {
                 assert_eq!(OGPACKET.raw(), packet.raw());
-                assert_eq!(SEND_PORT.load(Ordering::SeqCst), address.port);
+                assert_eq!(SEND_PORT.load(Ordering::SeqCst), (address.0).port());
 
                 // Count each packet
                 PACKET_COUNTER.fetch_add(1, Ordering::SeqCst);

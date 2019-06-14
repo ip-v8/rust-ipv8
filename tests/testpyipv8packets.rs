@@ -7,7 +7,7 @@ use ipv8::payloads::timedistributionpayload::TimeDistributionPayload;
 use ipv8::serialization::header::Header;
 use ipv8::serialization::rawend::RawEnd;
 use ipv8::serialization::Packet;
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, SocketAddr, IpAddr};
 
 #[test]
 fn test_packet_1() {
@@ -52,26 +52,26 @@ fn test_packet_1() {
     assert_eq!(
         intro,
         IntroductionResponsePayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(81, 171, 27, 194),
-                port: 11111
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            lan_introduction_address: Address {
-                address: Ipv4Addr::new(0, 0, 0, 0),
-                port: 0
-            },
-            wan_introduction_address: Address {
-                address: Ipv4Addr::new(0, 0, 0, 0),
-                port: 0
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(81, 171, 27, 194)),
+                11111
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            lan_introduction_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+                0
+            )),
+            wan_introduction_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+                0
+            )),
             tunnel: false,
             connection_type: ConnectionType::UNKNOWN,
             identifier: 53774,
@@ -122,14 +122,14 @@ fn test_packet_2() {
     assert_eq!(
         puncture,
         PunctureRequestPayload {
-            lan_walker_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            wan_walker_address: Address {
-                address: Ipv4Addr::new(81, 171, 27, 194),
-                port: 15863
-            },
+            lan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            wan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(81, 171, 27, 194)),
+                15863
+            )),
             identifier: 53594
         }
     )
@@ -176,14 +176,14 @@ fn test_packet_3() {
     assert_eq!(
         puncture,
         PunctureRequestPayload {
-            lan_walker_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            wan_walker_address: Address {
-                address: Ipv4Addr::new(81, 171, 27, 194),
-                port: 15863
-            },
+            lan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            wan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(81, 171, 27, 194)),
+                15863
+            )),
             identifier: 19508
         }
     )
@@ -231,14 +231,14 @@ fn test_packet_4() {
     assert_eq!(
         puncture,
         PunctureRequestPayload {
-            lan_walker_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            wan_walker_address: Address {
-                address: Ipv4Addr::new(81, 171, 27, 194),
-                port: 15863
-            },
+            lan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            wan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(81, 171, 27, 194)),
+                15863
+            )),
             identifier: 42354
         }
     )
@@ -286,14 +286,14 @@ fn test_packet_5() {
     assert_eq!(
         puncture,
         PunctureRequestPayload {
-            lan_walker_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            wan_walker_address: Address {
-                address: Ipv4Addr::new(81, 171, 27, 194),
-                port: 49867
-            },
+            lan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            wan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(81, 171, 27, 194)),
+                49867
+            )),
             identifier: 61665
         }
     )
@@ -341,14 +341,14 @@ fn test_packet_6() {
     assert_eq!(
         puncture,
         PunctureRequestPayload {
-            lan_walker_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            wan_walker_address: Address {
-                address: Ipv4Addr::new(81, 171, 27, 194),
-                port: 11111
-            },
+            lan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            wan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(81, 171, 27, 194)),
+                11111
+            )),
             identifier: 53783
         }
     )
@@ -396,14 +396,14 @@ fn test_packet_7() {
     assert_eq!(
         puncture,
         PunctureRequestPayload {
-            lan_walker_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            wan_walker_address: Address {
-                address: Ipv4Addr::new(73, 145, 138, 233),
-                port: 7759
-            },
+            lan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            wan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(73, 145, 138, 233)),
+                7759
+            )),
             identifier: 65446
         }
     )
@@ -453,26 +453,26 @@ fn test_packet_8() {
     assert_eq!(
         intro,
         IntroductionResponsePayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 7759
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            lan_introduction_address: Address {
-                address: Ipv4Addr::new(0, 0, 0, 0),
-                port: 0
-            },
-            wan_introduction_address: Address {
-                address: Ipv4Addr::new(0, 0, 0, 0),
-                port: 0
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                7759
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            lan_introduction_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+                0
+            )),
+            wan_introduction_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+                0
+            )),
             tunnel: false,
             connection_type: ConnectionType::UNKNOWN,
             identifier: 5565,
@@ -525,26 +525,26 @@ fn test_packet_9() {
     assert_eq!(
         intro,
         IntroductionResponsePayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(81, 171, 27, 194),
-                port: 15863
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090
-            },
-            lan_introduction_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 7759
-            },
-            wan_introduction_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 7759
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(81, 171, 27, 194)),
+                15863
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            lan_introduction_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                7759
+            )),
+            wan_introduction_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                7759
+            )),
             tunnel: false,
             connection_type: ConnectionType::UNKNOWN,
             identifier: 50210,
@@ -604,18 +604,18 @@ fn test_packet_10() {
     assert_eq!(
         intro,
         IntroductionRequestPayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(130, 161, 119, 206),
-                port: 6421
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(130, 161, 119, 206)),
+                6421,
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090,
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090,
+            )),
             advice: false,
             connection_type: ConnectionType::PUBLIC,
             identifier: 30,
@@ -675,18 +675,18 @@ fn test_packet_11() {
     assert_eq!(
         intro,
         IntroductionRequestPayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(130, 161, 119, 206),
-                port: 6422
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(130, 161, 119, 206)),
+                6422
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
             advice: false,
             connection_type: ConnectionType::PUBLIC,
             identifier: 31,
@@ -746,18 +746,18 @@ fn test_packet_12() {
     assert_eq!(
         intro,
         IntroductionRequestPayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(131, 180, 27, 155),
-                port: 6423
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(131, 180, 27, 155)),
+                6423
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
             advice: false,
             connection_type: ConnectionType::PUBLIC,
             identifier: 32,
@@ -816,18 +816,18 @@ fn test_packet_13() {
     assert_eq!(
         intro,
         IntroductionRequestPayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(131, 180, 27, 156),
-                port: 6424
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(131, 180, 27, 156)),
+                6424
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
             advice: false,
             connection_type: ConnectionType::PUBLIC,
             identifier: 33,
@@ -886,18 +886,18 @@ fn test_packet_14() {
     assert_eq!(
         intro,
         IntroductionRequestPayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(131, 180, 27, 161),
-                port: 6427
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(131, 180, 27, 161)),
+                6427
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
             advice: false,
             connection_type: ConnectionType::PUBLIC,
             identifier: 34,
@@ -951,18 +951,18 @@ fn test_packet_15() {
     assert_eq!(
         intro,
         IntroductionRequestPayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(81, 171, 27, 194),
-                port: 11111
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(192, 168, 1, 75),
-                port: 8090,
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(81, 171, 27, 194)),
+                11111
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(192, 168, 1, 75)),
+                8090
+            )),
             advice: false,
             connection_type: ConnectionType::PUBLIC,
             identifier: 151,

@@ -13,6 +13,7 @@ pub mod payloads;
 use configuration::Config;
 use crate::networking::NetworkManager;
 use std::error::Error;
+use crate::community::CommunityRegistry;
 
 /// The IPv8 instance.
 /// This struct is how you can interact with the network.
@@ -27,15 +28,22 @@ use std::error::Error;
 pub struct IPv8 {
     pub config: Config,
     pub networkmanager: NetworkManager,
+
+    /// The registry containing all the communities
+    pub communities: CommunityRegistry,
 }
 
 impl IPv8 {
     pub fn new(config: configuration::Config) -> Result<Self, Box<dyn Error>> {
-        let networkmanager =
-            NetworkManager::new(&config.socketaddress, config.threadcount.to_owned())?;
+        let networkmanager = NetworkManager::new(
+            &config.sending_address,
+            &config.receiving_address,
+            config.threadcount.to_owned(),
+        )?;
         Ok(IPv8 {
             config,
             networkmanager,
+            communities: CommunityRegistry::default(),
         })
     }
 
