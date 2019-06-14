@@ -64,9 +64,9 @@
 <span id="64">64</span>
 <span id="65">65</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">payloads</span>::<span class="ident">Ipv8Payload</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PuncturePayload</span> {
@@ -90,19 +90,19 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">Packet</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Ipv4Addr</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">Ipv4Addr</span>, <span class="ident">SocketAddr</span>, <span class="ident">IpAddr</span>};
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">integration_test_creation</span>() {
         <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">PuncturePayload</span> {
-            <span class="ident">lan_walker_address</span>: <span class="ident">Address</span> {
-                <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>),
-                <span class="ident">port</span>: <span class="number">8000</span>,
-            },
-            <span class="ident">wan_walker_address</span>: <span class="ident">Address</span> {
-                <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>),
-                <span class="ident">port</span>: <span class="number">8000</span>,
-            },
+            <span class="ident">lan_walker_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)),
+                <span class="number">8000</span>,
+            )),
+            <span class="ident">wan_walker_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>)),
+                <span class="number">8000</span>,
+            )),
             <span class="ident">identifier</span>: <span class="number">42</span>,
         };
 

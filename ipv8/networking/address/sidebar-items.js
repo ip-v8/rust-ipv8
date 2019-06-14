@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Address","IPV4 address"]]});
+initSidebarItems({"struct":[["Address",""]]});

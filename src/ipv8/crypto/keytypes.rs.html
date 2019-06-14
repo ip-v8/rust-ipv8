@@ -378,6 +378,8 @@
 <span id="378">378</span>
 <span id="379">379</span>
 <span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Module for the various types of keys</span>
 <span class="doccomment">//!</span>
@@ -402,8 +404,11 @@
 <span class="kw">use</span> <span class="ident">openssl</span>;
 <span class="kw">use</span> <span class="ident">openssl</span>::<span class="ident">sha</span>::<span class="ident">sha1</span>;
 <span class="kw">use</span> <span class="ident">rust_sodium</span>::<span class="ident">crypto</span>::<span class="ident">sign</span>::<span class="ident">ed25519</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 
 <span class="comment">// TODO: when ed25519 becomes available for rust OpenSSL, rust_sodium will be removed.</span>
+
+<span class="macro">create_error</span><span class="macro">!</span>(<span class="ident">KeyCreationError</span>, <span class="string">&quot;Error creating a Key&quot;</span>);
 
 <span class="doccomment">/// Enum containing all the types of public keys</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PublicKey</span> {
@@ -471,7 +476,7 @@
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_vec</span>(<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_vec</span>(<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="comment">// literally &quot;LibNaCLPK:&quot;</span>
         <span class="kw">let</span> <span class="ident">ed25519prefix</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">76</span>, <span class="number">105</span>, <span class="number">98</span>, <span class="number">78</span>, <span class="number">97</span>, <span class="number">67</span>, <span class="number">76</span>, <span class="number">80</span>, <span class="number">75</span>, <span class="number">58</span>];
 
@@ -480,36 +485,35 @@
             <span class="comment">// divide by two to get the cutoff point for the two keys (encryption,verify)</span>
             <span class="kw">let</span> <span class="ident">key_length</span> <span class="op">=</span> (<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">ed25519prefix</span>.<span class="ident">len</span>()) <span class="op">/</span> <span class="number">2</span>;
 
-            <span class="kw">let</span> <span class="ident">key_encryption</span> <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">PublicKey</span>::<span class="ident">from_slice</span>(
+            <span class="kw">let</span> <span class="ident">key_encryption</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ed25519</span>::<span class="ident">PublicKey</span>::<span class="ident">from_slice</span>(
                 <span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="ident">ed25519prefix</span>.<span class="ident">len</span>()..<span class="ident">ed25519prefix</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">key_length</span>],
-            )<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">key_verification</span> <span class="op">=</span>
-                <span class="ident">ed25519</span>::<span class="ident">PublicKey</span>::<span class="ident">from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="ident">ed25519prefix</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">key_length</span> <span class="kw">as</span> <span class="ident">usize</span>..])<span class="question-mark">?</span>;
+            ) {
+                <span class="prelude-val">Some</span>(<span class="ident">k</span>) <span class="op">=&gt;</span> <span class="ident">k</span>,
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">KeyCreationError</span>)),
+            };
 
-            <span class="prelude-val">Some</span>(<span class="ident">PublicKey</span>::<span class="ident">Ed25519</span>(<span class="ident">key_encryption</span>, <span class="ident">key_verification</span>))
+            <span class="kw">let</span> <span class="ident">key_verification</span> <span class="op">=</span>
+                <span class="ident">ed25519</span>::<span class="ident">PublicKey</span>::<span class="ident">from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="ident">ed25519prefix</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">key_length</span> <span class="kw">as</span> <span class="ident">usize</span>..])
+                    .<span class="ident">ok_or</span>(<span class="ident">KeyCreationError</span>)<span class="question-mark">?</span>;
+
+            <span class="prelude-val">Ok</span>(<span class="ident">PublicKey</span>::<span class="ident">Ed25519</span>(<span class="ident">key_encryption</span>, <span class="ident">key_verification</span>))
         } <span class="kw">else</span> {
             <span class="comment">// openssl DER encoded. Pem always is base64 encoded DER with a header and trailer. py-ipv8 appends these headers and trailers</span>
             <span class="comment">// which is very inefficient. We just keep it as DER as that&#39;s basically how we get it from the deserialization process.</span>
-            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span>::<span class="ident">public_key_from_der</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">data</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">i</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            };
+            <span class="kw">let</span> <span class="ident">pkey</span> <span class="op">=</span> <span class="ident">openssl</span>::<span class="ident">pkey</span>::<span class="ident">PKey</span>::<span class="ident">public_key_from_der</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">data</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">eckey</span> <span class="op">=</span> <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">pkey</span>).<span class="ident">ec_key</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=&gt;</span> <span class="ident">i</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            };
+            <span class="kw">let</span> <span class="ident">eckey</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">pkey</span>).<span class="ident">ec_key</span>()<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">eckey</span>.<span class="ident">group</span>().<span class="ident">curve_name</span>()<span class="question-mark">?</span> {
+            <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">eckey</span>.<span class="ident">group</span>().<span class="ident">curve_name</span>().<span class="ident">ok_or</span>(<span class="ident">KeyCreationError</span>)<span class="question-mark">?</span> {
                 <span class="ident">openssl</span>::<span class="ident">nid</span>::<span class="ident">Nid</span>::<span class="ident">SECT163K1</span> <span class="op">=&gt;</span> <span class="ident">PublicKey</span>::<span class="ident">OpenSSLVeryLow</span>(<span class="ident">pkey</span>),
                 <span class="ident">openssl</span>::<span class="ident">nid</span>::<span class="ident">Nid</span>::<span class="ident">SECT233K1</span> <span class="op">=&gt;</span> <span class="ident">PublicKey</span>::<span class="ident">OpenSSLLow</span>(<span class="ident">pkey</span>),
                 <span class="ident">openssl</span>::<span class="ident">nid</span>::<span class="ident">Nid</span>::<span class="ident">SECT409K1</span> <span class="op">=&gt;</span> <span class="ident">PublicKey</span>::<span class="ident">OpenSSLMedium</span>(<span class="ident">pkey</span>),
                 <span class="ident">openssl</span>::<span class="ident">nid</span>::<span class="ident">Nid</span>::<span class="ident">SECT571R1</span> <span class="op">=&gt;</span> <span class="ident">PublicKey</span>::<span class="ident">OpenSSLHigh</span>(<span class="ident">pkey</span>),
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">KeyCreationError</span>)),
             };
 
             <span class="comment">//get the type of key and convert it to a PublicKey enum type</span>
-            <span class="prelude-val">Some</span>(<span class="ident">m</span>)
+            <span class="prelude-val">Ok</span>(<span class="ident">m</span>)
         }
     }
 

@@ -203,8 +203,8 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">payloads</span>::<span class="ident">connectiontype</span>::<span class="ident">ConnectionType</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">payloads</span>::<span class="ident">Ipv8Payload</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">bits</span>::<span class="ident">Bits</span>;
@@ -212,6 +212,7 @@
 <span class="kw">use</span> <span class="ident">serde</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">de</span>::{<span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">ser</span>::{<span class="ident">Serialize</span>, <span class="ident">SerializeStruct</span>, <span class="ident">Serializer</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
 
 <span class="comment">//TODO: why the fuck is tunnel not (de)serialized</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
@@ -331,31 +332,32 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">Packet</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Ipv4Addr</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">Ipv4Addr</span>, <span class="ident">IpAddr</span>, <span class="ident">SocketAddr</span>};
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">integration_test_creation</span>() {
         <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">IntroductionResponsePayload</span> {
-            <span class="ident">destination_address</span>: <span class="ident">Address</span> {
-                <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>),
-                <span class="ident">port</span>: <span class="number">8000</span>,
-            },
-            <span class="ident">source_lan_address</span>: <span class="ident">Address</span> {
-                <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>),
-                <span class="ident">port</span>: <span class="number">8001</span>,
-            },
-            <span class="ident">source_wan_address</span>: <span class="ident">Address</span> {
-                <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>),
-                <span class="ident">port</span>: <span class="number">8002</span>,
-            },
-            <span class="ident">lan_introduction_address</span>: <span class="ident">Address</span> {
-                <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>),
-                <span class="ident">port</span>: <span class="number">8003</span>,
-            },
-            <span class="ident">wan_introduction_address</span>: <span class="ident">Address</span> {
-                <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">4</span>, <span class="number">44</span>, <span class="number">44</span>, <span class="number">44</span>),
-                <span class="ident">port</span>: <span class="number">8004</span>,
-            },
+            <span class="ident">destination_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)),
+                <span class="number">8000</span>,
+            )),
+            <span class="ident">source_lan_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>)),
+                <span class="number">8000</span>,
+            )),
+            <span class="ident">source_wan_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>)),
+                <span class="number">8000</span>,
+            )),
+            <span class="ident">lan_introduction_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>)),
+                <span class="number">8000</span>,
+            )),
+            <span class="ident">wan_introduction_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">4</span>, <span class="number">44</span>, <span class="number">44</span>, <span class="number">44</span>)),
+                <span class="number">8000</span>,
+            )),
+
             <span class="ident">tunnel</span>: <span class="bool-val">true</span>,
             <span class="ident">connection_type</span>: <span class="ident">ConnectionType</span>::<span class="ident">decode</span>((<span class="bool-val">true</span>, <span class="bool-val">true</span>)),
             <span class="ident">identifier</span>: <span class="number">42</span>,
@@ -368,33 +370,33 @@
             <span class="ident">packet</span>,
             <span class="ident">Packet</span>(<span class="macro">vec</span><span class="macro">!</span>[
                 <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>,
-                <span class="number">31</span>, <span class="number">64</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">31</span>, <span class="number">65</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>, <span class="number">31</span>, <span class="number">66</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">31</span>, <span class="number">67</span>,
-                <span class="number">4</span>, <span class="number">44</span>, <span class="number">44</span>, <span class="number">44</span>, <span class="number">31</span>, <span class="number">68</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">43</span>, <span class="number">44</span>
+                <span class="number">31</span>, <span class="number">64</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">31</span>, <span class="number">64</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>, <span class="number">31</span>, <span class="number">64</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">31</span>, <span class="number">64</span>,
+                <span class="number">4</span>, <span class="number">44</span>, <span class="number">44</span>, <span class="number">44</span>, <span class="number">31</span>, <span class="number">64</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">42</span>, <span class="number">43</span>, <span class="number">44</span>
             ])
         );
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">IntroductionResponsePayload</span> {
-                <span class="ident">destination_address</span>: <span class="ident">Address</span> {
-                    <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>),
-                    <span class="ident">port</span>: <span class="number">8000</span>,
-                },
-                <span class="ident">source_lan_address</span>: <span class="ident">Address</span> {
-                    <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>),
-                    <span class="ident">port</span>: <span class="number">8001</span>,
-                },
-                <span class="ident">source_wan_address</span>: <span class="ident">Address</span> {
-                    <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>),
-                    <span class="ident">port</span>: <span class="number">8002</span>,
-                },
-                <span class="ident">lan_introduction_address</span>: <span class="ident">Address</span> {
-                    <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>),
-                    <span class="ident">port</span>: <span class="number">8003</span>,
-                },
-                <span class="ident">wan_introduction_address</span>: <span class="ident">Address</span> {
-                    <span class="ident">address</span>: <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">4</span>, <span class="number">44</span>, <span class="number">44</span>, <span class="number">44</span>),
-                    <span class="ident">port</span>: <span class="number">8004</span>,
-                },
+                <span class="ident">destination_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                    <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)),
+                    <span class="number">8000</span>
+                )),
+                <span class="ident">source_lan_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                    <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>)),
+                    <span class="number">8000</span>
+                )),
+                <span class="ident">source_wan_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                    <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>)),
+                    <span class="number">8000</span>
+                )),
+                <span class="ident">lan_introduction_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                    <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>, <span class="number">43</span>)),
+                    <span class="number">8000</span>
+                )),
+                <span class="ident">wan_introduction_address</span>: <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                    <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">4</span>, <span class="number">44</span>, <span class="number">44</span>, <span class="number">44</span>)),
+                    <span class="number">8000</span>
+                )),
                 <span class="ident">tunnel</span>: <span class="bool-val">false</span>, <span class="comment">// tunnel should have changed from true to false as it is always false after deserialization</span>
                 <span class="ident">connection_type</span>: <span class="ident">ConnectionType</span>::<span class="ident">decode</span>((<span class="bool-val">true</span>, <span class="bool-val">true</span>)),
                 <span class="ident">identifier</span>: <span class="number">42</span>,
