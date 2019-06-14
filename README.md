@@ -1,10 +1,12 @@
-# rust-ipv8 
+# rust-ipv8
 
-**Stable:**  
+**Stable:**
+
 [![Build Status](https://travis-ci.org/ip-v8/rust-ipv8.svg?branch=master)](https://travis-ci.org/ip-v8/rust-ipv8)
 [![codecov](https://codecov.io/gh/ip-v8/rust-ipv8/branch/master/graph/badge.svg)](https://codecov.io/gh/ip-v8/rust-ipv8)
 
-**Development:**  
+**Development:**
+
 [![Documentation](https://img.shields.io/badge/rustdoc-ipv8-9E978E.svg)](https://ip-v8.github.io/rust-ipv8/ipv8)
 [![Build Status](https://travis-ci.org/ip-v8/rust-ipv8.svg?branch=develop)](https://travis-ci.org/ip-v8/rust-ipv8)
 [![codecov](https://codecov.io/gh/ip-v8/rust-ipv8/branch/develop/graph/badge.svg)](https://codecov.io/gh/ip-v8/rust-ipv8)
