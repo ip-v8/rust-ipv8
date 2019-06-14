@@ -4,7 +4,8 @@ use crate::serialization::varlen::VarLen16;
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::SerializeTuple;
 use serde::ser::{Serialize, Serializer};
-use serde::{de, ser};
+use serde::ser;
+use serde::de;
 
 /// This struct represents the public key in a message.
 /// This is important because with this key the signature (at the end of a packet)
@@ -50,9 +51,14 @@ impl<'de> Deserialize<'de> for BinMemberAuthenticationPayload {
     {
         // first deserialize it to a temporary struct which literally represents the packer
         let payload_temporary = BinMemberAuthenticationPayloadPattern::deserialize(deserializer)?;
-        let public_key_bin = PublicKey::from_vec((payload_temporary.0).0).ok_or_else(|| {
-            de::Error::custom("The key was malformed in a way which made it undeserializable.")
-        })?;
+        let public_key_bin = match PublicKey::from_vec((payload_temporary.0).0) {
+            Ok(e) => e,
+            Err(_) => {
+                return Err(de::Error::custom(
+                    "The key was malformed in a way which made it undeserializable.",
+                ))
+            }
+        };
 
         // now build the struct for real
         Ok(BinMemberAuthenticationPayload {

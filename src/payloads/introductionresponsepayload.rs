@@ -1,4 +1,3 @@
-use crate::networking::address::Address;
 use crate::payloads::connectiontype::ConnectionType;
 use crate::payloads::Ipv8Payload;
 use crate::serialization::bits::Bits;
@@ -6,6 +5,7 @@ use crate::serialization::rawend::RawEnd;
 use serde;
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
+use crate::networking::address::Address;
 
 //TODO: why the fuck is tunnel not (de)serialized
 #[derive(Debug, PartialEq)]
@@ -125,31 +125,32 @@ impl<'de> Deserialize<'de> for IntroductionResponsePayload {
 mod tests {
     use super::*;
     use crate::serialization::Packet;
-    use std::net::Ipv4Addr;
+    use std::net::{Ipv4Addr, IpAddr, SocketAddr};
 
     #[test]
     fn integration_test_creation() {
         let i = IntroductionResponsePayload {
-            destination_address: Address {
-                address: Ipv4Addr::new(127, 0, 0, 1),
-                port: 8000,
-            },
-            source_lan_address: Address {
-                address: Ipv4Addr::new(42, 42, 42, 42),
-                port: 8001,
-            },
-            source_wan_address: Address {
-                address: Ipv4Addr::new(255, 255, 255, 0),
-                port: 8002,
-            },
-            lan_introduction_address: Address {
-                address: Ipv4Addr::new(43, 43, 43, 43),
-                port: 8003,
-            },
-            wan_introduction_address: Address {
-                address: Ipv4Addr::new(4, 44, 44, 44),
-                port: 8004,
-            },
+            destination_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                8000,
+            )),
+            source_lan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(42, 42, 42, 42)),
+                8000,
+            )),
+            source_wan_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(255, 255, 255, 0)),
+                8000,
+            )),
+            lan_introduction_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(43, 43, 43, 43)),
+                8000,
+            )),
+            wan_introduction_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(4, 44, 44, 44)),
+                8000,
+            )),
+
             tunnel: true,
             connection_type: ConnectionType::decode((true, true)),
             identifier: 42,
@@ -162,33 +163,33 @@ mod tests {
             packet,
             Packet(vec![
                 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 127, 0, 0, 1,
-                31, 64, 42, 42, 42, 42, 31, 65, 255, 255, 255, 0, 31, 66, 43, 43, 43, 43, 31, 67,
-                4, 44, 44, 44, 31, 68, 3, 0, 42, 43, 44
+                31, 64, 42, 42, 42, 42, 31, 64, 255, 255, 255, 0, 31, 64, 43, 43, 43, 43, 31, 64,
+                4, 44, 44, 44, 31, 64, 3, 0, 42, 43, 44
             ])
         );
 
         assert_eq!(
             IntroductionResponsePayload {
-                destination_address: Address {
-                    address: Ipv4Addr::new(127, 0, 0, 1),
-                    port: 8000,
-                },
-                source_lan_address: Address {
-                    address: Ipv4Addr::new(42, 42, 42, 42),
-                    port: 8001,
-                },
-                source_wan_address: Address {
-                    address: Ipv4Addr::new(255, 255, 255, 0),
-                    port: 8002,
-                },
-                lan_introduction_address: Address {
-                    address: Ipv4Addr::new(43, 43, 43, 43),
-                    port: 8003,
-                },
-                wan_introduction_address: Address {
-                    address: Ipv4Addr::new(4, 44, 44, 44),
-                    port: 8004,
-                },
+                destination_address: Address(SocketAddr::new(
+                    IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                    8000
+                )),
+                source_lan_address: Address(SocketAddr::new(
+                    IpAddr::V4(Ipv4Addr::new(42, 42, 42, 42)),
+                    8000
+                )),
+                source_wan_address: Address(SocketAddr::new(
+                    IpAddr::V4(Ipv4Addr::new(255, 255, 255, 0)),
+                    8000
+                )),
+                lan_introduction_address: Address(SocketAddr::new(
+                    IpAddr::V4(Ipv4Addr::new(43, 43, 43, 43)),
+                    8000
+                )),
+                wan_introduction_address: Address(SocketAddr::new(
+                    IpAddr::V4(Ipv4Addr::new(4, 44, 44, 44)),
+                    8000
+                )),
                 tunnel: false, // tunnel should have changed from true to false as it is always false after deserialization
                 connection_type: ConnectionType::decode((true, true)),
                 identifier: 42,

@@ -1,6 +1,6 @@
-use crate::networking::address::Address;
 use crate::payloads::Ipv8Payload;
 use serde::{Deserialize, Serialize};
+use crate::networking::address::Address;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PunctureRequestPayload {
@@ -29,19 +29,19 @@ impl Ipv8Payload for PunctureRequestPayload {
 mod tests {
     use super::*;
     use crate::serialization::Packet;
-    use std::net::Ipv4Addr;
+    use std::net::{Ipv4Addr, SocketAddr, IpAddr};
 
     #[test]
     fn integration_test_creation() {
         let i = PunctureRequestPayload {
-            lan_walker_address: Address {
-                address: Ipv4Addr::new(127, 0, 0, 1),
-                port: 8000,
-            },
-            wan_walker_address: Address {
-                address: Ipv4Addr::new(42, 42, 42, 42),
-                port: 8000,
-            },
+            lan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
+                8000,
+            )),
+            wan_walker_address: Address(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(42, 42, 42, 42)),
+                8000,
+            )),
             identifier: 42,
         };
 
