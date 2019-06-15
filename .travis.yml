@@ -32,12 +32,17 @@ jobs:
           bash <(curl -s https://codecov.io/bash) -f lcov.info;
 
     - script: cargo test
-      name: "Stable"
+      name: "Linux Stable"
       rust: stable
 
     - script: cargo test
       name: "macOS Stable"
       os: osx
+      rust: stable
+
+    - script: cargo test
+      name: "Windows Stable"
+      os: windows
       rust: stable
 
     - script: cargo test
