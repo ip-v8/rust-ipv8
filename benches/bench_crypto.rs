@@ -26,8 +26,7 @@ fn e25519_benchmark(c: &mut Criterion) {
             assert_ne!(e_pkey, pkey);
             assert_ne!(e_skey, skey);
 
-            let sig =
-                Signature::from_bytes(&[42, 43, 44], PrivateKey::Ed25519(e_skey, skey)).unwrap();
+            let sig = Signature::from_bytes(&[42, 43, 44], PrivateKey(e_skey, skey)).unwrap();
             assert_eq!(
                 vec![
                     31, 14, 50, 234, 129, 186, 124, 84, 223, 67, 233, 173, 116, 95, 218, 136, 149,
@@ -38,7 +37,7 @@ fn e25519_benchmark(c: &mut Criterion) {
                 sig.signature
             );
 
-            assert!(sig.verify(&[42, 43, 44], PublicKey::Ed25519(pkey, pkey)));
+            assert!(sig.verify(&[42, 43, 44], PublicKey(pkey, pkey)));
         })
     });
 }

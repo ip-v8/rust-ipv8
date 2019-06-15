@@ -151,7 +151,7 @@ mod tests {
     use crate::serialization::Packet;
     use std::sync::Once;
     use std::time::Duration;
-    use crate::networking::Receiver;
+    use crate::networking::{Receiver, NetworkManager};
     use std::thread;
     use std::sync::atomic::{AtomicUsize, Ordering, AtomicU16};
     use crate::networking::address::Address;
@@ -163,6 +163,37 @@ mod tests {
         BEFORE.call_once(|| {
             simple_logger::init().unwrap();
         })
+    }
+
+    #[test]
+    fn test_socket_creation_error() {
+        let address = Ipv4Addr::new(127, 0, 0, 1);
+
+        let addr1 = Address(SocketAddr::new(IpAddr::V4(address), 0));
+        let receiving_socket = UdpSocket::bind(&addr1.0).unwrap();
+        let addr1 = Address(SocketAddr::new(
+            IpAddr::V4(address),
+            receiving_socket.local_addr().unwrap().port(),
+        ));
+        let addr2 = Address(SocketAddr::new(IpAddr::V4(address), 0));
+        let addr3 = Address(SocketAddr::new(IpAddr::V4(address), 0));
+        let addr4 = Address(SocketAddr::new(IpAddr::V4(address), 0));
+
+        // should report an error as the address is already in use (for the sending socket)
+        match NetworkManager::new(&addr1, &addr2, 0) {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
+        // now it shouldnt have made a receiving socket so making a new sending socket with that address should work
+        match NetworkManager::new(&addr2, &addr3, 0) {
+            Err(_) => assert!(false),
+            Ok(_) => assert!(true),
+        };
+        //or when using a sending socket that was already in use
+        match NetworkManager::new(&addr4, &addr1, 0) {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
     }
 
     // `pacman -Syu networkmanager`
