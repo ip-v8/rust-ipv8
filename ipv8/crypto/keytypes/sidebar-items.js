@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["PrivateKey","Enum containg all the types of private keys"],["PublicKey","Enum containing all the types of public keys"]]});
+initSidebarItems({"constant":[["ED25519_SIZE",""]],"struct":[["PrivateKey",""],["PublicKey","Struct containing the public key."]]});

@@ -352,14 +352,59 @@
 <span id="352">352</span>
 <span id="353">353</span>
 <span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::{<span class="ident">Packet</span>, <span class="ident">PacketDeserializer</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">Header</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">NetworkManager</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">AtomicUsize</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">peer</span>;
 
@@ -372,6 +417,9 @@
     <span class="ident">UnknownCommunityError</span>,
     <span class="string">&quot;No community with matching mid found&quot;</span>
 );
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">static</span> <span class="ident">WARN_DEPRECATED_CALLS</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>);
 
 <span class="doccomment">/// # Community struct</span>
 <span class="doccomment">/// This is the main struct defining a community</span>
@@ -395,6 +443,7 @@
 <span class="doccomment">/// use ipv8::serialization::header::HeaderVersion::PyIPV8Header;</span>
 <span class="doccomment">/// use ipv8::crypto::keytypes::PublicKey;</span>
 <span class="doccomment">/// use ipv8::networking::NetworkManager;</span>
+<span class="doccomment">/// use rust_sodium::crypto::sign::ed25519;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// pub struct TestCommunity{</span>
 <span class="doccomment">///     peer: Peer</span>
@@ -405,42 +454,36 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// impl Community for TestCommunity{</span>
 <span class="doccomment">///    fn new(endpoint: &amp;NetworkManager) -&gt; Result&lt;Self, Box&lt;dyn Error&gt;&gt; {</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///        // Use the highest available key</span>
-<span class="doccomment">///        let pk: PublicKey = PublicKey::from_vec(vec![</span>
-<span class="doccomment">///            48, 129, 167, 48, 16, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 5, 43, 129, 4, 0, 39, 3,</span>
-<span class="doccomment">///            129, 146, 0, 4, 2, 86, 251, 75, 206, 159, 133, 120, 63, 176, 235, 178, 14, 8, 197, 59,</span>
-<span class="doccomment">///            107, 51, 179, 139, 3, 155, 20, 194, 112, 113, 15, 40, 67, 115, 37, 223, 152, 7, 102,</span>
-<span class="doccomment">///            154, 214, 90, 110, 180, 226, 5, 190, 99, 163, 54, 116, 173, 121, 40, 80, 129, 142, 82,</span>
-<span class="doccomment">///            118, 154, 96, 127, 164, 248, 217, 91, 13, 80, 91, 94, 210, 16, 110, 108, 41, 57, 4,</span>
-<span class="doccomment">///            243, 49, 52, 194, 254, 130, 98, 229, 50, 84, 21, 206, 134, 223, 157, 189, 133, 50, 210,</span>
-<span class="doccomment">///            181, 93, 229, 32, 179, 228, 179, 132, 143, 147, 96, 207, 68, 48, 184, 160, 47, 227, 70,</span>
-<span class="doccomment">///            147, 23, 159, 213, 105, 134, 60, 211, 226, 8, 235, 186, 20, 241, 85, 170, 4, 3, 40,</span>
-<span class="doccomment">///            183, 98, 103, 80, 164, 128, 87, 205, 101, 67, 254, 83, 142, 133,</span>
-<span class="doccomment">///        ])?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///        // Actually create the community</span>
-<span class="doccomment">///        Ok(TestCommunity {</span>
-<span class="doccomment">///            peer: Peer::new(</span>
-<span class="doccomment">///                pk,</span>
-<span class="doccomment">///                 Address(SocketAddr::new(</span>
-<span class="doccomment">///                   IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),</span>
-<span class="doccomment">///                   42,</span>
-<span class="doccomment">///                 )),</span>
-<span class="doccomment">///                true,</span>
-<span class="doccomment">///            )</span>
-<span class="doccomment">///        })</span>
-<span class="doccomment">///    }</span>
-<span class="doccomment">///</span>
+<span class="doccomment">///            // Use the highest available key</span>
+<span class="doccomment">///            let seed = ed25519::Seed::from_slice(&amp;[</span>
+<span class="doccomment">///                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,</span>
+<span class="doccomment">///                23, 24, 25, 26, 27, 28, 29, 30, 31,</span>
+<span class="doccomment">///            ])</span>
+<span class="doccomment">///            .unwrap();</span>
+<span class="doccomment">///            let (pkey1, _) = ed25519::keypair_from_seed(&amp;seed);</span>
+<span class="doccomment">///            let (pkey2, _) = ed25519::keypair_from_seed(&amp;seed);</span>
+<span class="doccomment">///            let pk = PublicKey(pkey1, pkey2);</span>
+<span class="doccomment">///            // Actually create the community</span>
+<span class="doccomment">///            Ok(TestCommunity {</span>
+<span class="doccomment">///                peer: Peer::new(</span>
+<span class="doccomment">///                    pk,</span>
+<span class="doccomment">///                    Address(SocketAddr::new(</span>
+<span class="doccomment">///                        IpAddr::V4(Ipv4Addr::new(42, 42, 42, 42)),</span>
+<span class="doccomment">///                        8000,</span>
+<span class="doccomment">///                    )),</span>
+<span class="doccomment">///                    true,</span>
+<span class="doccomment">///                ),</span>
+<span class="doccomment">///            })</span>
+<span class="doccomment">///        }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     // Returns the hash of our master peer</span>
-<span class="doccomment">///     fn get_mid(&amp;self) -&gt; Option&lt;Vec&lt;u8&gt;&gt; {</span>
-<span class="doccomment">///         Some(self.peer.get_sha1()?.to_vec())</span>
+<span class="doccomment">///     fn get_mid(&amp;self) -&gt; Vec&lt;u8&gt; {</span>
+<span class="doccomment">///         self.peer.get_sha1().0</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     // The function which will be called when the community receives a packet</span>
 <span class="doccomment">///     fn on_receive(&amp;self, header: Header, deserializer: PacketDeserializer, address: Address) -&gt; Result&lt;(),Box&lt;dyn Error&gt;&gt;{</span>
-<span class="doccomment">///         # assert_eq!(header.mid_hash, self.get_mid());</span>
+<span class="doccomment">///         # assert_eq!(header.mid_hash.unwrap(), self.get_mid());</span>
 <span class="doccomment">///         # assert_eq!(header.version, PyIPV8Header);</span>
 <span class="doccomment">///         # assert_eq!(header.message_type, Some(42));</span>
 <span class="doccomment">///         // Do some stuff here like to distribute the message based on it&#39;s message_type (in the header)</span>
@@ -462,7 +505,7 @@
 <span class="doccomment">/// let packet = Packet::new(Header{</span>
 <span class="doccomment">///     size: 23,</span>
 <span class="doccomment">///     version: PyIPV8Header,</span>
-<span class="doccomment">///     mid_hash: mid,</span>
+<span class="doccomment">///     mid_hash: Some(mid),</span>
 <span class="doccomment">///     message_type: Some(42),</span>
 <span class="doccomment">/// }).unwrap();</span>
 <span class="doccomment">///</span>
@@ -485,8 +528,18 @@
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>;
 
-    <span class="doccomment">/// Returns the hash of our master peer public key</span>
-    <span class="kw">fn</span> <span class="ident">get_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;&gt;</span>;
+    <span class="doccomment">/// Returns a unique (currently 20 byte) sequence identifying a community.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is used to be the SHA1 hash of its public key. You are free to choose whatever.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// As OpenSSL keys are deprecated, this library provides no way of calculating the sha1 of an OpenSSL key.</span>
+    <span class="doccomment">/// Master peer keys still can be OpenSSL keys. This SHA1 has to be hardcoded for communities that are</span>
+    <span class="doccomment">/// compatible with old communities. New communities recommended to use ED25519 in the future which</span>
+    <span class="doccomment">/// sha1 hashes can be calculated.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The sha1 of a key does not serve any purpose besides uniquely identifying communities and as such can be any</span>
+    <span class="doccomment">/// unique 20 byte sequence.</span>
+    <span class="kw">fn</span> <span class="ident">get_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Gets called whenever a packet is received directed at this community</span>
     <span class="doccomment">/// DO NOT OVERRIDE</span>
@@ -499,14 +552,24 @@
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
         <span class="comment">// DO NOT OVERRIDE</span>
         <span class="doccomment">//! used to pre-decode the header and filter out messages</span>
+        <span class="doccomment">//!</span>
 
+        <span class="comment">// Used in on_receive. Has to be outside to be testable.</span>
+        <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
         <span class="kw">fn</span> <span class="ident">warn_deprecated</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">address</span>: <span class="ident">Address</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
             <span class="macro">warn</span><span class="macro">!</span>(
                 <span class="string">&quot;Received deprecated message {} from ({:?})&quot;</span>,
                 <span class="ident">message</span>, <span class="ident">address</span>
             );
+
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+            {
+                <span class="ident">WARN_DEPRECATED_CALLS</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
+            }
+
             <span class="prelude-val">Ok</span>(())
         }
+
         <span class="kw">match</span> <span class="ident">header</span>.<span class="ident">message_type</span>.<span class="ident">ok_or</span>(<span class="ident">HeaderUnwrapError</span>)<span class="question-mark">?</span> {
             <span class="number">255</span> <span class="op">=&gt;</span> <span class="ident">warn_deprecated</span>(<span class="string">&quot;reserved-255&quot;</span>, <span class="ident">address</span>),
             <span class="number">254</span> <span class="op">=&gt;</span> <span class="ident">warn_deprecated</span>(<span class="string">&quot;on-missing-sequence&quot;</span>, <span class="ident">address</span>),
@@ -562,10 +625,7 @@
 <span class="kw">impl</span> <span class="ident">CommunityRegistry</span> {
     <span class="doccomment">/// Adds a community to the registry.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_community</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Community</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>
-            .<span class="ident">communities</span>
-            .<span class="ident">insert</span>(<span class="ident">item</span>.<span class="ident">get_mid</span>().<span class="ident">ok_or</span>(<span class="ident">MidError</span>)<span class="question-mark">?</span>, <span class="ident">item</span>)
-        {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">communities</span>.<span class="ident">insert</span>(<span class="ident">item</span>.<span class="ident">get_mid</span>(), <span class="ident">item</span>) {
             <span class="comment">// none means the key wasn&#39;t already present in the map, some means it was and it returns it.</span>
             <span class="comment">// We don&#39;t care about this.</span>
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
@@ -605,75 +665,101 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">NetworkManager</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">SocketAddr</span>, <span class="ident">IpAddr</span>};
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">community</span>::<span class="ident">peer</span>::<span class="ident">Peer</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">Header</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::{<span class="ident">PacketDeserializer</span>, <span class="ident">Packet</span>};
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Ipv4Addr</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">IPv8</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">Config</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">HeaderVersion</span>::<span class="ident">PyIPV8Header</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">crypto</span>::<span class="ident">keytypes</span>::<span class="ident">PublicKey</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>;
+    <span class="kw">use</span> <span class="ident">rust_sodium</span>::<span class="ident">crypto</span>::<span class="ident">sign</span>::<span class="ident">ed25519</span>;
+
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TestCommunity</span> {
+        <span class="ident">peer</span>: <span class="ident">Peer</span>,
+    }
+
+    <span class="kw">impl</span> <span class="ident">Community</span> <span class="kw">for</span> <span class="ident">TestCommunity</span> {
+        <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">endpoint</span>: <span class="kw-2">&amp;</span><span class="ident">NetworkManager</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+            <span class="comment">// Use the highest available key</span>
+            <span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">Seed</span>::<span class="ident">from_slice</span>(<span class="kw-2">&amp;</span>[
+                <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>, <span class="number">13</span>, <span class="number">14</span>, <span class="number">15</span>, <span class="number">16</span>, <span class="number">17</span>, <span class="number">18</span>, <span class="number">19</span>, <span class="number">20</span>, <span class="number">21</span>, <span class="number">22</span>,
+                <span class="number">23</span>, <span class="number">24</span>, <span class="number">25</span>, <span class="number">26</span>, <span class="number">27</span>, <span class="number">28</span>, <span class="number">29</span>, <span class="number">30</span>, <span class="number">31</span>,
+            ])
+            .<span class="ident">unwrap</span>();
+            <span class="kw">let</span> (<span class="ident">pkey1</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">keypair_from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>);
+            <span class="kw">let</span> (<span class="ident">pkey2</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">ed25519</span>::<span class="ident">keypair_from_seed</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>);
+            <span class="kw">let</span> <span class="ident">pk</span> <span class="op">=</span> <span class="ident">PublicKey</span>(<span class="ident">pkey1</span>, <span class="ident">pkey2</span>);
+            <span class="comment">// Actually create the community</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">TestCommunity</span> {
+                <span class="ident">peer</span>: <span class="ident">Peer</span>::<span class="ident">new</span>(
+                    <span class="ident">pk</span>,
+                    <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
+                        <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>)),
+                        <span class="number">8000</span>,
+                    )),
+                    <span class="bool-val">true</span>,
+                ),
+            })
+        }
+
+        <span class="comment">// Returns the hash of our master peer</span>
+        <span class="kw">fn</span> <span class="ident">get_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+            <span class="self">self</span>.<span class="ident">peer</span>.<span class="ident">get_sha1</span>().<span class="number">0</span>
+        }
+
+        <span class="comment">// The function which will be called when the community receives a packet</span>
+        <span class="kw">fn</span> <span class="ident">on_receive</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>,
+            <span class="ident">header</span>: <span class="ident">Header</span>,
+            <span class="ident">deserializer</span>: <span class="ident">PacketDeserializer</span>,
+            <span class="ident">_address</span>: <span class="ident">Address</span>,
+        ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header</span>.<span class="ident">mid_hash</span>.<span class="ident">unwrap</span>(), <span class="self">self</span>.<span class="ident">get_mid</span>());
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header</span>.<span class="ident">version</span>, <span class="ident">PyIPV8Header</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header</span>.<span class="ident">message_type</span>, <span class="prelude-val">Some</span>(<span class="number">42</span>));
+            <span class="prelude-val">Ok</span>(())
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_deprecated</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">Config</span>::<span class="ident">default</span>();
+        <span class="ident">config</span>.<span class="ident">sending_address</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)), <span class="number">0</span>));
+        <span class="ident">config</span>.<span class="ident">receiving_address</span> <span class="op">=</span>
+            <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)), <span class="number">0</span>));
+
+        <span class="kw">let</span> <span class="ident">ipv8</span> <span class="op">=</span> <span class="ident">IPv8</span>::<span class="ident">new</span>(<span class="ident">config</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">community</span> <span class="op">=</span> <span class="ident">TestCommunity</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">ipv8</span>.<span class="ident">networkmanager</span>).<span class="ident">unwrap</span>();
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="kw-2">&amp;</span>[
+            <span class="number">255</span>, <span class="number">254</span>, <span class="number">253</span>, <span class="number">252</span>, <span class="number">251</span>, <span class="number">248</span>, <span class="number">247</span>, <span class="number">244</span>, <span class="number">243</span>, <span class="number">242</span>, <span class="number">241</span>, <span class="number">240</span>, <span class="number">239</span>, <span class="number">238</span>, <span class="number">237</span>, <span class="number">236</span>, <span class="number">235</span>,
+        ] {
+            <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)), <span class="number">0</span>));
+
+            <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">Header</span> {
+                <span class="ident">size</span>: <span class="number">23</span>,
+                <span class="ident">version</span>: <span class="ident">PyIPV8Header</span>,
+                <span class="ident">mid_hash</span>: <span class="prelude-val">Some</span>(<span class="ident">community</span>.<span class="ident">get_mid</span>()),
+                <span class="ident">message_type</span>: <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">i</span>),
+            })
+            .<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">deser</span> <span class="op">=</span> <span class="ident">packet</span>.<span class="ident">start_deserialize</span>();
+            <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">deser</span>.<span class="ident">peek_header</span>().<span class="ident">unwrap</span>();
+            <span class="ident">community</span>.<span class="ident">receive</span>(<span class="ident">header</span>, <span class="ident">deser</span>, <span class="ident">address</span>).<span class="ident">unwrap</span>();
+        }
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">17</span>, <span class="ident">WARN_DEPRECATED_CALLS</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>))
+    }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_networking</span>() {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">community</span>::<span class="ident">peer</span>::<span class="ident">Peer</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">community</span>::<span class="ident">Community</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">Header</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::{<span class="ident">PacketDeserializer</span>, <span class="ident">Packet</span>};
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Ipv4Addr</span>;
-
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">IPv8</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">Config</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">HeaderVersion</span>::<span class="ident">PyIPV8Header</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">crypto</span>::<span class="ident">keytypes</span>::<span class="ident">PublicKey</span>;
-
-        <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TestCommunity</span> {
-            <span class="ident">peer</span>: <span class="ident">Peer</span>,
-        }
-
-        <span class="kw">impl</span> <span class="ident">Community</span> <span class="kw">for</span> <span class="ident">TestCommunity</span> {
-            <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">endpoint</span>: <span class="kw-2">&amp;</span><span class="ident">NetworkManager</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
-                <span class="comment">// Use the highest available key</span>
-                <span class="kw">let</span> <span class="ident">pk</span>: <span class="ident">PublicKey</span> <span class="op">=</span> <span class="ident">PublicKey</span>::<span class="ident">from_vec</span>(<span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="number">48</span>, <span class="number">129</span>, <span class="number">167</span>, <span class="number">48</span>, <span class="number">16</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">42</span>, <span class="number">134</span>, <span class="number">72</span>, <span class="number">206</span>, <span class="number">61</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">6</span>, <span class="number">5</span>, <span class="number">43</span>, <span class="number">129</span>, <span class="number">4</span>, <span class="number">0</span>,
-                    <span class="number">39</span>, <span class="number">3</span>, <span class="number">129</span>, <span class="number">146</span>, <span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">86</span>, <span class="number">251</span>, <span class="number">75</span>, <span class="number">206</span>, <span class="number">159</span>, <span class="number">133</span>, <span class="number">120</span>, <span class="number">63</span>, <span class="number">176</span>, <span class="number">235</span>, <span class="number">178</span>,
-                    <span class="number">14</span>, <span class="number">8</span>, <span class="number">197</span>, <span class="number">59</span>, <span class="number">107</span>, <span class="number">51</span>, <span class="number">179</span>, <span class="number">139</span>, <span class="number">3</span>, <span class="number">155</span>, <span class="number">20</span>, <span class="number">194</span>, <span class="number">112</span>, <span class="number">113</span>, <span class="number">15</span>, <span class="number">40</span>, <span class="number">67</span>, <span class="number">115</span>,
-                    <span class="number">37</span>, <span class="number">223</span>, <span class="number">152</span>, <span class="number">7</span>, <span class="number">102</span>, <span class="number">154</span>, <span class="number">214</span>, <span class="number">90</span>, <span class="number">110</span>, <span class="number">180</span>, <span class="number">226</span>, <span class="number">5</span>, <span class="number">190</span>, <span class="number">99</span>, <span class="number">163</span>, <span class="number">54</span>, <span class="number">116</span>,
-                    <span class="number">173</span>, <span class="number">121</span>, <span class="number">40</span>, <span class="number">80</span>, <span class="number">129</span>, <span class="number">142</span>, <span class="number">82</span>, <span class="number">118</span>, <span class="number">154</span>, <span class="number">96</span>, <span class="number">127</span>, <span class="number">164</span>, <span class="number">248</span>, <span class="number">217</span>, <span class="number">91</span>, <span class="number">13</span>, <span class="number">80</span>,
-                    <span class="number">91</span>, <span class="number">94</span>, <span class="number">210</span>, <span class="number">16</span>, <span class="number">110</span>, <span class="number">108</span>, <span class="number">41</span>, <span class="number">57</span>, <span class="number">4</span>, <span class="number">243</span>, <span class="number">49</span>, <span class="number">52</span>, <span class="number">194</span>, <span class="number">254</span>, <span class="number">130</span>, <span class="number">98</span>, <span class="number">229</span>, <span class="number">50</span>,
-                    <span class="number">84</span>, <span class="number">21</span>, <span class="number">206</span>, <span class="number">134</span>, <span class="number">223</span>, <span class="number">157</span>, <span class="number">189</span>, <span class="number">133</span>, <span class="number">50</span>, <span class="number">210</span>, <span class="number">181</span>, <span class="number">93</span>, <span class="number">229</span>, <span class="number">32</span>, <span class="number">179</span>, <span class="number">228</span>, <span class="number">179</span>,
-                    <span class="number">132</span>, <span class="number">143</span>, <span class="number">147</span>, <span class="number">96</span>, <span class="number">207</span>, <span class="number">68</span>, <span class="number">48</span>, <span class="number">184</span>, <span class="number">160</span>, <span class="number">47</span>, <span class="number">227</span>, <span class="number">70</span>, <span class="number">147</span>, <span class="number">23</span>, <span class="number">159</span>, <span class="number">213</span>, <span class="number">105</span>,
-                    <span class="number">134</span>, <span class="number">60</span>, <span class="number">211</span>, <span class="number">226</span>, <span class="number">8</span>, <span class="number">235</span>, <span class="number">186</span>, <span class="number">20</span>, <span class="number">241</span>, <span class="number">85</span>, <span class="number">170</span>, <span class="number">4</span>, <span class="number">3</span>, <span class="number">40</span>, <span class="number">183</span>, <span class="number">98</span>, <span class="number">103</span>, <span class="number">80</span>,
-                    <span class="number">164</span>, <span class="number">128</span>, <span class="number">87</span>, <span class="number">205</span>, <span class="number">101</span>, <span class="number">67</span>, <span class="number">254</span>, <span class="number">83</span>, <span class="number">142</span>, <span class="number">133</span>,
-                ])<span class="question-mark">?</span>;
-                <span class="comment">// Actually create the community</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">TestCommunity</span> {
-                    <span class="ident">peer</span>: <span class="ident">Peer</span>::<span class="ident">new</span>(
-                        <span class="ident">pk</span>,
-                        <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
-                            <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>, <span class="number">42</span>)),
-                            <span class="number">8000</span>,
-                        )),
-                        <span class="bool-val">true</span>,
-                    ),
-                })
-            }
-
-            <span class="comment">// Returns the hash of our master peer</span>
-            <span class="kw">fn</span> <span class="ident">get_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;&gt;</span> {
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">peer</span>.<span class="ident">get_sha1</span>()<span class="question-mark">?</span>.<span class="ident">to_vec</span>())
-            }
-
-            <span class="comment">// The function which will be called when the community receives a packet</span>
-            <span class="kw">fn</span> <span class="ident">on_receive</span>(
-                <span class="kw-2">&amp;</span><span class="self">self</span>,
-                <span class="ident">header</span>: <span class="ident">Header</span>,
-                <span class="ident">deserializer</span>: <span class="ident">PacketDeserializer</span>,
-                <span class="ident">_address</span>: <span class="ident">Address</span>,
-            ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header</span>.<span class="ident">mid_hash</span>, <span class="self">self</span>.<span class="ident">get_mid</span>());
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header</span>.<span class="ident">version</span>, <span class="ident">PyIPV8Header</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">header</span>.<span class="ident">message_type</span>, <span class="prelude-val">Some</span>(<span class="number">42</span>));
-                <span class="prelude-val">Ok</span>(())
-            }
-        }
-
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">Config</span>::<span class="ident">default</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ipv8</span> <span class="op">=</span> <span class="ident">IPv8</span>::<span class="ident">new</span>(<span class="ident">config</span>).<span class="ident">unwrap</span>();
@@ -688,7 +774,7 @@
         <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="ident">Header</span> {
             <span class="ident">size</span>: <span class="number">23</span>,
             <span class="ident">version</span>: <span class="ident">PyIPV8Header</span>,
-            <span class="ident">mid_hash</span>: <span class="ident">mid</span>,
+            <span class="ident">mid_hash</span>: <span class="prelude-val">Some</span>(<span class="ident">mid</span>),
             <span class="ident">message_type</span>: <span class="prelude-val">Some</span>(<span class="number">42</span>),
         })
         .<span class="ident">unwrap</span>();
