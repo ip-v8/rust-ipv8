@@ -37,6 +37,7 @@ jobs:
 
     - script: cargo test
       name: "macOS Stable"
+      os: osx
       rust: stable
 
     - script: cargo test
