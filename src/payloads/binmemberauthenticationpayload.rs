@@ -1,4 +1,4 @@
-use crate::crypto::keytypes::PublicKey;
+use crate::crypto::keytypes::{PublicKey};
 use crate::payloads::Ipv8Payload;
 use crate::serialization::varlen::VarLen16;
 use serde::de::{Deserialize, Deserializer};
