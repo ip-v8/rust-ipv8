@@ -12,3 +12,7 @@ Cargo.lock
 
 .idea
 *.iml
+
+# Floobits
+.floo
+.flooignore

@@ -1,11 +1,74 @@
 language: rust
 cache: cargo
 
-rust:
-  - stable
-  - beta
-  - nightly
-
 matrix:
+  fast_finish: true
   allow_failures:
-    - rust: nightly
+    - env: ALLOW_FAILURE=true
+  include:
+    - os: linux
+      rust: stable
+
+    - os: linux
+      rust: beta
+
+    - os: linux
+      rust: nightly
+
+jobs:
+  include:
+    - stage: test
+      name: "Nightly + coverage"
+      rust: nightly
+      install: which grcov || cargo install grcov
+      script:
+        - export CARGO_INCREMENTAL=0
+        - export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads"
+        - cargo build --verbose $CARGO_OPTIONS
+        - cargo test --verbose $CARGO_OPTIONS
+        - |
+          zip -0 ccov.zip `find . \( -name "*ipv8*.gc*" \) -print`;
+          grcov ccov.zip -s src/ -t lcov --llvm --branch --ignore-not-existing --ignore-dir "/*" -o lcov.info;
+          bash <(curl -s https://codecov.io/bash) -f lcov.info;
+
+    - script: cargo test
+      name: "Stable"
+      rust: stable
+
+    - script: cargo test
+      name: "macOS Stable"
+      os: osx
+      rust: stable
+
+    - script: cargo test
+      name: "Beta"
+      rust: beta
+
+    - script: cargo bench # TODO: Export these benchmarks
+      env: ALLOW_FAILURE=true
+      rust: stable
+      name: "Benchmarks"
+
+    - script: cargo clippy -- -D warnings
+      env: ALLOW_FAILURE=true
+      install: rustup component add clippy
+      rust: stable
+      name: "Clippy"
+
+    - script: cargo fmt -- --check
+      install: rustup component add rustfmt
+      rust: stable
+      name: "Rustfmt"
+
+    - stage: deploy
+      script: cargo doc
+      name: "Deploy docs on GitHub Pages"
+      if: branch = develop AND type != pull_request
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        github_token: $GITHUB_TOKEN
+        keep_history: true
+        local_dir: target/doc
+        on:
+          branch: develop
