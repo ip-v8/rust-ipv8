@@ -43,8 +43,8 @@ jobs:
     - script:
       - git clone https://github.com/Microsoft/vcpkg.git
       - cd vcpkg
-      - .\bootstrap-vcpkg.bat
-      - .\vcpkg integrate install
+      - .\\bootstrap-vcpkg.bat
+      - .\\vcpkg integrate install
 #      - .\vcpkg install openssl
       - cd ..
       - cargo test
