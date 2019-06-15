@@ -47,7 +47,7 @@ jobs:
       - .\\vcpkg integrate install
 #      - .\vcpkg install openssl
       - cd ..
-      - cargo test
+      - powershell -Command "& {cargo test}"
       name: "Windows Stable"
       os: windows
       rust: stable
