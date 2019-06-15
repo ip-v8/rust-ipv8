@@ -1,20 +1,4 @@
 //! Module for the various types of keys
-//!
-//! When adding new key types follow these steps:
-//! 1. Add it the the PublicKey and PrivateKey enums
-//! 2. Change all the match statements testing for either an openssl or libnacl key (or if your key is not either of this, add yours)
-//! 3. Add your key to the list of consts below for signature length
-//! 4. add your constant to the macro sig_size.
-//!
-//! The length of the used signatures
-//!
-//! | Signature Type                   | pyipv8 | .size() | diff | (bits/8)*2 |
-//! |----------------------------------|--------|---------|------|------------|
-//! | VERY_LOW_SIGNATURE_LENGTH        |   42   |   50    |  8   |    42      |
-//! | LOW_SIGNATURE_LENGTH             |   60   |   66    |  6   |    58      |
-//! | MEDIUM_SIGNATURE_LENGTH          |  104   |   110   |  6   |    102     |
-//! | HIGH_SIGNATURE_LENGTH            |  144   |   153   |  9   |    144     |
-//! | ED25519_SIGNATURE_LENGTH         |   64   |   64    |  0   |    64      |
 
 use std::fmt;
 
