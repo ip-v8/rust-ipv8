@@ -41,13 +41,7 @@ jobs:
       rust: stable
 
     - script:
-#      - git clone https://github.com/Microsoft/vcpkg.git
-#      - cd vcpkg
-#      - .\\bootstrap-vcpkg.bat
-#      - .\\vcpkg integrate install
-#      - .\vcpkg install openssl
-#      - cd ..
-      - powershell -Command "& {cargo test}"
+      - cargo test
       name: "Windows Stable"
       os: windows
       rust: stable
