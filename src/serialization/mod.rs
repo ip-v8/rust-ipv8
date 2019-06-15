@@ -138,7 +138,7 @@ impl Packet {
     ///
     /// To verify signatures first transform the Packet into a PacketIterator with Packet.deserialize_multiple and then use the PacketIterator.verify() or
     /// PacketIterator.verify_with() method.
-    pub fn sign(mut self, skey: PrivateKey) -> Result<Self, Box<dyn Error>> {
+    pub fn sign(mut self, skey: &PrivateKey) -> Result<Self, Box<dyn Error>> {
         let signature = Signature::from_bytes(&*self.0, skey)?;
         self.add(&signature)?;
         // now this packet *must not* be modified anymore
@@ -276,7 +276,7 @@ mod tests {
         let skey = PrivateKey(e_skey_tmp, skey_tmp);
         let pkey = PublicKey(e_pkey_tmp, pkey_tmp);
 
-        let signed = packet.sign(skey).unwrap();
+        let signed = packet.sign(&skey).unwrap();
 
         let mut deser_iterator = signed.start_deserialize();
         let valid = deser_iterator.verify_with(pkey);
