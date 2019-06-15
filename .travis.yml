@@ -40,7 +40,14 @@ jobs:
       os: osx
       rust: stable
 
-    - script: cargo test
+    - script:
+      - |
+          git clone https://github.com/Microsoft/vcpkg.git &&
+          cd vcpkg &&
+          .\bootstrap-vcpkg.bat &&
+          .\vcpkg integrate install &&
+          .\vcpkg install openssl
+      - cargo test
       name: "Windows Stable"
       os: windows
       rust: stable
