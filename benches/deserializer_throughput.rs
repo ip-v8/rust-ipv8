@@ -3,8 +3,22 @@ use ipv8::serialization::Packet;
 use ipv8::serialization::header::Header;
 use ipv8::payloads::timedistributionpayload::TimeDistributionPayload;
 use ipv8::payloads::introductionresponsepayload::IntroductionResponsePayload;
+use ipv8::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
+
+/// Critirion benchmark example
+/// ```
+/// fn my_bench(c: &mut Criterion) {
+///    // One-time setup code goes here
+///    c.bench_function("my_bench", |b| {
+///        // Per-sample (note that a sample can be many iterations) setup goes here
+///        b.iter(|| {
+///            // Measured code goes here
+///        });
+///    });
+///}
 
 fn throughput(c: &mut Criterion) {
+    // These are the bytes of packet number 1
     static BYTES: [u8; 208] = [
         0x00, 0x02, 0xba, 0xf3, 0x0e, 0xd9, 0x19, 0x2b, 0xa3, 0x54, 0xcd, 0xd7, 0xb1, 0x73, 0xe0,
         0xef, 0x2c, 0x32, 0x80, 0x27, 0xf1, 0xd3, 0xf5, 0x00, 0x4a, 0x4c, 0x69, 0x62, 0x4e, 0x61,
@@ -22,6 +36,8 @@ fn throughput(c: &mut Criterion) {
         0xd3, 0x55, 0xed, 0x10, 0x26, 0xdd, 0xbb, 0xd8, 0xb2, 0x3b, 0xfd, 0xfc, 0x01,
     ];
 
+    let packet = Packet(BYTES.to_vec());
+
     c.bench(
         "throughput",
         Benchmark::new("simple-deserialize", |b| {
@@ -32,6 +48,19 @@ fn throughput(c: &mut Criterion) {
                 // de.verify();
                 let _: TimeDistributionPayload = de.next_payload().unwrap();
                 let _: IntroductionResponsePayload = de.next_payload().unwrap();
+            })
+        })
+        .throughput(Throughput::Bytes(BYTES.len() as u32)),
+    );
+
+    c.bench(
+        "throughput",
+        Benchmark::new("only-bin-member-auth", |b| {
+            b.iter(|| {
+                let data = Packet(BYTES.to_vec());
+                let de = data.start_deserialize();
+                let bin: BinMemberAuthenticationPayload =
+                    de.skip_header().unwrap().next_payload().unwrap();
             })
         })
         .throughput(Throughput::Bytes(BYTES.len() as u32)),
