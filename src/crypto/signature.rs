@@ -39,9 +39,9 @@ impl Serialize for Signature {
 
 impl Signature {
     /// Signature can be created from its binary string (bytes)
-    pub fn from_bytes(data: &[u8], skey: PrivateKey) -> Result<Self, Box<dyn Error>> {
+    pub fn from_bytes(data: &[u8], skey: &PrivateKey) -> Result<Self, Box<dyn Error>> {
         // skey.1 is the verification key
-        let signature: Vec<u8> = create_signature_ed25519(data, skey.1)?.as_ref().to_owned();
+        let signature: Vec<u8> = create_signature_ed25519(data, &skey.1)?.as_ref().to_owned();
         Ok(Self { signature })
     }
 
@@ -85,7 +85,7 @@ pub mod tests {
         assert_ne!(e_pkey, pkey);
         assert_ne!(e_skey, skey);
 
-        let sig = Signature::from_bytes(&[42, 43, 44], PrivateKey(e_skey, skey)).unwrap();
+        let sig = Signature::from_bytes(&[42, 43, 44], &PrivateKey(e_skey, skey)).unwrap();
         assert_eq!(
             vec![
                 31, 14, 50, 234, 129, 186, 124, 84, 223, 67, 233, 173, 116, 95, 218, 136, 149, 223,

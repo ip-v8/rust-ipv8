@@ -15,7 +15,7 @@ create_error!(
 /// wrapper function for signing data using ed25519
 pub fn create_signature_ed25519(
     data: &[u8],
-    skey: ed25519::SecretKey,
+    skey: &ed25519::SecretKey,
 ) -> Result<ed25519::Signature, Box<dyn Error>> {
     Ok(ed25519::sign_detached(data, &skey))
 }

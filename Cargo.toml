@@ -9,15 +9,14 @@ documentation = "https://ip-v8.github.io/rust-ipv8/ipv8/"
 repository = "https://github.com/ip-v8/rust-ipv8"
 readme = "readme.md"
 license-file = "license.md"
-
-[lib]
-crate-type = ["lib", "cdylib"]
-
 exclude = [
     ".editorconfig",
     ".travis.yml",
     ".codeclimate.yml"
 ]
+
+[lib]
+crate-type = ["lib", "cdylib"]
 
 [badges]
 travis-ci = { repository = "ip-v8/rust-ipv8", branch = "develop" }
@@ -40,6 +39,10 @@ simulacrum = "0.3.1"
 
 [[bench]]
 name = "bench_crypto"
+harness = false
+
+[[bench]]
+name = "networking_throughput"
 harness = false
 
 [profile.release]

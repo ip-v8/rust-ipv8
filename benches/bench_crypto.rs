@@ -6,8 +6,8 @@ use ipv8::crypto::keytypes::{PrivateKey, PublicKey};
 use ipv8::crypto::signature::Signature;
 use rust_sodium::crypto::sign::ed25519;
 
-fn e25519_benchmark(c: &mut Criterion) {
-    c.bench_function("bench: ed25519", |b| {
+fn create_sign_verify(c: &mut Criterion) {
+    c.bench_function("ed25519: creation + sign + verify", |b| {
         b.iter(|| {
             let seed = ed25519::Seed::from_slice(&[
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
@@ -26,8 +26,7 @@ fn e25519_benchmark(c: &mut Criterion) {
             assert_ne!(e_pkey, pkey);
             assert_ne!(e_skey, skey);
 
-            let sig =
-                Signature::from_bytes(&[42, 43, 44], PrivateKey::Ed25519(e_skey, skey)).unwrap();
+            let sig = Signature::from_bytes(&[42, 43, 44], &PrivateKey(e_skey, skey)).unwrap();
             assert_eq!(
                 vec![
                     31, 14, 50, 234, 129, 186, 124, 84, 223, 67, 233, 173, 116, 95, 218, 136, 149,
@@ -38,10 +37,56 @@ fn e25519_benchmark(c: &mut Criterion) {
                 sig.signature
             );
 
-            assert!(sig.verify(&[42, 43, 44], PublicKey::Ed25519(pkey, pkey)));
+            assert!(sig.verify(&[42, 43, 44], PublicKey(pkey, pkey)));
         })
     });
 }
 
-criterion_group!(benches, e25519_benchmark,);
+fn sign(c: &mut Criterion) {
+    let seed = ed25519::Seed::from_slice(&[
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        25, 26, 27, 28, 29, 30, 31,
+    ])
+    .unwrap();
+    let (_, s_skey) = ed25519::keypair_from_seed(&seed);
+
+    let seed = ed25519::Seed::from_slice(&[
+        1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        25, 26, 27, 28, 29, 30, 31,
+    ])
+    .unwrap();
+    let (_, e_skey) = ed25519::keypair_from_seed(&seed);
+
+    let p = PrivateKey(e_skey, s_skey);
+
+    // Only bench the actual verification
+    c.bench_function("ed25519 sign", move |b| {
+        b.iter(|| Signature::from_bytes(&[42, 43, 44], &p).unwrap())
+    });
+}
+
+fn verify(c: &mut Criterion) {
+    let seed = ed25519::Seed::from_slice(&[
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        25, 26, 27, 28, 29, 30, 31,
+    ])
+    .unwrap();
+    let (s_pkey, s_skey) = ed25519::keypair_from_seed(&seed);
+
+    let seed = ed25519::Seed::from_slice(&[
+        1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        25, 26, 27, 28, 29, 30, 31,
+    ])
+    .unwrap();
+    let (e_pkey, e_skey) = ed25519::keypair_from_seed(&seed);
+
+    let sig = Signature::from_bytes(&[42, 43, 44], &PrivateKey(e_skey, s_skey)).unwrap();
+
+    // Only bench the actual verification
+    c.bench_function("ed25519 verify", move |b| {
+        b.iter(|| sig.verify(&[42, 43, 44], PublicKey(s_pkey, e_pkey)))
+    });
+}
+
+criterion_group!(benches, create_sign_verify, verify, sign);
 criterion_main!(benches);
