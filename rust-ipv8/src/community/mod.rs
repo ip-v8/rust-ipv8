@@ -2,9 +2,11 @@ use crate::serialization::{Packet, PacketDeserializer};
 use crate::serialization::header::Header;
 use std::error::Error;
 use std::collections::HashMap;
-
 use crate::networking::address::Address;
 use crate::networking::NetworkSender;
+
+#[cfg(test)]
+use std::sync::atomic::AtomicUsize;
 
 pub mod peer;
 
@@ -18,6 +20,9 @@ create_error!(
     "No community with matching mid found"
 );
 
+#[cfg(test)]
+static WARN_DEPRECATED_CALLS: AtomicUsize = AtomicUsize::new(0);
+
 /// # Community struct
 /// This is the main struct defining a community
 ///
@@ -26,14 +31,23 @@ create_error!(
 ///
 /// _**Note:** Try to avoid the use of .unwrap() in actual production code, this is just an example_
 ///
-
 pub trait Community {
     fn new(endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>>
     where
         Self: Sized;
 
-    /// Returns the hash of our master peer public key
-    fn get_mid(&self) -> Option<Vec<u8>>;
+    /// Returns a unique (currently 20 byte) sequence identifying a community.
+    ///
+    /// This is used to be the SHA1 hash of its public key. You are free to choose whatever.
+    ///
+    /// As OpenSSL keys are deprecated, this library provides no way of calculating the sha1 of an OpenSSL key.
+    /// Master peer keys still can be OpenSSL keys. This SHA1 has to be hardcoded for communities that are
+    /// compatible with old communities. New communities recommended to use ED25519 in the future which
+    /// sha1 hashes can be calculated.
+    ///
+    /// The sha1 of a key does not serve any purpose besides uniquely identifying communities and as such can be any
+    /// unique 20 byte sequence.
+    fn get_mid(&self) -> Vec<u8>;
 
     /// Gets called whenever a packet is received directed at this community
     /// DO NOT OVERRIDE
@@ -46,14 +60,24 @@ pub trait Community {
     ) -> Result<(), Box<dyn Error>> {
         // DO NOT OVERRIDE
         //! used to pre-decode the header and filter out messages
+        //!
 
+        // Used in on_receive. Has to be outside to be testable.
+        #[doc(hidden)]
         fn warn_deprecated(message: &str, address: Address) -> Result<(), Box<dyn Error>> {
             warn!(
                 "Received deprecated message {} from ({:?})",
                 message, address
             );
+
+            #[cfg(test)]
+            {
+                WARN_DEPRECATED_CALLS.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            }
+
             Ok(())
         }
+
         match header.message_type.ok_or(HeaderUnwrapError)? {
             255 => warn_deprecated("reserved-255", address),
             254 => warn_deprecated("on-missing-sequence", address),
@@ -103,10 +127,7 @@ pub struct CommunityRegistry {
 impl CommunityRegistry {
     /// Adds a community to the registry.
     pub fn add_community(&mut self, item: Box<dyn Community>) -> Result<(), Box<dyn Error>> {
-        match self
-            .communities
-            .insert(item.get_mid().ok_or(MidError)?, item)
-        {
+        match self.communities.insert(item.get_mid(), item) {
             // none means the key wasn't already present in the map, some means it was and it returns it.
             // We don't care about this.
             _ => Ok(()),
@@ -145,25 +166,24 @@ impl Default for CommunityRegistry {
 }
 
 #[cfg(test)]
-mod nightly_tests {
-    use crate::networking::{NetworkReceiver};
+mod tests {
+    use super::*;
     use crate::networking::address::Address;
     use std::net::{SocketAddr, IpAddr, SocketAddrV4};
     use std::error::Error;
     use crate::networking::NetworkSender;
-
     use crate::community::peer::Peer;
     use crate::community::{Community, CommunityRegistry};
     use crate::serialization::header::Header;
     use crate::serialization::{PacketDeserializer, Packet};
     use std::net::Ipv4Addr;
-
     use crate::IPv8;
     use crate::configuration::Config;
     use crate::serialization::header::HeaderVersion::PyIPV8Header;
     use crate::crypto::keytypes::PublicKey;
     use std::sync::atomic::Ordering;
     use crate::networking::test_helper::localhost;
+    use rust_sodium::crypto::sign::ed25519;
 
     pub struct TestCommunity {
         peer: Peer,
@@ -172,18 +192,14 @@ mod nightly_tests {
     impl Community for TestCommunity {
         fn new(endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>> {
             // Use the highest available key
-            let pk: PublicKey = PublicKey::from_vec(vec![
-                48, 129, 167, 48, 16, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 5, 43, 129, 4, 0, 39, 3,
-                129, 146, 0, 4, 2, 86, 251, 75, 206, 159, 133, 120, 63, 176, 235, 178, 14, 8, 197,
-                59, 107, 51, 179, 139, 3, 155, 20, 194, 112, 113, 15, 40, 67, 115, 37, 223, 152, 7,
-                102, 154, 214, 90, 110, 180, 226, 5, 190, 99, 163, 54, 116, 173, 121, 40, 80, 129,
-                142, 82, 118, 154, 96, 127, 164, 248, 217, 91, 13, 80, 91, 94, 210, 16, 110, 108,
-                41, 57, 4, 243, 49, 52, 194, 254, 130, 98, 229, 50, 84, 21, 206, 134, 223, 157,
-                189, 133, 50, 210, 181, 93, 229, 32, 179, 228, 179, 132, 143, 147, 96, 207, 68, 48,
-                184, 160, 47, 227, 70, 147, 23, 159, 213, 105, 134, 60, 211, 226, 8, 235, 186, 20,
-                241, 85, 170, 4, 3, 40, 183, 98, 103, 80, 164, 128, 87, 205, 101, 67, 254, 83, 142,
-                133,
-            ])?;
+            let seed = ed25519::Seed::from_slice(&[
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                23, 24, 25, 26, 27, 28, 29, 30, 31,
+            ])
+            .unwrap();
+            let (pkey1, _) = ed25519::keypair_from_seed(&seed);
+            let (pkey2, _) = ed25519::keypair_from_seed(&seed);
+            let pk = PublicKey(pkey1, pkey2);
             // Actually create the community
             Ok(TestCommunity {
                 peer: Peer::new(
@@ -198,8 +214,8 @@ mod nightly_tests {
         }
 
         // Returns the hash of our master peer
-        fn get_mid(&self) -> Option<Vec<u8>> {
-            Some(self.peer.get_sha1()?.to_vec())
+        fn get_mid(&self) -> Vec<u8> {
+            self.peer.get_sha1().0
         }
 
         // The function which will be called when the community receives a packet
@@ -209,7 +225,7 @@ mod nightly_tests {
             deserializer: PacketDeserializer,
             _address: Address,
         ) -> Result<(), Box<dyn Error>> {
-            assert_eq!(header.mid_hash, self.get_mid());
+            assert_eq!(header.mid_hash.unwrap(), self.get_mid());
             assert_eq!(header.version, PyIPV8Header);
             assert_eq!(header.message_type, Some(42));
             Ok(())
@@ -217,12 +233,41 @@ mod nightly_tests {
     }
 
     #[test]
-    fn test_add_receiver() {
+    fn test_deprecated() {
+        let mut config = Config::default();
+        config.sending_address = Address(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 0));
+        config.receiving_address =
+            Address(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 0));
+
+        let ipv8 = IPv8::new(config).unwrap();
+
+        let community = TestCommunity::new(&ipv8.network_sender).unwrap();
+        for i in &[
+            255, 254, 253, 252, 251, 248, 247, 244, 243, 242, 241, 240, 239, 238, 237, 236, 235,
+        ] {
+            let address = Address(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 0));
+
+            let packet = Packet::new(Header {
+                size: 23,
+                version: PyIPV8Header,
+                mid_hash: Some(community.get_mid()),
+                message_type: Some(*i),
+            })
+            .unwrap();
+            let deser = packet.start_deserialize();
+            let header = deser.peek_header().unwrap();
+            community.receive(header, deser, address).unwrap();
+        }
+        assert_eq!(17, WARN_DEPRECATED_CALLS.load(Ordering::SeqCst))
+    }
+
+    #[test]
+    fn test_add_community() {
         let config = Config::default();
         let ipv8 = IPv8::new(config).unwrap();
         let community = Box::new(TestCommunity::new(&ipv8.network_sender).unwrap());
         let the_same = Box::new(TestCommunity::new(&ipv8.network_sender).unwrap());
-        let mid = &*community.get_mid().unwrap();
+        let mid = &*community.get_mid();
         let mut registry: CommunityRegistry = CommunityRegistry::default();
 
         registry.add_community(community).unwrap();
@@ -251,7 +296,7 @@ mod nightly_tests {
         let packet = Packet::new(Header {
             size: 23,
             version: PyIPV8Header,
-            mid_hash: mid,
+            mid_hash: Some(mid),
             message_type: Some(42),
         })
         .unwrap();
