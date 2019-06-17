@@ -11,9 +11,11 @@ pub mod networking;
 pub mod payloads;
 
 use configuration::Config;
-use crate::networking::NetworkManager;
+use crate::networking::{NetworkSender, NetworkReceiver};
 use std::error::Error;
 use crate::community::CommunityRegistry;
+use rayon::{ThreadPoolBuilder};
+use std::sync::Once;
 
 /// The IPv8 instance.
 /// This struct is how you can interact with the network.
@@ -27,27 +29,46 @@ use crate::community::CommunityRegistry;
 /// ```
 pub struct IPv8 {
     pub config: Config,
-    pub networkmanager: NetworkManager,
+    pub network_receiver: NetworkReceiver,
+    pub network_sender: NetworkSender,
 
     /// The registry containing all the communities
     pub communities: CommunityRegistry,
 }
 
+// To keep track if the threadpool is already started
+static THREADPOOL_START: Once = Once::new();
+
 impl IPv8 {
     pub fn new(config: configuration::Config) -> Result<Self, Box<dyn Error>> {
-        let networkmanager = NetworkManager::new(
-            &config.sending_address,
-            &config.receiving_address,
-            config.threadcount.to_owned(),
-        )?;
+        // Setup the global threadpool
+        {
+            let mut started = None;
+
+            THREADPOOL_START.call_once(|| {
+                started = Some(
+                    ThreadPoolBuilder::new()
+                        .num_threads(config.threadcount)
+                        .build_global(),
+                )
+            });
+
+            if let Some(s) = started {
+                s?
+            }
+        }
+
+        let network_receiver = NetworkReceiver::new(&config.receiving_address)?;
+        let network_sender = NetworkSender::new(&config.sending_address)?;
         Ok(IPv8 {
             config,
-            networkmanager,
+            network_receiver,
+            network_sender,
             communities: CommunityRegistry::default(),
         })
     }
 
     pub fn start(self) {
-        self.networkmanager.start(&self.config);
+        self.network_receiver.start(&self.config);
     }
 }

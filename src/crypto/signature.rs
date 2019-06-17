@@ -5,9 +5,7 @@ use serde::ser::Serializer;
 use serde::Serialize;
 
 use crate::crypto::keytypes::{PrivateKey, PublicKey};
-use crate::crypto::{
-    create_signature_ed25519, verify_signature_ed25519
-};
+use crate::crypto::{create_signature_ed25519, verify_signature_ed25519};
 use crate::payloads::Ipv8Payload;
 
 create_error!(KeyError, "Invalid Key");

@@ -1,7 +1,6 @@
 use crate::serialization::Packet;
 use std::error::Error;
 use mio::net::UdpSocket;
-use rayon::{ThreadPool, ThreadPoolBuilder};
 use std::thread;
 use std::thread::JoinHandle;
 use mio::{Poll, Token, Events, Ready, PollOpt};
@@ -9,6 +8,7 @@ use crate::configuration::Config;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::time::Duration;
 use crate::networking::address::Address;
+use rayon::scope_fifo;
 
 pub mod address;
 
@@ -22,40 +22,40 @@ pub trait Receiver {
     fn on_receive(&self, packet: Packet, address: Address);
 }
 
-/// This struct manages the sockets and receives incoming messages.
-pub struct NetworkManager {
-    receivers: Vec<Box<dyn Receiver + Send + Sync>>,
-    receiving_socket: UdpSocket,
-    sending_socket: UdpSocket,
-    threadpool: ThreadPool,
+pub struct NetworkSender {
+    socket: UdpSocket,
 }
 
-impl NetworkManager {
+impl NetworkSender {
+    pub fn new(sending_address: &Address) -> Result<Self, Box<dyn Error>> {
+        let socket = UdpSocket::bind(&sending_address.0)?;
+        debug!("Starting, sending_address: {:?}", sending_address);
+
+        Ok(Self { socket })
+    }
+
+    /// Sends a Packet to the specified address.
+    pub fn send(&self, address: &Address, packet: Packet) -> Result<usize, Box<dyn Error>> {
+        Ok(self.socket.send_to(packet.raw(), &address.0)?)
+    }
+}
+
+pub struct NetworkReceiver {
+    receivers: Vec<Box<dyn Receiver + Send + Sync>>,
+    socket: UdpSocket,
+}
+
+impl NetworkReceiver {
     /// Creates a new networkmanager. This creates a receiver socket and builds a new threadpool on which
     /// all messages are distributed.
-    pub fn new(
-        sending_address: &Address,
-        receiving_address: &Address,
-        threadcount: usize,
-    ) -> Result<Self, Box<dyn Error>> {
-        let receiving_socket =
-            UdpSocket::bind(&receiving_address.0).or(Err(SocketCreationError))?;
+    pub fn new(receiving_address: &Address) -> Result<Self, Box<dyn Error>> {
+        let socket = UdpSocket::bind(&receiving_address.0)?;
 
-        let sending_socket = UdpSocket::bind(&sending_address.0).or(Err(SocketCreationError))?;
-
-        trace!(
-            "Starting, sending_address: {:?}, receiving_address: {:?}",
-            sending_address,
-            receiving_address
-        );
-
-        let pool = ThreadPoolBuilder::new().num_threads(threadcount).build()?;
+        debug!("Starting, receiving_address: {:?}", receiving_address);
 
         let nm = Self {
-            threadpool: pool,
             receivers: vec![],
-            receiving_socket,
-            sending_socket,
+            socket,
         };
         Ok(nm)
     }
@@ -71,13 +71,14 @@ impl NetworkManager {
         let buffersize = configuration.buffersize.to_owned();
         let pollinterval = configuration.pollinterval.to_owned();
 
+        // Start the I/O thread
         thread::spawn(move || {
             self.listen(queuesize, buffersize, pollinterval)
                 .or_else(|i| {
                     error!("the listening thread crashed");
                     Err(i)
                 })
-                .unwrap(); // :gasp: <-- here it's allowed as it will only crash this thread
+                .unwrap(); // This only panics the I/O thread not the whole application
         })
     }
 
@@ -90,32 +91,27 @@ impl NetworkManager {
         debug!("IPV8 is starting it's listener!");
 
         let poll = Poll::new()?;
-        // this is basically a generated magic number we can later check for
-        const RECEIVER: Token = Token(0);
+
         let mut events = Events::with_capacity(queuesize);
 
         let mut tmp_buf = vec![0; buffersize];
         let buffer = tmp_buf.as_mut_slice();
 
-        poll.register(
-            &self.receiving_socket,
-            RECEIVER,
-            Ready::readable(),
-            PollOpt::edge(),
-        )?;
+        const RECEIVER: Token = Token(0);
+        poll.register(&self.socket, RECEIVER, Ready::readable(), PollOpt::edge())?;
 
         loop {
             poll.poll(&mut events, pollinterval)?;
             trace!("checking poll");
             for _ in events.iter() {
-                debug!("handling event");
+                trace!("handling event");
 
-                let (recv_size, address) = self.receiving_socket.recv_from(buffer)?;
+                let (recv_size, address) = self.socket.recv_from(buffer)?;
 
                 let packet = Packet(buffer[..recv_size].to_vec()).clone();
 
-                // use our own threadpool
-                self.threadpool.scope_fifo(|s| {
+                // We want a FIFO threadpool
+                scope_fifo(|s| {
                     s.spawn_fifo(|_| {
                         // iterate over the receivers asynchronously and non blocking
                         self.receivers.par_iter().for_each(|r| {
@@ -131,11 +127,34 @@ impl NetworkManager {
     pub fn add_receiver(&mut self, receiver: Box<dyn Receiver + Send + Sync>) {
         self.receivers.push(receiver)
     }
+}
 
-    /// Sends a Packet to the specified address.
-    pub fn send(&self, address: &Address, packet: Packet) -> Result<(), Box<dyn Error>> {
-        self.sending_socket.send_to(packet.raw(), &address.0)?;
-        Ok(())
+/// Taken and adapted from the [mio testing suite](https://github.com/tokio-rs/mio/blob/master/test/mod.rs#L113)
+#[cfg(test)]
+pub mod test_helper {
+    use std::net::{SocketAddr, Ipv4Addr, SocketAddrV4, IpAddr};
+    use std::str::FromStr;
+    use std::sync::atomic::Ordering::SeqCst;
+    use std::sync::atomic::{AtomicU16};
+    use crate::networking::address::Address;
+
+    // Helper for getting a unique port for the task run
+    // TODO: Reuse ports to not spam the system
+    const FIRST_PORT: u16 = 18080;
+    static NEXT_PORT: AtomicU16 = AtomicU16::new(FIRST_PORT);
+    pub const LOCALHOST_IP: Ipv4Addr = Ipv4Addr::new(127, 0, 0, 1);
+
+    fn next_port() -> u16 {
+        // Get and increment the port list
+        NEXT_PORT.fetch_add(1, SeqCst)
+    }
+
+    pub fn localhost() -> Address {
+        Address(localhost_socket())
+    }
+
+    pub fn localhost_socket() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(LOCALHOST_IP), next_port())
     }
 }
 
@@ -151,10 +170,14 @@ mod tests {
     use crate::serialization::Packet;
     use std::sync::Once;
     use std::time::Duration;
-    use crate::networking::{Receiver, NetworkManager};
+    use crate::networking::{Receiver, NetworkSender, NetworkReceiver};
     use std::thread;
     use std::sync::atomic::{AtomicUsize, Ordering, AtomicU16};
     use crate::networking::address::Address;
+    use crate::serialization::header::HeaderVersion::PyIPV8Header;
+    use crate::serialization::header::Header;
+    use serde::private::ser::constrain;
+    use crate::networking::test_helper::{localhost, localhost_socket, LOCALHOST_IP};
 
     static BEFORE: Once = Once::new();
 
@@ -165,37 +188,6 @@ mod tests {
         })
     }
 
-    #[test]
-    fn test_socket_creation_error() {
-        let address = Ipv4Addr::new(127, 0, 0, 1);
-
-        let addr1 = Address(SocketAddr::new(IpAddr::V4(address), 0));
-        let receiving_socket = UdpSocket::bind(&addr1.0).unwrap();
-        let addr1 = Address(SocketAddr::new(
-            IpAddr::V4(address),
-            receiving_socket.local_addr().unwrap().port(),
-        ));
-        let addr2 = Address(SocketAddr::new(IpAddr::V4(address), 0));
-        let addr3 = Address(SocketAddr::new(IpAddr::V4(address), 0));
-        let addr4 = Address(SocketAddr::new(IpAddr::V4(address), 0));
-
-        // should report an error as the address is already in use (for the sending socket)
-        match NetworkManager::new(&addr1, &addr2, 0) {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
-        // now it shouldnt have made a receiving socket so making a new sending socket with that address should work
-        match NetworkManager::new(&addr2, &addr3, 0) {
-            Err(_) => assert!(false),
-            Ok(_) => assert!(true),
-        };
-        //or when using a sending socket that was already in use
-        match NetworkManager::new(&addr4, &addr1, 0) {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
-    }
-
     // `pacman -Syu networkmanager`
     #[test]
     fn test_networkmanager() {
@@ -203,24 +195,18 @@ mod tests {
 
         // start ipv8
         let mut config = Config::default();
-        let address = Ipv4Addr::new(0, 0, 0, 0);
 
-        config.receiving_address = Address(SocketAddr::new(IpAddr::V4(address), 8090));
-        config.sending_address = Address(SocketAddr::new(IpAddr::V4(address), 0));
+        config.receiving_address = localhost();
+        config.sending_address = localhost();
         config.buffersize = 2048;
 
         let mut ipv8 = IPv8::new(config).unwrap();
 
-        let sender_socket = UdpSocket::bind(&SocketAddr::new(IpAddr::V4(address), 0)).unwrap();
+        let sender_socket = UdpSocket::bind(&localhost_socket()).unwrap();
 
         static SEND_PORT: AtomicU16 = AtomicU16::new(0);
 
-        let recv_port: u16 = ipv8
-            .networkmanager
-            .receiving_socket
-            .local_addr()
-            .unwrap()
-            .port();
+        let recv_port: u16 = ipv8.network_receiver.socket.local_addr().unwrap().port();
         let send_port: u16 = sender_socket.local_addr().unwrap().port();
 
         SEND_PORT.store(send_port, Ordering::SeqCst);
@@ -243,15 +229,13 @@ mod tests {
             }
         }
 
-        ipv8.networkmanager.add_receiver(Box::new(AReceiver));
+        ipv8.network_receiver.add_receiver(Box::new(AReceiver));
 
         ipv8.start();
-        // wait for it to start up
-        thread::sleep(Duration::from_millis(300));
 
         // now try to send ipv8 a message
         sender_socket
-            .connect(SocketAddr::new(IpAddr::V4(address), recv_port))
+            .connect(SocketAddr::new(IpAddr::V4(LOCALHOST_IP), recv_port))
             .unwrap();
 
         let a = sender_socket.send(OGPACKET.raw()).unwrap();
@@ -266,5 +250,58 @@ mod tests {
 
         // a poor man's `verify(AReceiver, times(2)).on_receiver();`
         assert_eq!(2, PACKET_COUNTER.load(std::sync::atomic::Ordering::SeqCst));
+    }
+
+    #[test]
+    fn test_sending_networkmanager() {
+        before();
+
+        // start ipv8
+        let mut config = Config::default();
+
+        config.receiving_address = localhost();
+        config.sending_address = localhost();
+        config.buffersize = 2048;
+
+        // let mut ipv8 = IPv8::new(config).unwrap();
+        let ns = NetworkSender::new(&config.sending_address).unwrap();
+        let mut nr = NetworkReceiver::new(&config.receiving_address).unwrap();
+
+        static SEND_PORT: AtomicU16 = AtomicU16::new(0);
+
+        let recv_port: u16 = nr.socket.local_addr().unwrap().port();
+        let send_port: u16 = ns.socket.local_addr().unwrap().port();
+
+        SEND_PORT.store(send_port, Ordering::SeqCst);
+
+        lazy_static! {
+            static ref OGPACKET: Packet = Packet::new(create_test_header!()).unwrap();
+        }
+
+        static PACKET_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+        //create receiver
+        struct AReceiver;
+        impl Receiver for AReceiver {
+            fn on_receive(&self, packet: Packet, address: Address) {
+                assert_eq!(OGPACKET.raw(), packet.raw());
+                assert_eq!(SEND_PORT.load(Ordering::SeqCst), (address.0).port());
+
+                // Count each packet
+                PACKET_COUNTER.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+
+        nr.add_receiver(Box::new(AReceiver));
+        nr.start(&config);
+
+        let addr = Address(SocketAddr::new(IpAddr::V4(LOCALHOST_IP), recv_port));
+
+        ns.send(&addr, Packet(OGPACKET.raw().to_vec())).unwrap();
+
+        thread::sleep(Duration::from_millis(20));
+
+        // a poor man's `verify(AReceiver, times(2)).on_receiver();`
+        assert_eq!(1, PACKET_COUNTER.load(std::sync::atomic::Ordering::SeqCst));
     }
 }
