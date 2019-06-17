@@ -13,6 +13,10 @@ SUCCESS="${GREEN}ok${RC}"
 
 # Check if rustfmt is installed
 printf "${PREFIX} Checking for rustfmt ... "
+
+# cd to the rust directory
+cd rust-ipv8
+
 OUT=$(cargo +stable fmt --version 2>&1 > /dev/null ) # Save the output of the command to OUT for later printing
 if [[ $? -eq 0 ]]; then
     printf "${SUCCESS}\n"
@@ -29,6 +33,9 @@ if [[ $? == 0 ]]; then
     printf "${SUCCESS}\n"
     exit 0
 fi
+# move out again so other hooks could be ran
+cd ..
+
 
 # If things went wrong
 printf "${FAILURE}\n"
