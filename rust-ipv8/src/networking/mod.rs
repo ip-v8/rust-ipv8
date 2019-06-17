@@ -140,6 +140,7 @@ pub mod test_helper {
 
     // Helper for getting a unique port for the task run
     // TODO: Reuse ports to not spam the system
+    // If multiple test suites are ran at the same time, this _will_ fail as it will try to bind to the same FIRST_PORT
     const FIRST_PORT: u16 = 18080;
     static NEXT_PORT: AtomicU16 = AtomicU16::new(FIRST_PORT);
     pub const LOCALHOST_IP: Ipv4Addr = Ipv4Addr::new(127, 0, 0, 1);
