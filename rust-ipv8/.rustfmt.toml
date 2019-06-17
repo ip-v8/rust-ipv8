@@ -1,3 +1,0 @@
-edition = "2018"
-newline_style = "Unix"
-reorder_imports = false # Otherwise macro imports go wrong

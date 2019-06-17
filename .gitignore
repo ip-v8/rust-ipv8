@@ -11,3 +11,6 @@ Cargo.lock
 # Floobits
 .floo
 .flooignore
+
+# Python
+.venv

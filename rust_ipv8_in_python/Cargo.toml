@@ -9,11 +9,6 @@ documentation = "https://ip-v8.github.io/rust-ipv8/ipv8/"
 repository = "https://github.com/ip-v8/rust-ipv8"
 readme = "../README.md"
 license-file = "../license.md"
-exclude = [
-    ".editorconfig",
-    ".travis.yml",
-    ".codeclimate.yml"
-]
 
 [lib]
 crate-type = ["cdylib"]
@@ -22,8 +17,8 @@ crate-type = ["cdylib"]
 travis-ci = { repository = "ip-v8/rust-ipv8", branch = "develop" }
 maintenance = { status = "experimental" }
 
-[dependencies.ipv8]
-path = "../rust-ipv8"
+[dependencies.rust_ipv8]
+path = "../rust_ipv8"
 
 [dependencies.pyo3]
 version = "0.7.0"

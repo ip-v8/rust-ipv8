@@ -1,5 +1,3 @@
-use ipv8;
-use ipv8::serialization::Packet;
 use pyo3::exceptions::{TypeError, ValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyBool, PyBytes};
@@ -65,14 +63,12 @@ impl Serializer {
         Ok(FORMATS.to_vec())
     }
 
-    fn get_packer_for<'py>(&self, _name: &str) -> PyResult<()> {
-        unimplemented!("As this method is only called in a test. We do not implement it.");
-        Ok(())
+    fn get_packer_for(&self, _name: &str) -> PyResult<()> {
+        unimplemented!("As this method is only called in a test. We do not implement it.")
     }
 
     fn add_packing_format(&self, _name: &str, _fmt: &PyAny) -> PyResult<()> {
-        unimplemented!("As this method is only called in a test. We do not implement it.");
-        Ok(())
+        unimplemented!("As this method is only called in a test. We do not implement it.")
     }
 
     fn pack<'py>(self, py: Python<'py>, format: &str, data: &PyAny) -> PyResult<&'py PyBytes> {
@@ -91,7 +87,7 @@ impl Serializer {
 }
 
 #[pymodule]
-pub fn rust_ipv8_in_python(py: Python, m: &PyModule) -> PyResult<()> {
+pub fn rust_ipv8_in_python(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Serializer>()?;
     Ok(())
 }
