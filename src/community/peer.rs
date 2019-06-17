@@ -2,7 +2,7 @@ use crate::crypto::keytypes::PublicKey;
 use crate::networking::address::Address;
 
 pub struct Peer {
-    key: PublicKey,
+    pub key: PublicKey,
     pub address: Address,
     pub intro: bool,
 }
@@ -16,7 +16,7 @@ impl Peer {
         }
     }
 
-    pub fn get_sha1(&self) -> Option<[u8; 20]> {
+    pub fn get_sha1(&self) -> (Vec<u8>, Vec<u8>) {
         self.key.sha1()
     }
 }
@@ -28,15 +28,17 @@ mod tests {
 
     use std::net::{Ipv4Addr, SocketAddr, IpAddr};
     use crate::networking::address::Address;
+    use rust_sodium::crypto::sign::ed25519;
 
     fn get_key() -> PublicKey {
-        let keyvec = vec![
-            48, 64, 48, 16, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 5, 43, 129, 4, 0, 1, 3, 44, 0, 4,
-            0, 80, 239, 172, 104, 165, 76, 172, 6, 229, 136, 156, 105, 23, 249, 46, 30, 148, 87,
-            105, 57, 6, 105, 134, 2, 229, 115, 169, 44, 162, 41, 190, 228, 56, 20, 100, 64, 79,
-            167, 224, 118, 14,
-        ];
-        PublicKey::from_vec(keyvec.clone()).unwrap()
+        let seed = ed25519::Seed::from_slice(&[
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+            24, 25, 26, 27, 28, 29, 30, 31,
+        ])
+        .unwrap();
+        let (pkey1, _) = ed25519::keypair_from_seed(&seed);
+        let (pkey2, _) = ed25519::keypair_from_seed(&seed);
+        PublicKey(pkey1, pkey2)
     }
 
     fn get_addr() -> Address {
@@ -53,12 +55,5 @@ mod tests {
         assert_eq!(get_key(), peer.key);
         assert_eq!(get_addr(), peer.address);
         assert_eq!(true, peer.intro);
-    }
-
-    #[test]
-    fn sha1_test() {
-        let peer = Peer::new(get_key(), get_addr(), false);
-        assert_eq!(get_key().sha1(), peer.get_sha1());
-        assert_eq!(false, peer.intro)
     }
 }

@@ -1,4 +1,5 @@
 use ipv8::networking::NetworkSender;
+use rust_sodium::crypto::sign::ed25519;
 
 #[test]
 fn community_integration_test() {
@@ -23,23 +24,19 @@ fn community_integration_test() {
     impl Community for TestCommunity {
         fn new(endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>> {
             // Use the highest available key
-            let pk: PublicKey = PublicKey::from_vec(vec![
-                48, 129, 167, 48, 16, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 5, 43, 129, 4, 0, 39, 3,
-                129, 146, 0, 4, 2, 86, 251, 75, 206, 159, 133, 120, 63, 176, 235, 178, 14, 8, 197,
-                59, 107, 51, 179, 139, 3, 155, 20, 194, 112, 113, 15, 40, 67, 115, 37, 223, 152, 7,
-                102, 154, 214, 90, 110, 180, 226, 5, 190, 99, 163, 54, 116, 173, 121, 40, 80, 129,
-                142, 82, 118, 154, 96, 127, 164, 248, 217, 91, 13, 80, 91, 94, 210, 16, 110, 108,
-                41, 57, 4, 243, 49, 52, 194, 254, 130, 98, 229, 50, 84, 21, 206, 134, 223, 157,
-                189, 133, 50, 210, 181, 93, 229, 32, 179, 228, 179, 132, 143, 147, 96, 207, 68, 48,
-                184, 160, 47, 227, 70, 147, 23, 159, 213, 105, 134, 60, 211, 226, 8, 235, 186, 20,
-                241, 85, 170, 4, 3, 40, 183, 98, 103, 80, 164, 128, 87, 205, 101, 67, 254, 83, 142,
-                133,
-            ])?;
+            let seed = ed25519::Seed::from_slice(&[
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+                24, 25, 26, 27, 28, 29, 30, 31,
+            ])
+                .unwrap();
+            let (pk1, _) = ed25519::keypair_from_seed(&seed);
+            let (pk2, _) = ed25519::keypair_from_seed(&seed);
+
 
             // Actually create the community
             Ok(TestCommunity {
                 peer: Peer::new(
-                    pk,
+                    PublicKey(pk1,pk2),
                     Address(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 42)),
                     true,
                 ),
@@ -47,8 +44,8 @@ fn community_integration_test() {
         }
 
         // Returns the hash of our master peer
-        fn get_mid(&self) -> Option<Vec<u8>> {
-            Some(self.peer.get_sha1()?.to_vec())
+        fn get_mid(&self) -> Vec<u8> {
+            self.peer.get_sha1().0
         }
 
         // The function which will be called when the community receives a packet
@@ -58,7 +55,7 @@ fn community_integration_test() {
             deserializer: PacketDeserializer,
             address: Address,
         ) -> Result<(), Box<dyn Error>> {
-            assert_eq!(header.mid_hash, self.get_mid());
+            assert_eq!(header.mid_hash, Some(self.get_mid()));
             assert_eq!(header.version, PyIPV8Header);
             assert_eq!(header.message_type, Some(42));
             // Do some stuff here like to distribute the message based on it's message_type (in the header)
@@ -80,7 +77,7 @@ fn community_integration_test() {
     let packet = Packet::new(Header {
         size: 23,
         version: PyIPV8Header,
-        mid_hash: mid,
+        mid_hash: Some(mid),
         message_type: Some(42),
     })
     .unwrap();
