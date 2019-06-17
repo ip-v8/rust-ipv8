@@ -217,7 +217,7 @@ mod tests {
         fn get_mid(&self) -> Vec<u8> {
             self.peer.get_sha1().0
         }
-      
+
         // The function which will be called when the community receives a packet
         fn on_receive(
             &self,
@@ -225,7 +225,6 @@ mod tests {
             deserializer: PacketDeserializer,
             _address: Address,
         ) -> Result<(), Box<dyn Error>> {
-
             assert_eq!(header.mid_hash.unwrap(), self.get_mid());
             assert_eq!(header.version, PyIPV8Header);
             assert_eq!(header.message_type, Some(42));
