@@ -41,6 +41,8 @@ jobs:
       rust: stable
 
     - script:
+      - cargo build --verbose
+      - cargo test --no-run --verbose
       - cargo test
       name: "Windows Stable"
       os: windows
