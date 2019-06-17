@@ -27,6 +27,7 @@ use std::sync::Once;
 ///
 /// let ipv8 = IPv8::new(Config::default());
 /// ```
+#[repr(C)]
 pub struct IPv8 {
     pub config: Config,
     pub network_receiver: NetworkReceiver,
@@ -40,7 +41,8 @@ pub struct IPv8 {
 static THREADPOOL_START: Once = Once::new();
 
 impl IPv8 {
-    pub fn new(config: configuration::Config) -> Result<Self, Box<dyn Error>> {
+    #[no_mangle]
+    pub extern "C" fn new(config: configuration::Config) -> Result<Self, Box<dyn Error>> {
         // Setup the global threadpool
         {
             let mut started = None;

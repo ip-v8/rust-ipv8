@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "rust-ipv8",
+    "rust_ipv8_in_python"
+]

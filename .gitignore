@@ -4,14 +4,9 @@
 *.iml
 
 # Rust specific
-
-/target
+target
 **/*.rs.bk
 Cargo.lock
-
-
-.idea
-*.iml
 
 # Floobits
 .floo
