@@ -268,11 +268,47 @@
 <span id="268">268</span>
 <span id="269">269</span>
 <span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">Packet</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">mio</span>::<span class="ident">net</span>::<span class="ident">UdpSocket</span>;
-<span class="kw">use</span> <span class="ident">rayon</span>::{<span class="ident">ThreadPool</span>, <span class="ident">ThreadPoolBuilder</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">JoinHandle</span>;
 <span class="kw">use</span> <span class="ident">mio</span>::{<span class="ident">Poll</span>, <span class="ident">Token</span>, <span class="ident">Events</span>, <span class="ident">Ready</span>, <span class="ident">PollOpt</span>};
@@ -280,6 +316,7 @@
 <span class="kw">use</span> <span class="ident">rayon</span>::<span class="ident">iter</span>::{<span class="ident">IntoParallelRefIterator</span>, <span class="ident">ParallelIterator</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
+<span class="kw">use</span> <span class="ident">rayon</span>::<span class="ident">scope_fifo</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">address</span>;
 
@@ -293,40 +330,40 @@
     <span class="kw">fn</span> <span class="ident">on_receive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">packet</span>: <span class="ident">Packet</span>, <span class="ident">address</span>: <span class="ident">Address</span>);
 }
 
-<span class="doccomment">/// This struct manages the sockets and receives incoming messages.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NetworkManager</span> {
-    <span class="ident">receivers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Receiver</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">receiving_socket</span>: <span class="ident">UdpSocket</span>,
-    <span class="ident">sending_socket</span>: <span class="ident">UdpSocket</span>,
-    <span class="ident">threadpool</span>: <span class="ident">ThreadPool</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NetworkSender</span> {
+    <span class="ident">socket</span>: <span class="ident">UdpSocket</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">NetworkManager</span> {
+<span class="kw">impl</span> <span class="ident">NetworkSender</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sending_address</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">UdpSocket</span>::<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">sending_address</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Starting, sending_address: {:?}&quot;</span>, <span class="ident">sending_address</span>);
+
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">socket</span> })
+    }
+
+    <span class="doccomment">/// Sends a Packet to the specified address.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>, <span class="ident">packet</span>: <span class="ident">Packet</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">socket</span>.<span class="ident">send_to</span>(<span class="ident">packet</span>.<span class="ident">raw</span>(), <span class="kw-2">&amp;</span><span class="ident">address</span>.<span class="number">0</span>)<span class="question-mark">?</span>)
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NetworkReceiver</span> {
+    <span class="ident">receivers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Receiver</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">socket</span>: <span class="ident">UdpSocket</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">NetworkReceiver</span> {
     <span class="doccomment">/// Creates a new networkmanager. This creates a receiver socket and builds a new threadpool on which</span>
     <span class="doccomment">/// all messages are distributed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">sending_address</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>,
-        <span class="ident">receiving_address</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>,
-        <span class="ident">threadcount</span>: <span class="ident">usize</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
-        <span class="kw">let</span> <span class="ident">receiving_socket</span> <span class="op">=</span>
-            <span class="ident">UdpSocket</span>::<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">receiving_address</span>.<span class="number">0</span>).<span class="ident">or</span>(<span class="prelude-val">Err</span>(<span class="ident">SocketCreationError</span>))<span class="question-mark">?</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">receiving_address</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">UdpSocket</span>::<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">receiving_address</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">sending_socket</span> <span class="op">=</span> <span class="ident">UdpSocket</span>::<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">sending_address</span>.<span class="number">0</span>).<span class="ident">or</span>(<span class="prelude-val">Err</span>(<span class="ident">SocketCreationError</span>))<span class="question-mark">?</span>;
-
-        <span class="macro">trace</span><span class="macro">!</span>(
-            <span class="string">&quot;Starting, sending_address: {:?}, receiving_address: {:?}&quot;</span>,
-            <span class="ident">sending_address</span>,
-            <span class="ident">receiving_address</span>
-        );
-
-        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">ThreadPoolBuilder</span>::<span class="ident">new</span>().<span class="ident">num_threads</span>(<span class="ident">threadcount</span>).<span class="ident">build</span>()<span class="question-mark">?</span>;
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Starting, receiving_address: {:?}&quot;</span>, <span class="ident">receiving_address</span>);
 
         <span class="kw">let</span> <span class="ident">nm</span> <span class="op">=</span> <span class="self">Self</span> {
-            <span class="ident">threadpool</span>: <span class="ident">pool</span>,
             <span class="ident">receivers</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-            <span class="ident">receiving_socket</span>,
-            <span class="ident">sending_socket</span>,
+            <span class="ident">socket</span>,
         };
         <span class="prelude-val">Ok</span>(<span class="ident">nm</span>)
     }
@@ -342,13 +379,14 @@
         <span class="kw">let</span> <span class="ident">buffersize</span> <span class="op">=</span> <span class="ident">configuration</span>.<span class="ident">buffersize</span>.<span class="ident">to_owned</span>();
         <span class="kw">let</span> <span class="ident">pollinterval</span> <span class="op">=</span> <span class="ident">configuration</span>.<span class="ident">pollinterval</span>.<span class="ident">to_owned</span>();
 
+        <span class="comment">// Start the I/O thread</span>
         <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">||</span> {
             <span class="self">self</span>.<span class="ident">listen</span>(<span class="ident">queuesize</span>, <span class="ident">buffersize</span>, <span class="ident">pollinterval</span>)
                 .<span class="ident">or_else</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
                     <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;the listening thread crashed&quot;</span>);
                     <span class="prelude-val">Err</span>(<span class="ident">i</span>)
                 })
-                .<span class="ident">unwrap</span>(); <span class="comment">// :gasp: &lt;-- here it&#39;s allowed as it will only crash this thread</span>
+                .<span class="ident">unwrap</span>(); <span class="comment">// This only panics the I/O thread not the whole application</span>
         })
     }
 
@@ -361,32 +399,27 @@
         <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;IPV8 is starting it&#39;s listener!&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="ident">Poll</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
-        <span class="comment">// this is basically a generated magic number we can later check for</span>
-        <span class="kw">const</span> <span class="ident">RECEIVER</span>: <span class="ident">Token</span> <span class="op">=</span> <span class="ident">Token</span>(<span class="number">0</span>);
+
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">events</span> <span class="op">=</span> <span class="ident">Events</span>::<span class="ident">with_capacity</span>(<span class="ident">queuesize</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp_buf</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">buffersize</span>];
         <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">tmp_buf</span>.<span class="ident">as_mut_slice</span>();
 
-        <span class="ident">poll</span>.<span class="ident">register</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">receiving_socket</span>,
-            <span class="ident">RECEIVER</span>,
-            <span class="ident">Ready</span>::<span class="ident">readable</span>(),
-            <span class="ident">PollOpt</span>::<span class="ident">edge</span>(),
-        )<span class="question-mark">?</span>;
+        <span class="kw">const</span> <span class="ident">RECEIVER</span>: <span class="ident">Token</span> <span class="op">=</span> <span class="ident">Token</span>(<span class="number">0</span>);
+        <span class="ident">poll</span>.<span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">socket</span>, <span class="ident">RECEIVER</span>, <span class="ident">Ready</span>::<span class="ident">readable</span>(), <span class="ident">PollOpt</span>::<span class="ident">edge</span>())<span class="question-mark">?</span>;
 
         <span class="kw">loop</span> {
             <span class="ident">poll</span>.<span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">events</span>, <span class="ident">pollinterval</span>)<span class="question-mark">?</span>;
             <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;checking poll&quot;</span>);
             <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="ident">events</span>.<span class="ident">iter</span>() {
-                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;handling event&quot;</span>);
+                <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;handling event&quot;</span>);
 
-                <span class="kw">let</span> (<span class="ident">recv_size</span>, <span class="ident">address</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">receiving_socket</span>.<span class="ident">recv_from</span>(<span class="ident">buffer</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> (<span class="ident">recv_size</span>, <span class="ident">address</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">socket</span>.<span class="ident">recv_from</span>(<span class="ident">buffer</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">packet</span> <span class="op">=</span> <span class="ident">Packet</span>(<span class="ident">buffer</span>[..<span class="ident">recv_size</span>].<span class="ident">to_vec</span>()).<span class="ident">clone</span>();
 
-                <span class="comment">// use our own threadpool</span>
-                <span class="self">self</span>.<span class="ident">threadpool</span>.<span class="ident">scope_fifo</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
+                <span class="comment">// We want a FIFO threadpool</span>
+                <span class="ident">scope_fifo</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
                     <span class="ident">s</span>.<span class="ident">spawn_fifo</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                         <span class="comment">// iterate over the receivers asynchronously and non blocking</span>
                         <span class="self">self</span>.<span class="ident">receivers</span>.<span class="ident">par_iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
@@ -402,11 +435,34 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_receiver</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">receiver</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Receiver</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">receivers</span>.<span class="ident">push</span>(<span class="ident">receiver</span>)
     }
+}
 
-    <span class="doccomment">/// Sends a Packet to the specified address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="kw-2">&amp;</span><span class="ident">Address</span>, <span class="ident">packet</span>: <span class="ident">Packet</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span> {
-        <span class="self">self</span>.<span class="ident">sending_socket</span>.<span class="ident">send_to</span>(<span class="ident">packet</span>.<span class="ident">raw</span>(), <span class="kw-2">&amp;</span><span class="ident">address</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
+<span class="doccomment">/// Taken and adapted from the [mio testing suite](https://github.com/tokio-rs/mio/blob/master/test/mod.rs#L113)</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">test_helper</span> {
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">SocketAddr</span>, <span class="ident">Ipv4Addr</span>, <span class="ident">SocketAddrV4</span>, <span class="ident">IpAddr</span>};
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicU16</span>};
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
+
+    <span class="comment">// Helper for getting a unique port for the task run</span>
+    <span class="comment">// TODO: Reuse ports to not spam the system</span>
+    <span class="kw">const</span> <span class="ident">FIRST_PORT</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">18080</span>;
+    <span class="kw">static</span> <span class="ident">NEXT_PORT</span>: <span class="ident">AtomicU16</span> <span class="op">=</span> <span class="ident">AtomicU16</span>::<span class="ident">new</span>(<span class="ident">FIRST_PORT</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCALHOST_IP</span>: <span class="ident">Ipv4Addr</span> <span class="op">=</span> <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>);
+
+    <span class="kw">fn</span> <span class="ident">next_port</span>() <span class="op">-&gt;</span> <span class="ident">u16</span> {
+        <span class="comment">// Get and increment the port list</span>
+        <span class="ident">NEXT_PORT</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">localhost</span>() <span class="op">-&gt;</span> <span class="ident">Address</span> {
+        <span class="ident">Address</span>(<span class="ident">localhost_socket</span>())
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">localhost_socket</span>() <span class="op">-&gt;</span> <span class="ident">SocketAddr</span> {
+        <span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">LOCALHOST_IP</span>), <span class="ident">next_port</span>())
     }
 }
 
@@ -422,10 +478,14 @@
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">Packet</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Once</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::{<span class="ident">Receiver</span>, <span class="ident">NetworkManager</span>};
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::{<span class="ident">Receiver</span>, <span class="ident">NetworkSender</span>, <span class="ident">NetworkReceiver</span>};
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>, <span class="ident">AtomicU16</span>};
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">address</span>::<span class="ident">Address</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">HeaderVersion</span>::<span class="ident">PyIPV8Header</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serialization</span>::<span class="ident">header</span>::<span class="ident">Header</span>;
+    <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">private</span>::<span class="ident">ser</span>::<span class="ident">constrain</span>;
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">networking</span>::<span class="ident">test_helper</span>::{<span class="ident">localhost</span>, <span class="ident">localhost_socket</span>, <span class="ident">LOCALHOST_IP</span>};
 
     <span class="kw">static</span> <span class="ident">BEFORE</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
 
@@ -436,37 +496,6 @@
         })
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_socket_creation_error</span>() {
-        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>);
-
-        <span class="kw">let</span> <span class="ident">addr1</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">address</span>), <span class="number">0</span>));
-        <span class="kw">let</span> <span class="ident">receiving_socket</span> <span class="op">=</span> <span class="ident">UdpSocket</span>::<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">addr1</span>.<span class="number">0</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">addr1</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(
-            <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">address</span>),
-            <span class="ident">receiving_socket</span>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>().<span class="ident">port</span>(),
-        ));
-        <span class="kw">let</span> <span class="ident">addr2</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">address</span>), <span class="number">0</span>));
-        <span class="kw">let</span> <span class="ident">addr3</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">address</span>), <span class="number">0</span>));
-        <span class="kw">let</span> <span class="ident">addr4</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">address</span>), <span class="number">0</span>));
-
-        <span class="comment">// should report an error as the address is already in use (for the sending socket)</span>
-        <span class="kw">match</span> <span class="ident">NetworkManager</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">addr1</span>, <span class="kw-2">&amp;</span><span class="ident">addr2</span>, <span class="number">0</span>) {
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">assert</span><span class="macro">!</span>(<span class="bool-val">true</span>),
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">assert</span><span class="macro">!</span>(<span class="bool-val">false</span>),
-        };
-        <span class="comment">// now it shouldnt have made a receiving socket so making a new sending socket with that address should work</span>
-        <span class="kw">match</span> <span class="ident">NetworkManager</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">addr2</span>, <span class="kw-2">&amp;</span><span class="ident">addr3</span>, <span class="number">0</span>) {
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">assert</span><span class="macro">!</span>(<span class="bool-val">false</span>),
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">assert</span><span class="macro">!</span>(<span class="bool-val">true</span>),
-        };
-        <span class="comment">//or when using a sending socket that was already in use</span>
-        <span class="kw">match</span> <span class="ident">NetworkManager</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">addr4</span>, <span class="kw-2">&amp;</span><span class="ident">addr1</span>, <span class="number">0</span>) {
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">assert</span><span class="macro">!</span>(<span class="bool-val">true</span>),
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">assert</span><span class="macro">!</span>(<span class="bool-val">false</span>),
-        };
-    }
-
     <span class="comment">// `pacman -Syu networkmanager`</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_networkmanager</span>() {
@@ -474,24 +503,18 @@
 
         <span class="comment">// start ipv8</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">Config</span>::<span class="ident">default</span>();
-        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
 
-        <span class="ident">config</span>.<span class="ident">receiving_address</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">address</span>), <span class="number">8090</span>));
-        <span class="ident">config</span>.<span class="ident">sending_address</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">address</span>), <span class="number">0</span>));
+        <span class="ident">config</span>.<span class="ident">receiving_address</span> <span class="op">=</span> <span class="ident">localhost</span>();
+        <span class="ident">config</span>.<span class="ident">sending_address</span> <span class="op">=</span> <span class="ident">localhost</span>();
         <span class="ident">config</span>.<span class="ident">buffersize</span> <span class="op">=</span> <span class="number">2048</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ipv8</span> <span class="op">=</span> <span class="ident">IPv8</span>::<span class="ident">new</span>(<span class="ident">config</span>).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">sender_socket</span> <span class="op">=</span> <span class="ident">UdpSocket</span>::<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">address</span>), <span class="number">0</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">sender_socket</span> <span class="op">=</span> <span class="ident">UdpSocket</span>::<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">localhost_socket</span>()).<span class="ident">unwrap</span>();
 
         <span class="kw">static</span> <span class="ident">SEND_PORT</span>: <span class="ident">AtomicU16</span> <span class="op">=</span> <span class="ident">AtomicU16</span>::<span class="ident">new</span>(<span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">recv_port</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="ident">ipv8</span>
-            .<span class="ident">networkmanager</span>
-            .<span class="ident">receiving_socket</span>
-            .<span class="ident">local_addr</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">port</span>();
+        <span class="kw">let</span> <span class="ident">recv_port</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="ident">ipv8</span>.<span class="ident">network_receiver</span>.<span class="ident">socket</span>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>().<span class="ident">port</span>();
         <span class="kw">let</span> <span class="ident">send_port</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="ident">sender_socket</span>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>().<span class="ident">port</span>();
 
         <span class="ident">SEND_PORT</span>.<span class="ident">store</span>(<span class="ident">send_port</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
@@ -514,15 +537,13 @@
             }
         }
 
-        <span class="ident">ipv8</span>.<span class="ident">networkmanager</span>.<span class="ident">add_receiver</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">AReceiver</span>));
+        <span class="ident">ipv8</span>.<span class="ident">network_receiver</span>.<span class="ident">add_receiver</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">AReceiver</span>));
 
         <span class="ident">ipv8</span>.<span class="ident">start</span>();
-        <span class="comment">// wait for it to start up</span>
-        <span class="ident">thread</span>::<span class="ident">sleep</span>(<span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">300</span>));
 
         <span class="comment">// now try to send ipv8 a message</span>
         <span class="ident">sender_socket</span>
-            .<span class="ident">connect</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">address</span>), <span class="ident">recv_port</span>))
+            .<span class="ident">connect</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">LOCALHOST_IP</span>), <span class="ident">recv_port</span>))
             .<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">sender_socket</span>.<span class="ident">send</span>(<span class="ident">OGPACKET</span>.<span class="ident">raw</span>()).<span class="ident">unwrap</span>();
@@ -537,6 +558,59 @@
 
         <span class="comment">// a poor man&#39;s `verify(AReceiver, times(2)).on_receiver();`</span>
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">2</span>, <span class="ident">PACKET_COUNTER</span>.<span class="ident">load</span>(<span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_sending_networkmanager</span>() {
+        <span class="ident">before</span>();
+
+        <span class="comment">// start ipv8</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">Config</span>::<span class="ident">default</span>();
+
+        <span class="ident">config</span>.<span class="ident">receiving_address</span> <span class="op">=</span> <span class="ident">localhost</span>();
+        <span class="ident">config</span>.<span class="ident">sending_address</span> <span class="op">=</span> <span class="ident">localhost</span>();
+        <span class="ident">config</span>.<span class="ident">buffersize</span> <span class="op">=</span> <span class="number">2048</span>;
+
+        <span class="comment">// let mut ipv8 = IPv8::new(config).unwrap();</span>
+        <span class="kw">let</span> <span class="ident">ns</span> <span class="op">=</span> <span class="ident">NetworkSender</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">sending_address</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nr</span> <span class="op">=</span> <span class="ident">NetworkReceiver</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">receiving_address</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">static</span> <span class="ident">SEND_PORT</span>: <span class="ident">AtomicU16</span> <span class="op">=</span> <span class="ident">AtomicU16</span>::<span class="ident">new</span>(<span class="number">0</span>);
+
+        <span class="kw">let</span> <span class="ident">recv_port</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="ident">nr</span>.<span class="ident">socket</span>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>().<span class="ident">port</span>();
+        <span class="kw">let</span> <span class="ident">send_port</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="ident">ns</span>.<span class="ident">socket</span>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>().<span class="ident">port</span>();
+
+        <span class="ident">SEND_PORT</span>.<span class="ident">store</span>(<span class="ident">send_port</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
+
+        <span class="macro">lazy_static</span><span class="macro">!</span> {
+            <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">OGPACKET</span>: <span class="ident">Packet</span> <span class="op">=</span> <span class="ident">Packet</span>::<span class="ident">new</span>(<span class="macro">create_test_header</span><span class="macro">!</span>()).<span class="ident">unwrap</span>();
+        }
+
+        <span class="kw">static</span> <span class="ident">PACKET_COUNTER</span>: <span class="ident">AtomicUsize</span> <span class="op">=</span> <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>);
+
+        <span class="comment">//create receiver</span>
+        <span class="kw">struct</span> <span class="ident">AReceiver</span>;
+        <span class="kw">impl</span> <span class="ident">Receiver</span> <span class="kw">for</span> <span class="ident">AReceiver</span> {
+            <span class="kw">fn</span> <span class="ident">on_receive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">packet</span>: <span class="ident">Packet</span>, <span class="ident">address</span>: <span class="ident">Address</span>) {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">OGPACKET</span>.<span class="ident">raw</span>(), <span class="ident">packet</span>.<span class="ident">raw</span>());
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">SEND_PORT</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>), (<span class="ident">address</span>.<span class="number">0</span>).<span class="ident">port</span>());
+
+                <span class="comment">// Count each packet</span>
+                <span class="ident">PACKET_COUNTER</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
+            }
+        }
+
+        <span class="ident">nr</span>.<span class="ident">add_receiver</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">AReceiver</span>));
+        <span class="ident">nr</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>);
+
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">Address</span>(<span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">LOCALHOST_IP</span>), <span class="ident">recv_port</span>));
+
+        <span class="ident">ns</span>.<span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>, <span class="ident">Packet</span>(<span class="ident">OGPACKET</span>.<span class="ident">raw</span>().<span class="ident">to_vec</span>())).<span class="ident">unwrap</span>();
+
+        <span class="ident">thread</span>::<span class="ident">sleep</span>(<span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">20</span>));
+
+        <span class="comment">// a poor man&#39;s `verify(AReceiver, times(2)).on_receiver();`</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1</span>, <span class="ident">PACKET_COUNTER</span>.<span class="ident">load</span>(<span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::<span class="ident">SeqCst</span>));
     }
 }
 </pre></div>
