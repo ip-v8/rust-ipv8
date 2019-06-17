@@ -1,6 +1,10 @@
 language: rust
 cache: cargo
 
+rust_template: &rust_template
+    before_script: cd rust-ipv8
+    after_script: cd ..
+
 matrix:
   fast_finish: true
   allow_failures:
@@ -19,6 +23,7 @@ jobs:
   include:
     - stage: test
       name: "Nightly + coverage"
+      <<: *rust_template
       rust: nightly
       install: which grcov || cargo install grcov
       script:
@@ -33,10 +38,12 @@ jobs:
 
     - script: cargo test
       name: "Linux Stable"
+      <<: *rust_template
       rust: stable
 
     - script: cargo test
       name: "macOS Stable"
+      <<: *rust_template
       os: osx
       rust: stable
 
@@ -50,27 +57,32 @@ jobs:
 
     - script: cargo test
       name: "Beta"
+      <<: *rust_template
       rust: beta
 
     - script: cargo bench # TODO: Export these benchmarks
       env: ALLOW_FAILURE=true
       rust: stable
       name: "Benchmarks"
+      <<: *rust_template
 
     - script: cargo clippy -- -D warnings
       env: ALLOW_FAILURE=true
       install: rustup component add clippy
       rust: stable
       name: "Clippy"
+      <<: *rust_template
 
     - script: cargo fmt -- --check
       install: rustup component add rustfmt
       rust: stable
       name: "Rustfmt"
+      <<: *rust_template
 
     - stage: deploy
       script: cargo doc
       name: "Deploy docs on GitHub Pages"
+      <<: *rust_template
       if: branch = develop AND type != pull_request
       deploy:
         provider: pages
