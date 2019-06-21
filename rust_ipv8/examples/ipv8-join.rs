@@ -3,8 +3,8 @@
  *
  * It does not do much, except for logging the output.
  */
-use ipv8;
+use rust_ipv8;
 
 fn main() {
-    ipv8::IPv8::new(ipv8::configuration::Config::default());
+    rust_ipv8::IPv8::new(rust_ipv8::configuration::Config::default());
 }

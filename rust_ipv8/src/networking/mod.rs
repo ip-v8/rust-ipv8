@@ -132,8 +132,7 @@ impl NetworkReceiver {
 /// Taken and adapted from the [mio testing suite](https://github.com/tokio-rs/mio/blob/master/test/mod.rs#L113)
 #[cfg(test)]
 pub mod test_helper {
-    use std::net::{SocketAddr, Ipv4Addr, SocketAddrV4, IpAddr};
-    use std::str::FromStr;
+    use std::net::{SocketAddr, Ipv4Addr, IpAddr};
     use std::sync::atomic::Ordering::SeqCst;
     use std::sync::atomic::{AtomicU16};
     use crate::networking::address::Address;
@@ -175,9 +174,6 @@ mod tests {
     use std::thread;
     use std::sync::atomic::{AtomicUsize, Ordering, AtomicU16};
     use crate::networking::address::Address;
-    use crate::serialization::header::HeaderVersion::PyIPV8Header;
-    use crate::serialization::header::Header;
-    use serde::private::ser::constrain;
     use crate::networking::test_helper::{localhost, localhost_socket, LOCALHOST_IP};
 
     static BEFORE: Once = Once::new();
@@ -189,7 +185,6 @@ mod tests {
         })
     }
 
-    // `pacman -Syu networkmanager`
     #[test]
     fn test_networkmanager() {
         before();

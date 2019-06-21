@@ -11,11 +11,15 @@ WARNING="${RED}[WARNING]${RC}"
 SKIPPED="${YELLOW}SKIPPED${RC}"
 SUCCESS="${GREEN}ok${RC}"
 
+# cd to the rust directory
+cd rust_ipv8
+if [[ $? -ne  0 ]]; then
+    printf "${FAILURE} rust_ipv8 directory not found\n"
+    exit 1
+fi
+
 # Check if rustfmt is installed
 printf "${PREFIX} Checking for rustfmt ... "
-
-# cd to the rust directory
-cd rust-ipv8
 
 OUT=$(cargo +stable fmt --version 2>&1 > /dev/null ) # Save the output of the command to OUT for later printing
 if [[ $? -eq 0 ]]; then

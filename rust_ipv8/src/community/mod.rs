@@ -169,7 +169,7 @@ impl Default for CommunityRegistry {
 mod tests {
     use super::*;
     use crate::networking::address::Address;
-    use std::net::{SocketAddr, IpAddr, SocketAddrV4};
+    use std::net::{SocketAddr, IpAddr};
     use std::error::Error;
     use crate::networking::NetworkSender;
     use crate::community::peer::Peer;
@@ -180,10 +180,9 @@ mod tests {
     use crate::IPv8;
     use crate::configuration::Config;
     use crate::serialization::header::HeaderVersion::PyIPV8Header;
-    use crate::crypto::keytypes::PublicKey;
     use std::sync::atomic::Ordering;
     use crate::networking::test_helper::localhost;
-    use rust_sodium::crypto::sign::ed25519;
+    use crate::crypto::signature::KeyPair;
 
     pub struct TestCommunity {
         peer: Peer,
@@ -191,19 +190,15 @@ mod tests {
 
     impl Community for TestCommunity {
         fn new(endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>> {
-            // Use the highest available key
-            let seed = ed25519::Seed::from_slice(&[
+            let pk = KeyPair::from_seed_unchecked([
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
                 23, 24, 25, 26, 27, 28, 29, 30, 31,
             ])
             .unwrap();
-            let (pkey1, _) = ed25519::keypair_from_seed(&seed);
-            let (pkey2, _) = ed25519::keypair_from_seed(&seed);
-            let pk = PublicKey(pkey1, pkey2);
             // Actually create the community
             Ok(TestCommunity {
                 peer: Peer::new(
-                    pk,
+                    pk.public_key().unwrap(),
                     Address(SocketAddr::new(
                         IpAddr::V4(Ipv4Addr::new(42, 42, 42, 42)),
                         8000,
@@ -215,7 +210,7 @@ mod tests {
 
         // Returns the hash of our master peer
         fn get_mid(&self) -> Vec<u8> {
-            self.peer.get_sha1().0
+            self.peer.get_sha1()
         }
 
         // The function which will be called when the community receives a packet

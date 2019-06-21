@@ -1,5 +1,5 @@
 [package]
-name = "ipv8"
+name = "rust_ipv8"
 version = "0.1.0"
 authors = ["jonay2000 <jonabent@gmail.com>", "NULLx76 <victor@xirion.net>", "Dany Sluijk <dany@atlasdev.nl>"]
 edition = "2018"
@@ -7,13 +7,8 @@ description = "IPv8 implementation for rust."
 homepage = "https://ip-v8.github.io/rust-ipv8/ipv8/"
 documentation = "https://ip-v8.github.io/rust-ipv8/ipv8/"
 repository = "https://github.com/ip-v8/rust-ipv8"
-readme = "README.md"
-license-file = "license.md"
-exclude = [
-    ".editorconfig",
-    ".travis.yml",
-    ".codeclimate.yml"
-]
+readme = "../README.md"
+license-file = "../license.md"
 
 [lib]
 crate-type = ["lib", "cdylib"]
@@ -24,15 +19,16 @@ maintenance = { status = "experimental" }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-
+ring = "0.14.6"
+untrusted = "0.6.2"
 bincode = "1.1"
-rust_sodium = "0.10"
-openssl = { version = "0.10", features = ["vendored"] }
 lazy_static = "1.2"
 log = "0.4"
 mio = "0.6"
 rayon = "1.0"
 sha-1 = "0.8.1"
+zerocopy = "0.2.4"
+# zerocopy-derive = "0.1.3"
 
 [dev-dependencies]
 criterion = "0.2"

@@ -1,11 +1,10 @@
-use crate::crypto::keytypes::{PublicKey};
+use serde::de::{Deserialize, Deserializer};
+use serde::ser::{Serialize, Serializer};
+use serde::ser::SerializeTuple;
+
+use crate::crypto::signature::Ed25519PublicKey;
 use crate::payloads::Ipv8Payload;
 use crate::serialization::varlen::VarLen16;
-use serde::de::{Deserialize, Deserializer};
-use serde::ser::SerializeTuple;
-use serde::ser::{Serialize, Serializer};
-use serde::ser;
-use serde::de;
 
 /// This struct represents the public key in a message.
 /// This is important because with this key the signature (at the end of a packet)
@@ -13,7 +12,8 @@ use serde::de;
 #[derive(Debug, PartialEq)]
 pub struct BinMemberAuthenticationPayload {
     /// TODO: has to change to a PublicKey binary representation object. The serializer should convert this to a varlen16 while serializing like in IntroductionRequestPayload.
-    pub public_key_bin: PublicKey,
+    pub public_key_bin: Ed25519PublicKey,
+    pub encryption_key_bin: [u8; 32],
 }
 
 /// makes the BinMemberAuthenticationPayload serializable.
@@ -24,15 +24,26 @@ impl Serialize for BinMemberAuthenticationPayload {
     where
         S: Serializer,
     {
-        let v = self.public_key_bin.to_vec().ok_or_else(|| {
-            ser::Error::custom("The key was malformed in a way which made it unserializable.")
-        })?;
+        // + 10 for the LibNaCLPK: header
+        let length = self.public_key_bin.len() + self.encryption_key_bin.len() + 10;
 
-        let mut state = serializer.serialize_tuple(v.len() + 2)?;
-        state.serialize_element(&(v.len() as u16))?;
-        for i in v {
+        // + 2 for the lengthefix
+        let mut state = serializer.serialize_tuple(length + 2)?;
+        state.serialize_element(&(length as u16))?;
+
+        //"LibNaCLPK:" in bytes
+        for i in [76u8, 105u8, 98u8, 78u8, 97u8, 67u8, 76u8, 80u8, 75u8, 58u8].iter() {
             state.serialize_element(&i)?;
         }
+
+        for i in self.encryption_key_bin.iter() {
+            state.serialize_element(&i)?;
+        }
+
+        for i in self.public_key_bin.iter() {
+            state.serialize_element(&i)?;
+        }
+
         state.end()
     }
 }
@@ -51,18 +62,31 @@ impl<'de> Deserialize<'de> for BinMemberAuthenticationPayload {
     {
         // first deserialize it to a temporary struct which literally represents the packer
         let payload_temporary = BinMemberAuthenticationPayloadPattern::deserialize(deserializer)?;
-        let public_key_bin = match PublicKey::from_vec((payload_temporary.0).0) {
-            Ok(e) => e,
-            Err(_) => {
-                return Err(de::Error::custom(
-                    "The key was malformed in a way which made it undeserializable.",
-                ))
-            }
-        };
+
+        // payload_temporary.0.0 is the zeroth element in IntroductionRequestPayloadPattern which has a varlen which has a vector as zeroth element
+        let contents = &*(payload_temporary.0).0;
+
+        //"LibNaCLPK:" in bytes
+        if contents[0..10] != [76u8, 105u8, 98u8, 78u8, 97u8, 67u8, 76u8, 80u8, 75u8, 58u8] {
+            return Err(serde::de::Error::custom(
+                "Received BinMemberAuthenticationPayload without LibNaclPK: prefix",
+            ));
+        }
+
+        let encryption_key_bin = *zerocopy::LayoutVerified::<_, [u8; 32]>::new(&contents[10..42])
+            .ok_or_else(|| {
+            serde::de::Error::custom("Received BinMemberAuthenticationPayload had an invalid size")
+        })?;
+        let public_key_bin = *zerocopy::LayoutVerified::<_, [u8; 32]>::new(&contents[42..74])
+            .ok_or_else(|| {
+                serde::de::Error::custom(
+                    "Received BinMemberAuthenticationPayload had an invalid size",
+                )
+            })?;
 
         // now build the struct for real
         Ok(BinMemberAuthenticationPayload {
-            // payload_temporary.0.0 is the zeroth element in IntroductionRequestPayloadPattern which has a varlen which has a vector as zeroth element
+            encryption_key_bin,
             public_key_bin,
         })
     }
@@ -74,19 +98,21 @@ impl Ipv8Payload for BinMemberAuthenticationPayload {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::serialization::Packet;
+
+    use super::*;
 
     #[test]
     fn integration_test_creation() {
         let i = BinMemberAuthenticationPayload {
-            public_key_bin: PublicKey::from_vec(vec![
-                76, 105, 98, 78, 97, 67, 76, 80, 75, 58, 3, 161, 7, 191, 243, 206, 16, 190, 29,
-                112, 221, 24, 231, 75, 192, 153, 103, 228, 214, 48, 155, 165, 13, 95, 29, 220, 134,
-                100, 18, 85, 49, 184, 3, 161, 7, 191, 243, 206, 16, 190, 29, 112, 221, 24, 231, 75,
-                192, 153, 103, 228, 214, 48, 155, 165, 13, 95, 29, 220, 134, 100, 18, 85, 49, 184,
-            ])
-            .unwrap(),
+            encryption_key_bin: [
+                3, 161, 7, 191, 243, 206, 16, 190, 29, 112, 221, 24, 231, 75, 192, 153, 103, 228,
+                214, 48, 155, 165, 13, 95, 29, 220, 134, 100, 18, 85, 49, 184,
+            ],
+            public_key_bin: [
+                3, 161, 7, 191, 243, 206, 16, 190, 29, 112, 221, 24, 231, 75, 192, 153, 103, 228,
+                214, 48, 155, 165, 13, 95, 29, 220, 134, 100, 18, 85, 49, 184,
+            ],
         };
         let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&i).unwrap();

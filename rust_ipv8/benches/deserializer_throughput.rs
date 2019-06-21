@@ -1,9 +1,9 @@
 use criterion::*;
-use ipv8::serialization::Packet;
-use ipv8::serialization::header::Header;
-use ipv8::payloads::timedistributionpayload::TimeDistributionPayload;
-use ipv8::payloads::introductionresponsepayload::IntroductionResponsePayload;
-use ipv8::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
+use rust_ipv8::serialization::Packet;
+use rust_ipv8::serialization::header::Header;
+use rust_ipv8::payloads::timedistributionpayload::TimeDistributionPayload;
+use rust_ipv8::payloads::introductionresponsepayload::IntroductionResponsePayload;
+use rust_ipv8::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
 
 /// Critirion benchmark example
 /// ```

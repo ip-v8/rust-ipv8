@@ -1,0 +1,25 @@
+[package]
+name = "rust_ipv8_in_python"
+version = "0.1.0"
+authors = ["jonay2000 <jonabent@gmail.com>", "NULLx76 <victor@xirion.net>"]
+edition = "2018"
+description = "IPv8 implementation for rust."
+homepage = "https://ip-v8.github.io/rust-ipv8/ipv8/"
+documentation = "https://ip-v8.github.io/rust-ipv8/ipv8/"
+repository = "https://github.com/ip-v8/rust-ipv8"
+readme = "../README.md"
+license-file = "../license.md"
+
+[lib]
+crate-type = ["cdylib"]
+
+[badges]
+travis-ci = { repository = "ip-v8/rust-ipv8", branch = "develop" }
+maintenance = { status = "experimental" }
+
+[dependencies.rust_ipv8]
+path = "../rust_ipv8"
+
+[dependencies.pyo3]
+version = "0.7.0"
+features = ["extension-module"]

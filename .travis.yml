@@ -2,7 +2,7 @@ language: rust
 cache: cargo
 
 rust_template: &rust_template
-    before_script: cd rust-ipv8
+    before_script: cd rust_ipv8
     after_script: cd ..
 
 matrix:
@@ -32,8 +32,8 @@ jobs:
         - cargo build --verbose $CARGO_OPTIONS
         - cargo test --verbose $CARGO_OPTIONS
         - |
-          zip -0 ccov.zip `find . \( -name "*ipv8*.gc*" \) -print`;
-          grcov ccov.zip -s src/ -t lcov --llvm --branch --ignore-not-existing --ignore-dir "/*" -o lcov.info;
+          zip -0 ccov.zip `find ../ \( -name "*ipv8*.gc*" \) -print` &&
+          grcov ccov.zip -s src/ -t lcov --llvm --branch --ignore-not-existing --ignore-dir "/*" -o lcov.info &&
           bash <(curl -s https://codecov.io/bash) -f lcov.info;
 
     - script: cargo test
@@ -82,7 +82,6 @@ jobs:
     - stage: deploy
       script: cargo doc
       name: "Deploy docs on GitHub Pages"
-      <<: *rust_template
       if: branch = develop AND type != pull_request
       deploy:
         provider: pages

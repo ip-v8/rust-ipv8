@@ -1,3 +1,4 @@
+#[forbid(missing_docs_in_private_items)]
 #[macro_use]
 extern crate log;
 
@@ -22,8 +23,8 @@ use std::sync::Once;
 ///
 /// To create a new IPv8 instance with the default configuration do this:
 /// ```
-/// use ipv8::IPv8;
-/// use ipv8::configuration::Config;
+/// use rust_ipv8::IPv8;
+/// use rust_ipv8::configuration::Config;
 ///
 /// let ipv8 = IPv8::new(Config::default());
 /// ```
@@ -40,7 +41,8 @@ pub struct IPv8 {
 static THREADPOOL_START: Once = Once::new();
 
 impl IPv8 {
-    pub fn new(config: configuration::Config) -> Result<Self, Box<dyn Error>> {
+    #[no_mangle]
+    pub extern "C" fn new(config: configuration::Config) -> Result<Self, Box<dyn Error>> {
         // Setup the global threadpool
         {
             let mut started = None;
