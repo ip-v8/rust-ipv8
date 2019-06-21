@@ -5,7 +5,7 @@ pub mod nestedpayload;
 pub mod rawend;
 pub mod varlen;
 
-use crate::crypto::signature::{Signature, KeyPair, sign_packet, verify_packet, Ed25519PublicKey};
+use crate::crypto::signature::{Signature, KeyPair, sign_packet, verify_packet, Ed25519PublicKey, verify, verify_raw};
 use crate::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
 use crate::payloads::Ipv8Payload;
 use crate::serialization::header::Header;
@@ -104,10 +104,12 @@ impl PacketDeserializer {
 
         let datalen = self.len();
 
-        let signature = self.pntr.0[datalen - keylength..].to_owned();
+        let (packet, signature) = self.pntr.0.split_at(datalen - keylength);
 
+        let status = verify_raw(&pkey, packet , signature);
         self.pntr.0.truncate(datalen - keylength);
-        verify_packet(&pkey, &mut self.pntr, &*signature)
+
+        status
     }
 }
 
@@ -137,9 +139,9 @@ impl Packet {
     ///
     /// To verify signatures first transform the Packet into a PacketIterator with Packet.deserialize_multiple and then use the PacketIterator.verify() or
     /// PacketIterator.verify_with() method.
-    pub fn sign(mut self, keypair: KeyPair) -> Result<Self, Box<dyn Error>> {
+    pub fn sign(mut self, keypair: &KeyPair) -> Result<Self, Box<dyn Error>> {
         //        let signature = Signature::from_bytes(&*self.0, skey)?;
-        let signature = sign_packet(keypair, &self)?;
+        let signature = sign_packet(&keypair, &self)?;
         self.add(&signature)?;
 
         // now this packet *must not* be modified anymore
@@ -267,7 +269,7 @@ mod tests {
 
         let publickey = pk.public_key().unwrap();
 
-        let signed = packet.sign(pk).unwrap();
+        let signed = packet.sign(&pk).unwrap();
 
         let mut deser_iterator = signed.start_deserialize();
         let valid = deser_iterator.verify_with(publickey);

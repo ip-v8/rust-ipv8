@@ -16,12 +16,6 @@ fn community_integration_test() {
     use rust_ipv8::serialization::header::HeaderVersion::PyIPV8Header;
     use rust_ipv8::networking::NetworkSender;
 
-    fn from_seed_unchecked(seed: [u8; 32]) -> Result<KeyPair, Box<dyn Error>> {
-        let trusted_seed = untrusted::Input::from(&seed);
-        let ring_key = ring::signature::Ed25519KeyPair::from_seed_unchecked(trusted_seed).unwrap();
-        Ok(KeyPair(ring_key))
-    }
-
     pub struct TestCommunity {
         peer: Peer,
     }
@@ -30,7 +24,7 @@ fn community_integration_test() {
 
     impl Community for TestCommunity {
         fn new(endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>> {
-            let pk: KeyPair = from_seed_unchecked([
+            let pk: KeyPair = KeyPair::from_seed_unchecked([
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
                 23, 24, 25, 26, 27, 28, 29, 30, 31,
             ])

@@ -25,7 +25,7 @@ pub struct KeyPair(pub ring::signature::Ed25519KeyPair);
 
 #[derive(FromBytes, AsBytes)]
 #[repr(transparent)]
-pub struct Signature([u8; 64]);
+pub struct Signature(pub [u8; 64]);
 
 impl Signature {
     pub const ED25519_SIGNATURE_BYTES: usize = 64;
@@ -62,8 +62,9 @@ impl KeyPair {
         Ok(KeyPair(ring_key))
     }
 
-    #[cfg(test)]
+    #[doc(hidden)]
     pub fn from_seed_unchecked(seed: [u8; 32]) -> Result<Self, Box<dyn Error>> {
+        warn!("DANGER ZONE! Creating seed without checking it against a public key");
         let trusted_seed = untrusted::Input::from(&seed);
         let ring_key = ring::signature::Ed25519KeyPair::from_seed_unchecked(trusted_seed)
             .or(Err(Box::new(KeyRejectedError)))?;
@@ -79,11 +80,11 @@ impl KeyPair {
     }
 }
 
-pub fn sign_packet(keypair: KeyPair, message: &Packet) -> Result<Signature, Box<dyn Error>> {
-    sign(keypair, &message.raw())
+pub fn sign_packet(keypair: &KeyPair, message: &Packet) -> Result<Signature, Box<dyn Error>> {
+    sign(&keypair, &message.raw())
 }
 
-pub fn sign(keypair: KeyPair, message: &[u8]) -> Result<Signature, Box<dyn Error>> {
+pub fn sign(keypair: &KeyPair, message: &[u8]) -> Result<Signature, Box<dyn Error>> {
     let signature = keypair.0.sign(message);
     let sig = *zerocopy::LayoutVerified::<_, [u8; 64]>::new(signature.as_ref())
         .ok_or(Box::new(SigningError))?;
@@ -91,9 +92,16 @@ pub fn sign(keypair: KeyPair, message: &[u8]) -> Result<Signature, Box<dyn Error
 }
 
 /// Wrapper function for [`verify`] taking bytes as input
-pub fn verify_packet(public_key: &Ed25519PublicKey, msg: &Packet, sig: &[u8]) -> bool {
+pub fn verify_packet(public_key: &Ed25519PublicKey, msg: &Packet, sig: &Signature) -> bool {
     let trusted_public_key = untrusted::Input::from(public_key);
     let trusted_msg = untrusted::Input::from(msg.raw());
+    let trusted_sig = untrusted::Input::from(&sig.0);
+    verify(trusted_public_key, trusted_msg, trusted_sig)
+}
+
+pub fn verify_raw(public_key: &Ed25519PublicKey, msg: &[u8], sig: &[u8]) -> bool {
+    let trusted_public_key = untrusted::Input::from(public_key);
+    let trusted_msg = untrusted::Input::from(msg);
     let trusted_sig = untrusted::Input::from(sig);
     verify(trusted_public_key, trusted_msg, trusted_sig)
 }
