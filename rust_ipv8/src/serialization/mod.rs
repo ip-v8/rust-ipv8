@@ -106,7 +106,7 @@ impl PacketDeserializer {
 
         let (packet, signature) = self.pntr.0.split_at(datalen - keylength);
 
-        let status = verify_raw(&pkey, packet , signature);
+        let status = verify_raw(&pkey, packet, signature);
         self.pntr.0.truncate(datalen - keylength);
 
         status
