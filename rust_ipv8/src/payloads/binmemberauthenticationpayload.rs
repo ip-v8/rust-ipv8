@@ -32,7 +32,7 @@ impl Serialize for BinMemberAuthenticationPayload {
         state.serialize_element(&(length as u16))?;
 
         //"LibNaCLPK:" in bytes
-        for i in [76, 105, 98, 78, 97, 67, 76, 80, 75, 58].iter() {
+        for i in [76u8, 105u8, 98u8, 78u8, 97u8, 67u8, 76u8, 80u8, 75u8, 58u8].iter() {
             state.serialize_element(&i)?;
         }
 
@@ -67,7 +67,7 @@ impl<'de> Deserialize<'de> for BinMemberAuthenticationPayload {
         let contents = &*(payload_temporary.0).0;
 
         //"LibNaCLPK:" in bytes
-        if contents[0..10] != [76, 105, 98, 78, 97, 67, 76, 80, 75, 58] {
+        if contents[0..10] != [76u8, 105u8, 98u8, 78u8, 97u8, 67u8, 76u8, 80u8, 75u8, 58u8] {
             return Err(serde::de::Error::custom(
                 "Received BinMemberAuthenticationPayload without LibNaclPK: prefix",
             ));
