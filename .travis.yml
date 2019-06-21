@@ -52,6 +52,7 @@ jobs:
       - cargo test --no-run --verbose
       - cargo test
       name: "Windows Stable"
+      <<: *rust_template
       os: windows
       rust: stable
 
