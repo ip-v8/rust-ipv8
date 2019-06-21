@@ -2,7 +2,7 @@ language: rust
 cache: cargo
 
 rust_template: &rust_template
-    before_script: cd rust-ipv8
+    before_script: cd rust_ipv8
     after_script: cd ..
 
 matrix:
@@ -74,7 +74,6 @@ jobs:
     - stage: deploy
       script: cargo doc
       name: "Deploy docs on GitHub Pages"
-      <<: *rust_template
       if: branch = develop AND type != pull_request
       deploy:
         provider: pages
