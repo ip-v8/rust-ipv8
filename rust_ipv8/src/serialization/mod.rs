@@ -5,8 +5,7 @@ pub mod nestedpayload;
 pub mod rawend;
 pub mod varlen;
 
-use crate::crypto::keytypes::{PrivateKey, PublicKey, ED25519_SIZE};
-use crate::crypto::signature::Signature;
+use crate::crypto::signature::{Signature, KeyPair, sign_packet, verify_packet, Ed25519PublicKey};
 use crate::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
 use crate::payloads::Ipv8Payload;
 use crate::serialization::header::Header;
@@ -100,15 +99,15 @@ impl PacketDeserializer {
 
     /// Does the same thing as the Packet. verify method. Takes a public key as second argument instead of extracting it from the packet itself
     /// through a BinMemberAuthenticationPayload
-    pub fn verify_with(&mut self, pkey: PublicKey) -> bool {
-        let keylength = ED25519_SIZE;
+    pub fn verify_with(&mut self, pkey: Ed25519PublicKey) -> bool {
+        let keylength = Signature::ED25519_SIGNATURE_BYTES;
 
         let datalen = self.len();
-        let signature = Signature {
-            signature: self.pntr.0[datalen - keylength..].to_vec(),
-        };
+
+        let signature = self.pntr.0[datalen - keylength..].to_owned();
+
         self.pntr.0.truncate(datalen - keylength);
-        signature.verify(&*self.pntr.0, pkey)
+        verify_packet(&pkey, &mut self.pntr, &*signature)
     }
 }
 
@@ -138,9 +137,11 @@ impl Packet {
     ///
     /// To verify signatures first transform the Packet into a PacketIterator with Packet.deserialize_multiple and then use the PacketIterator.verify() or
     /// PacketIterator.verify_with() method.
-    pub fn sign(mut self, skey: PrivateKey) -> Result<Self, Box<dyn Error>> {
-        let signature = Signature::from_bytes(&*self.0, skey)?;
+    pub fn sign(mut self, keypair: KeyPair) -> Result<Self, Box<dyn Error>> {
+        //        let signature = Signature::from_bytes(&*self.0, skey)?;
+        let signature = sign_packet(keypair, &self)?;
         self.add(&signature)?;
+
         // now this packet *must not* be modified anymore
         Ok(self)
     }
@@ -170,7 +171,6 @@ impl Packet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rust_sodium::crypto::sign::ed25519;
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -259,27 +259,18 @@ mod tests {
         let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&a).unwrap();
 
-        let seed = ed25519::Seed::from_slice(&[
+        let pk = KeyPair::from_seed_unchecked([
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
             24, 25, 26, 27, 28, 29, 30, 31,
         ])
         .unwrap();
-        let (pkey_tmp, skey_tmp) = ed25519::keypair_from_seed(&seed);
 
-        let seed = ed25519::Seed::from_slice(&[
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-            24, 25, 26, 27, 28, 29, 30, 31,
-        ])
-        .unwrap();
-        let (e_pkey_tmp, e_skey_tmp) = ed25519::keypair_from_seed(&seed);
+        let publickey = pk.public_key().unwrap();
 
-        let skey = PrivateKey(e_skey_tmp, skey_tmp);
-        let pkey = PublicKey(e_pkey_tmp, pkey_tmp);
-
-        let signed = packet.sign(skey).unwrap();
+        let signed = packet.sign(pk).unwrap();
 
         let mut deser_iterator = signed.start_deserialize();
-        let valid = deser_iterator.verify_with(pkey);
+        let valid = deser_iterator.verify_with(publickey);
         assert!(valid);
     }
 

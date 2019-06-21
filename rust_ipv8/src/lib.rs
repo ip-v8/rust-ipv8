@@ -1,3 +1,4 @@
+#[forbid(missing_docs_in_private_items)]
 #[macro_use]
 extern crate log;
 
@@ -27,7 +28,6 @@ use std::sync::Once;
 ///
 /// let ipv8 = IPv8::new(Config::default());
 /// ```
-#[repr(C)]
 pub struct IPv8 {
     pub config: Config,
     pub network_receiver: NetworkReceiver,

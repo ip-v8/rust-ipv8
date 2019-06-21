@@ -1,8 +1,9 @@
-use rust_ipv8::networking::NetworkSender;
-use rust_sodium::crypto::sign::ed25519;
+use rust_ipv8::crypto::signature::KeyPair;
+use rust_ipv8::crypto::signature::Ed25519PublicKey;
 
 #[test]
 fn community_integration_test() {
+    use rust_ipv8::crypto::signature::Ed25519PublicKey;
     use rust_ipv8::community::peer::Peer;
     use rust_ipv8::community::Community;
     use rust_ipv8::serialization::header::Header;
@@ -13,7 +14,13 @@ fn community_integration_test() {
     use rust_ipv8::IPv8;
     use rust_ipv8::configuration::Config;
     use rust_ipv8::serialization::header::HeaderVersion::PyIPV8Header;
-    use rust_ipv8::crypto::keytypes::PublicKey;
+    use rust_ipv8::networking::NetworkSender;
+
+    fn from_seed_unchecked(seed: [u8; 32]) -> Result<KeyPair, Box<dyn Error>> {
+        let trusted_seed = untrusted::Input::from(&seed);
+        let ring_key = ring::signature::Ed25519KeyPair::from_seed_unchecked(trusted_seed).unwrap();
+        Ok(KeyPair(ring_key))
+    }
 
     pub struct TestCommunity {
         peer: Peer,
@@ -23,19 +30,16 @@ fn community_integration_test() {
 
     impl Community for TestCommunity {
         fn new(endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>> {
-            // Use the highest available key
-            let seed = ed25519::Seed::from_slice(&[
+            let pk: KeyPair = from_seed_unchecked([
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
                 23, 24, 25, 26, 27, 28, 29, 30, 31,
             ])
             .unwrap();
-            let (pk1, _) = ed25519::keypair_from_seed(&seed);
-            let (pk2, _) = ed25519::keypair_from_seed(&seed);
 
             // Actually create the community
             Ok(TestCommunity {
                 peer: Peer::new(
-                    PublicKey(pk1, pk2),
+                    pk.public_key().unwrap(),
                     Address(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 42)),
                     true,
                 ),
@@ -44,7 +48,7 @@ fn community_integration_test() {
 
         // Returns the hash of our master peer
         fn get_mid(&self) -> Vec<u8> {
-            self.peer.get_sha1().0
+            self.peer.get_sha1()
         }
 
         // The function which will be called when the community receives a packet
