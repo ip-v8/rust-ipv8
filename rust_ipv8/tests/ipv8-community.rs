@@ -1,9 +1,7 @@
 use rust_ipv8::crypto::signature::KeyPair;
-use rust_ipv8::crypto::signature::Ed25519PublicKey;
 
 #[test]
 fn community_integration_test() {
-    use rust_ipv8::crypto::signature::Ed25519PublicKey;
     use rust_ipv8::community::peer::Peer;
     use rust_ipv8::community::Community;
     use rust_ipv8::serialization::header::Header;
@@ -23,8 +21,8 @@ fn community_integration_test() {
     impl TestCommunity {}
 
     impl Community for TestCommunity {
-        fn new(endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>> {
-            let pk: KeyPair = KeyPair::from_seed_unchecked([
+        fn new(_endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>> {
+            let pk: KeyPair = KeyPair::from_seed_unchecked(&[
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
                 23, 24, 25, 26, 27, 28, 29, 30, 31,
             ])
@@ -49,8 +47,8 @@ fn community_integration_test() {
         fn on_receive(
             &self,
             header: Header,
-            deserializer: PacketDeserializer,
-            address: Address,
+            _deserializer: PacketDeserializer,
+            _address: Address,
         ) -> Result<(), Box<dyn Error>> {
             assert_eq!(header.mid_hash, Some(self.get_mid()));
             assert_eq!(header.version, PyIPV8Header);

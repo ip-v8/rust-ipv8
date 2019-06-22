@@ -1,3 +1,5 @@
+//! Module containg the [IntroductionRequestPayload]((crate::payloads::introductionrequestpayload::IntroductionRequestPayload)) relevant code
+
 use crate::payloads::connectiontype::ConnectionType;
 use crate::payloads::Ipv8Payload;
 use crate::serialization::bits::Bits;
@@ -8,6 +10,7 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 use crate::networking::address::Address;
 
 #[derive(Debug, PartialEq)]
+/// The IntroductionRequestPayload is a payload used to send Introduction requests to other peers.
 pub struct IntroductionRequestPayload {
     /// is the address of the receiver.  Effectively this should be the
     /// wan address that others can use to contact the receiver.

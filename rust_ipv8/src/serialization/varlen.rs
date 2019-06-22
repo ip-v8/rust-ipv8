@@ -28,6 +28,7 @@ impl<'de> Deserialize<'de> for VarLen16 {
     where
         D: Deserializer<'de>,
     {
+        #[doc(hidden)]
         struct VarLen16Visitor;
         impl<'de> Visitor<'de> for VarLen16Visitor {
             type Value = VarLen16;
@@ -90,6 +91,7 @@ impl<'de> Deserialize<'de> for VarLen32 {
     where
         D: Deserializer<'de>,
     {
+        #[doc(hidden)]
         struct VarLen32Visitor;
         impl<'de> Visitor<'de> for VarLen32Visitor {
             type Value = VarLen32;

@@ -1,3 +1,6 @@
+//! This module handles all the network IO and allows senders to send
+//! and notifies receivers of recieved messages.
+
 use crate::serialization::Packet;
 use std::error::Error;
 use mio::net::UdpSocket;
@@ -19,14 +22,22 @@ create_error!(ListenError, "An error occured during the listening");
 /// under normal operation, only the IPV8 struct should be a receiver of these and it should distribute it
 /// through its CommunityRegistry to communities
 pub trait Receiver {
+    /// The callback which the [NetworkReceiver](crate::networking::NetworkReceiver) will call upon receiving a packet
     fn on_receive(&self, packet: Packet, address: Address);
 }
 
+/// A NetworkSender is a wrapper for a sending udp socket.
+///
+/// Every [Community](crate::community::Community) gets one of these, there called 'endpoint'.
+/// A community can use it to send messages directed at other communities
+/// somewhere on the network.
 pub struct NetworkSender {
+    /// The actual socket which is used for sending
     socket: UdpSocket,
 }
 
 impl NetworkSender {
+    /// Creates a new [NetworkSender] object.
     pub fn new(sending_address: &Address) -> Result<Self, Box<dyn Error>> {
         let socket = UdpSocket::bind(&sending_address.0)?;
         debug!("Starting, sending_address: {:?}", sending_address);
@@ -34,19 +45,26 @@ impl NetworkSender {
         Ok(Self { socket })
     }
 
-    /// Sends a Packet to the specified address.
+    /// Sends a [Packet](crate::serialization::Packet) to the specified address.
     pub fn send(&self, address: &Address, packet: Packet) -> Result<usize, Box<dyn Error>> {
         Ok(self.socket.send_to(packet.raw(), &address.0)?)
     }
 }
 
+/// A [NetworkReceiver] is another (see [NetworkSender]) wrapper for a socket.
+///
+/// However, this one also contains a list of [Receivers](Receiver) which get notified
+/// whenever a new message is received. A [NetworkReceiver] can be started with the [start](NetworkReceiver::start) method
+/// which starts a new thread, listening for any incoming message on the [Address](Address) specified.
 pub struct NetworkReceiver {
+    /// A list of structs implementing the [Receiver] type which will get notified upon receiving a packet
     receivers: Vec<Box<dyn Receiver + Send + Sync>>,
+    /// The actual UDP socket used for receiving packets
     socket: UdpSocket,
 }
 
 impl NetworkReceiver {
-    /// Creates a new networkmanager. This creates a receiver socket and builds a new threadpool on which
+    /// Creates a new [NetworkReceiver]. This creates a receiver socket and builds a new threadpool on which
     /// all messages are distributed.
     pub fn new(receiving_address: &Address) -> Result<Self, Box<dyn Error>> {
         let socket = UdpSocket::bind(&receiving_address.0)?;
@@ -60,11 +78,11 @@ impl NetworkReceiver {
         Ok(nm)
     }
 
-    /// Starts the networkmanager. This spawns a new thread in which it will listen for incoming messages.
+    /// Starts the [NetworkReceiver]. This spawns a new thread in which it will listen for incoming messages.
     ///
-    /// This method consumes self as it is transferred to the new thread. After this no receievers can be added to it.
+    /// This method consumes self as it is transferred to the new thread. After this no [Receivers](Receiver) can be added to it.
     ///
-    /// Returns a `JoinHandle<()>` which can be used to block until the networkmanager stops listening.
+    /// Returns a [`JoinHandle<()>`](std::thread::JoinHandle) which can be used to block until the [NetworkReceiver] stops listening.
     /// Under normal operation this never happens so this marks the end of the program.
     pub fn start(self, configuration: &Config) -> JoinHandle<()> {
         let queuesize = configuration.queuesize.to_owned();
@@ -82,6 +100,7 @@ impl NetworkReceiver {
         })
     }
 
+    #[doc(hidden)]
     fn listen(
         self,
         queuesize: usize,
@@ -166,7 +185,7 @@ mod tests {
     use crate::configuration::Config;
     use mio::net::UdpSocket;
 
-    use std::net::{Ipv4Addr, SocketAddr, IpAddr};
+    use std::net::{SocketAddr, IpAddr};
     use crate::serialization::Packet;
     use std::sync::Once;
     use std::time::Duration;

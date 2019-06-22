@@ -1,3 +1,4 @@
+//! This module is responsible for serializing and deserializing incoming and outgoing packets.
 #![macro_use]
 pub mod bits;
 pub mod header;
@@ -5,7 +6,7 @@ pub mod nestedpayload;
 pub mod rawend;
 pub mod varlen;
 
-use crate::crypto::signature::{Signature, KeyPair, sign_packet, verify_packet, Ed25519PublicKey, verify, verify_raw};
+use crate::crypto::signature::{Signature, KeyPair, sign_packet, Ed25519PublicKey, verify_raw};
 use crate::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload;
 use crate::payloads::Ipv8Payload;
 use crate::serialization::header::Header;
@@ -17,6 +18,7 @@ use std::error::Error;
 create_error!(HeaderError, "The supplied header was invalid");
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
+/// The packet struct containing the bytes of a packet in a `Vec<u8>`.
 pub struct Packet(pub Vec<u8>);
 
 impl Clone for Packet {
@@ -26,8 +28,13 @@ impl Clone for Packet {
 }
 
 #[derive(Debug, PartialEq)]
+/// The main deserializer which iterates over a packet to deserialize it.
+///
+/// This provides multipile helper methods for deserializing packets.
 pub struct PacketDeserializer {
+    /// The current packet being deserialize
     pub pntr: Packet,
+    /// The index in the vector keeping track how far along we are deserializing.
     pub index: usize,
 }
 
@@ -61,6 +68,7 @@ impl PacketDeserializer {
         Ok(res)
     }
 
+    /// Returns the header of a packet without removing it
     pub fn peek_header(&self) -> Result<Header, Box<ErrorKind>> {
         let res: Header = bincode::config()
             .big_endian()
@@ -68,19 +76,22 @@ impl PacketDeserializer {
         Ok(res)
     }
 
+    /// Returns the header of a packet and removes it
     pub fn pop_header(&mut self) -> Result<Header, Box<ErrorKind>> {
         let res = self.peek_header()?;
         self.index += res.size;
         Ok(res)
     }
 
+    /// Just skips over the header returning self
     pub fn skip_header(mut self) -> Result<Self, Box<ErrorKind>> {
         self.pop_header()?;
         Ok(self)
     }
 
+    /// proxy for the deserializer's packet length.
     fn len(&self) -> usize {
-        self.pntr.0.len()
+        self.pntr.len()
     }
 
     /// This should be in most cases the first method to be called when receiving a packet. It **assumes** there is a
@@ -125,6 +136,7 @@ impl Packet {
         Ok(res)
     }
 
+    /// Extracts the raw byte contents from a packet.
     pub fn raw(&self) -> &[u8] {
         &*self.0
     }
@@ -156,6 +168,7 @@ impl Packet {
         }
     }
 
+    /// Adds a payload to a packet. This serializes payloads.
     pub fn add<T>(&mut self, obj: &T) -> Result<(), Box<ErrorKind>>
     where
         T: Ipv8Payload + Serialize,
@@ -165,6 +178,7 @@ impl Packet {
         Ok(())
     }
 
+    /// Proxy for the packet's content length
     fn len(&self) -> usize {
         self.0.len()
     }
@@ -261,7 +275,7 @@ mod tests {
         let mut packet = Packet::new(create_test_header!()).unwrap();
         packet.add(&a).unwrap();
 
-        let pk = KeyPair::from_seed_unchecked([
+        let pk = KeyPair::from_seed_unchecked(&[
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
             24, 25, 26, 27, 28, 29, 30, 31,
         ])

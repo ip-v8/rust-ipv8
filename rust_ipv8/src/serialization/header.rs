@@ -19,9 +19,13 @@ pub enum HeaderVersion {
 /// be for easier expansion later on.
 #[derive(PartialEq, Debug)]
 pub struct Header {
-    pub size: usize, // This is a size that is hardcoded when a header is deserialized.
+    /// This is a size that is hardcoded when a header is deserialized.
+    pub size: usize,
+    /// The version of the packet, 1 is dispersy and 2 is py-ipv8, could be increased to 3 for rust specific enhancements in the future
     pub version: HeaderVersion,
+    /// The hash of the master peer of a community, used to identify to which community the packets belongs
     pub mid_hash: Option<Vec<u8>>,
+    /// Specifies the type of messsage, can be used by communities to distinguish between packets
     pub message_type: Option<u64>,
 }
 
@@ -125,7 +129,7 @@ impl<'de> Deserialize<'de> for Header {
         D: Deserializer<'de>,
     {
         // first deserialize it to a temporary struct which literally represents the packer
-
+        #[doc(hidden)]
         struct HeaderVisitor;
         impl<'de> Visitor<'de> for HeaderVisitor {
             type Value = Header;

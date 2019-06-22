@@ -1,3 +1,4 @@
+//! A wrapper module for the py-ipv8 `bits` datastructure
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use std::fmt;
@@ -7,6 +8,7 @@ use std::marker::PhantomData;
 ///
 /// Mostly here to achieve feature parity with py-ipv8 see
 /// [py-ipv8 code](https://github.com/Tribler/py-ipv8/blob/57c1aa73eee8a3b7ee6ad48482fc2e0d5849415e/ipv8/messaging/serialization.py#L84.)
+#[allow(clippy::missing_docs_in_private_items)] // Allowed as they are just all booleans and don't need individual documentation
 #[derive(Default, PartialEq, Debug)]
 pub struct Bits {
     pub bit0: bool,
@@ -19,6 +21,7 @@ pub struct Bits {
     pub bit7: bool,
 }
 
+/// Helper function to convert a boolean into a u8
 fn bool_to_u8(data: bool) -> u8 {
     if data {
         1
@@ -28,6 +31,7 @@ fn bool_to_u8(data: bool) -> u8 {
 }
 
 impl Bits {
+    /// Creates a [Bits] struct with every bit set to false
     pub fn new() -> Self {
         Bits {
             bit0: false,
@@ -41,6 +45,7 @@ impl Bits {
         }
     }
 
+    /// Creates a [Bits] struct with the bits set to the booleans given
     pub fn from_bools(data: (bool, bool, bool, bool, bool, bool, bool, bool)) -> Self {
         Bits {
             bit0: data.0,
@@ -68,6 +73,7 @@ impl Bits {
         }
     }
 
+    /// Converts the bits struct to a u8
     pub fn to_u8(&self) -> u8 {
         (bool_to_u8(self.bit0))
             | (bool_to_u8(self.bit1) << 1)
@@ -92,6 +98,7 @@ impl Serialize for Bits {
 }
 
 /// used for deserializing bits
+#[doc(hidden)]
 struct BitsVisitor {
     marker: PhantomData<fn() -> Bits>,
 }

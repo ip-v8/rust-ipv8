@@ -10,6 +10,7 @@ use serde::ser::SerializeStruct;
 use serde::ser::Serializer;
 
 #[derive(PartialEq, Debug)]
+/// A struct containing a packet, thus creating a NestedPacket if you will
 pub struct NestedPacket(pub Packet);
 
 impl Ipv8Payload for NestedPacket {

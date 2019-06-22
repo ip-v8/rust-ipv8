@@ -1,3 +1,4 @@
+//! Sent by the base [Community](crate::community) to start a direct connection between two [Peers](crate::community::peer)
 use crate::payloads::connectiontype::ConnectionType;
 use crate::payloads::Ipv8Payload;
 use crate::serialization::bits::Bits;
@@ -7,8 +8,8 @@ use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use crate::networking::address::Address;
 
-//TODO: why the fuck is tunnel not (de)serialized
 #[derive(Debug, PartialEq)]
+/// The actual payload send byt the base [Community](crate::community) containing all the necessary information for the requester to finalize the connection.
 pub struct IntroductionResponsePayload {
     /// is the address of the receiver.  Effectively this should be the
     /// wan address that others can use to contact the receiver.
@@ -30,7 +31,7 @@ pub struct IntroductionResponsePayload {
     /// When True the receiver will introduce the sender to a new
     /// node. This introduction will be facilitated by the receiver sending a puncture-request
     /// to the new node.
-    pub tunnel: bool,
+    pub tunnel: bool, //TODO: why the fuck is tunnel not (de)serialized
     /// indicates the connection type that the message creator has.
     pub connection_type: ConnectionType,
 

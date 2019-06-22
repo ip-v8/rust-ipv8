@@ -1,8 +1,11 @@
+//! Payload sent before performing [NAT puncturing](https://en.wikipedia.org/wiki/UDP_hole_punching)
+
 use crate::payloads::Ipv8Payload;
 use serde::{Deserialize, Serialize};
 use crate::networking::address::Address;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+/// The actual payload used when requesting a NAT puncture.
 pub struct PunctureRequestPayload {
     /// is the lan address of the node that the sender wants us to contact.
     /// This contact attempt should punch a hole in our NAT to allow the node to

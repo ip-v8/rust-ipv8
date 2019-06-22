@@ -1,3 +1,7 @@
+//! In this module, all communities are defined. Currently none as
+//! communities are still handled by py-ipv8 but the tools to move them soon
+//! are already in place.
+
 use crate::serialization::{Packet, PacketDeserializer};
 use crate::serialization::header::Header;
 use std::error::Error;
@@ -32,6 +36,10 @@ static WARN_DEPRECATED_CALLS: AtomicUsize = AtomicUsize::new(0);
 /// _**Note:** Try to avoid the use of .unwrap() in actual production code, this is just an example_
 ///
 pub trait Community {
+    /// Every community should have a constructor.
+    /// It will receive an endpoint from the [NetworkSender](crate::networking::NetworkSender) which constructs
+    /// the community. An endpoint is used to send messages over the network to other
+    /// communities.
     fn new(endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>>
     where
         Self: Sized;
@@ -121,6 +129,7 @@ pub struct CommunityRegistry {
     #[cfg(test)]
     pub communities: HashMap<Vec<u8>, Box<dyn Community>>,
     #[cfg(not(test))]
+    /// A HashMap of all the communities so we can know who to send what packet
     communities: HashMap<Vec<u8>, Box<dyn Community>>,
 }
 
@@ -189,8 +198,8 @@ mod tests {
     }
 
     impl Community for TestCommunity {
-        fn new(endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>> {
-            let pk = KeyPair::from_seed_unchecked([
+        fn new(_endpoint: &NetworkSender) -> Result<Self, Box<dyn Error>> {
+            let pk = KeyPair::from_seed_unchecked(&[
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
                 23, 24, 25, 26, 27, 28, 29, 30, 31,
             ])
@@ -217,7 +226,7 @@ mod tests {
         fn on_receive(
             &self,
             header: Header,
-            deserializer: PacketDeserializer,
+            _deserializer: PacketDeserializer,
             _address: Address,
         ) -> Result<(), Box<dyn Error>> {
             assert_eq!(header.mid_hash.unwrap(), self.get_mid());
