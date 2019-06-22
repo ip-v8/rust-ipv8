@@ -7,7 +7,7 @@ use untrusted::Input;
 
 fn e25519_benchmark(c: &mut Criterion) {
     c.bench_function("bench: ed25519", |b| {
-        let pk1 = KeyPair::from_seed_unchecked([
+        let pk1 = KeyPair::from_seed_unchecked(&[
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
             24, 25, 26, 27, 28, 29, 30, 31,
         ])
