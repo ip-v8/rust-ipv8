@@ -76,6 +76,8 @@ struct PyIPV8HeaderPattern(
 
 /// 2 bytes magic + 20 bytes hash + 1 byte message type = 23 bytes
 const PY_IPV8_HEADER_SIZE: usize = 23;
+const PY_IPV8_HASH_SIZE: usize = 20;
+const PY_IPV8_VERSION: u16 = 2;
 
 //------------end header constants------------
 
@@ -89,9 +91,7 @@ impl Serialize for Header {
         match self.version {
             HeaderVersion::PyIPV8Header => {
                 let mut state = serializer.serialize_tuple(PY_IPV8_HEADER_SIZE)?;
-                match self.version {
-                    HeaderVersion::PyIPV8Header => state.serialize_element(&(2 as u16))?,
-                }
+                state.serialize_element(&(PY_IPV8_VERSION as u16))?;
 
                 // Unwrap the hash
                 let hash = match &self.mid_hash {
@@ -102,6 +102,12 @@ impl Serialize for Header {
                         ))
                     }
                 };
+
+                if hash.len() != PY_IPV8_HASH_SIZE {
+                    return Err(serde::ser::Error::custom(
+                        "mid_hash size did not match the expected 20 bytes",
+                    ));
+                }
 
                 // Serialize the hash
                 for i in hash {
@@ -226,6 +232,7 @@ mod tests {
     use bincode;
 
     use super::*;
+    use bincode::ErrorKind;
 
     #[test]
     fn integration_test_creation() {
@@ -243,5 +250,133 @@ mod tests {
                 .deserialize(&bincode::config().big_endian().serialize(&h).unwrap())
                 .unwrap()
         );
+    }
+
+    #[test]
+    fn test_fail_deserialize_no_headertype_first_byte() {
+        let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[]);
+
+        match h {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
+    }
+
+    #[test]
+    fn test_fail_deserialize_no_headertype_second_byte() {
+        let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[1]);
+
+        match h {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
+    }
+
+    #[test]
+    fn test_fail_deserialize_no_headertype() {
+        let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[1, 2]);
+
+        match h {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
+    }
+
+    #[test]
+    fn test_fail_deserialize_no_hash() {
+        let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[0, 2]);
+
+        match h {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
+    }
+
+    #[test]
+    fn test_fail_deserialize_no_messagetype() {
+        let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[
+            0, 2, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        ]);
+
+        match h {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
+    }
+
+    #[test]
+    fn test_valid_headertype() {
+        let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[
+            0, 2, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 42,
+        ]);
+
+        match h {
+            Err(_) => assert!(false),
+            Ok(_) => assert!(true),
+        };
+    }
+
+    #[test]
+    fn test_fail_serialize_no_hash() {
+        let h = Header {
+            size: 3,
+            version: HeaderVersion::PyIPV8Header,
+            mid_hash: None,
+            message_type: Some(1u64),
+        };
+
+        dbg!(&h);
+
+        match bincode::config().big_endian().serialize(&h) {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
+    }
+
+    #[test]
+    fn test_fail_serialize_no_message_type() {
+        let h = Header {
+            size: 3,
+            version: HeaderVersion::PyIPV8Header,
+            mid_hash: Some(vec![]),
+            message_type: None,
+        };
+
+        match bincode::config().big_endian().serialize(&h) {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
+    }
+
+    #[test]
+    fn test_fail_serialize_hash_too_short() {
+        let h = Header {
+            size: 3,
+            version: HeaderVersion::PyIPV8Header,
+            mid_hash: Some(vec![]),
+            message_type: Some(1u64),
+        };
+
+        match bincode::config().big_endian().serialize(&h) {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
+    }
+
+    #[test]
+    fn test_fail_serialize_hash_too_large() {
+        let h = Header {
+            size: 3,
+            version: HeaderVersion::PyIPV8Header,
+            mid_hash: Some(vec![
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+            ]),
+            message_type: Some(1u64),
+        };
+
+        match bincode::config().big_endian().serialize(&h) {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false),
+        };
     }
 }
