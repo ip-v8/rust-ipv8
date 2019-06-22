@@ -193,7 +193,7 @@
         },
         "rust-ipv8-in-python": {
             "hashes": [
-                "sha256:23f43225d8b655f55c4ad6a29498f824f01263cd4ab07ae02c101f2ba36d3eba"
+                "sha256:be4cacbfccde1d8f5774f4d0746d8e2e103c2682a751c3270249f65c175521c3"
             ],
             "version": "==0.1.0"
         },

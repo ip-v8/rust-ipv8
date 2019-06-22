@@ -69,6 +69,19 @@ impl KeyPair {
         Ok(KeyPair(ring_key))
     }
 
+    /// Creates a keypair with the provided and seed and checks if the generated key matches the given public key
+    pub fn from_seed_checked(
+        seed: &[u8; 32],
+        publickey: &Ed25519PublicKey,
+    ) -> Result<Self, Box<dyn Error>> {
+        let trusted_seed = untrusted::Input::from(seed);
+        let public = untrusted::Input::from(&*publickey);
+        let ring_key =
+            ring::signature::Ed25519KeyPair::from_seed_and_public_key(trusted_seed, public)
+                .or_else(|_| Err(Box::new(KeyRejectedError)))?;
+        Ok(KeyPair(ring_key))
+    }
+
     #[doc(hidden)]
     pub fn from_seed_unchecked(seed: &[u8; 32]) -> Result<Self, Box<dyn Error>> {
         warn!("DANGER ZONE! Creating seed without checking it against a public key");

@@ -5,6 +5,7 @@ extern crate log;
 
 pub mod error;
 pub mod serialization;
+pub mod util;
 
 pub mod community;
 pub mod configuration;
