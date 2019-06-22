@@ -1,99 +1,119 @@
+//! This module contains all signature related crypto
+
+use ring;
+use untrusted::Input;
+use crate::serialization::Packet;
 use std::error::Error;
-
-use serde::ser::SerializeTuple;
-use serde::ser::Serializer;
-use serde::Serialize;
-
-use crate::crypto::keytypes::{PrivateKey, PublicKey};
-use crate::crypto::{create_signature_ed25519, verify_signature_ed25519};
+use serde::{Serialize, Serializer, ser::SerializeTuple};
+use zerocopy::{AsBytes, FromBytes};
 use crate::payloads::Ipv8Payload;
+use ring::signature::KeyPair as RingKeyPair;
 
-create_error!(KeyError, "Invalid Key");
-create_error!(CurveError, "This curve is unknown");
+create_error!(
+    KeyRejectedError,
+    "During the creation of a keypair, an error occurred. The bytes given are not a valid key."
+);
+create_error!(
+    KeyGenerationError,
+    "During the generation of a keypair, an error occurred. The key could not be generated."
+);
+create_error!(SigningError, "During the signing, a problem occurred.");
 
-/// A struct containing a cryptographic signature
-#[derive(PartialEq, Debug)]
-pub struct Signature {
-    pub signature: Vec<u8>,
+pub type Ed25519PublicKey = [u8; 32];
+
+pub struct KeyPair(pub ring::signature::Ed25519KeyPair);
+
+#[derive(FromBytes, AsBytes)]
+#[repr(transparent)]
+pub struct Signature(pub [u8; 64]);
+
+impl Signature {
+    pub const ED25519_SIGNATURE_BYTES: usize = 64;
 }
 
-impl Ipv8Payload for Signature {
-    // this is just to allow it to be serialized to a packet. It isn't actually a "payload"
-}
+impl Ipv8Payload for Signature {}
 
-/// Make the signature serializable
 impl Serialize for Signature {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let mut state = serializer.serialize_tuple(self.signature.len())?;
-        for i in &self.signature {
+        let mut state = serializer.serialize_tuple(Self::ED25519_SIGNATURE_BYTES)?;
+        for i in self.0.iter() {
             state.serialize_element(i)?;
         }
         state.end()
     }
 }
 
-impl Signature {
-    /// Signature can be created from its binary string (bytes)
-    pub fn from_bytes(data: &[u8], skey: PrivateKey) -> Result<Self, Box<dyn Error>> {
-        // skey.1 is the verification key
-        let signature: Vec<u8> = create_signature_ed25519(data, skey.1)?.as_ref().to_owned();
-        Ok(Self { signature })
+impl KeyPair {
+    pub fn new() -> Result<Self, Box<dyn Error>> {
+        let rng = ring::rand::SystemRandom::new();
+        let pkcs8_bytes = ring::signature::Ed25519KeyPair::generate_pkcs8(&rng)
+            .or(Err(Box::new(KeyGenerationError)))?;
+
+        KeyPair::from_bytes(pkcs8_bytes.as_ref())
     }
 
-    /// Verify given data with this signature
-    pub fn verify(&self, data: &[u8], pkey: PublicKey) -> bool {
-        match pkey {
-            PublicKey(_, key_verification) => {
-                match verify_signature_ed25519(self.signature.to_owned(), data, key_verification) {
-                    Ok(i) => i,
-                    Err(_) => false, // if an error occurred, the signature is invalid and therefore did not match
-                }
-            }
-        }
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, Box<dyn Error>> {
+        let trusted_bytes = untrusted::Input::from(bytes);
+        let ring_key = ring::signature::Ed25519KeyPair::from_pkcs8(trusted_bytes)
+            .or(Err(Box::new(KeyRejectedError)))?;
+        Ok(KeyPair(ring_key))
+    }
+
+    #[doc(hidden)]
+    pub fn from_seed_unchecked(seed: [u8; 32]) -> Result<Self, Box<dyn Error>> {
+        warn!("DANGER ZONE! Creating seed without checking it against a public key");
+        let trusted_seed = untrusted::Input::from(&seed);
+        let ring_key = ring::signature::Ed25519KeyPair::from_seed_unchecked(trusted_seed)
+            .or(Err(Box::new(KeyRejectedError)))?;
+        Ok(KeyPair(ring_key))
+    }
+
+    pub fn public_key(&self) -> Result<Ed25519PublicKey, Box<dyn Error>> {
+        let pk = &self.0;
+        let pk2 = pk.public_key();
+        let key = *zerocopy::LayoutVerified::<_, [u8; 32]>::new(pk2.as_ref())
+            .ok_or(Box::new(KeyRejectedError))?;
+        Ok(key)
     }
 }
 
+pub fn sign_packet(keypair: &KeyPair, message: &Packet) -> Result<Signature, Box<dyn Error>> {
+    sign(&keypair, &message.raw())
+}
+
+pub fn sign(keypair: &KeyPair, message: &[u8]) -> Result<Signature, Box<dyn Error>> {
+    let signature = keypair.0.sign(message);
+    let sig = *zerocopy::LayoutVerified::<_, [u8; 64]>::new(signature.as_ref())
+        .ok_or(Box::new(SigningError))?;
+    Ok(Signature(sig))
+}
+
+/// Wrapper function for [`verify`] taking bytes as input
+pub fn verify_packet(public_key: &Ed25519PublicKey, msg: &Packet, sig: &Signature) -> bool {
+    let trusted_public_key = untrusted::Input::from(public_key);
+    let trusted_msg = untrusted::Input::from(msg.raw());
+    let trusted_sig = untrusted::Input::from(&sig.0);
+    verify(trusted_public_key, trusted_msg, trusted_sig)
+}
+
+pub fn verify_raw(public_key: &Ed25519PublicKey, msg: &[u8], sig: &[u8]) -> bool {
+    let trusted_public_key = untrusted::Input::from(public_key);
+    let trusted_msg = untrusted::Input::from(msg);
+    let trusted_sig = untrusted::Input::from(sig);
+    verify(trusted_public_key, trusted_msg, trusted_sig)
+}
+
+/// ed25519 signature verification function
+pub fn verify(public_key: Input, msg: Input, sig: Input) -> bool {
+    ring::signature::verify(&ring::signature::ED25519, public_key, msg, sig).is_ok()
+}
+
 #[cfg(test)]
-pub mod tests {
-    #![allow(non_snake_case)]
-
-    use super::*;
-
-    use rust_sodium::crypto::sign::ed25519;
+mod tests {
 
     #[test]
-    pub fn test_signature_ed25519() {
-        let seed = ed25519::Seed::from_slice(&[
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-            24, 25, 26, 27, 28, 29, 30, 31,
-        ])
-        .unwrap();
-        let (pkey, skey) = ed25519::keypair_from_seed(&seed);
-
-        let seed = ed25519::Seed::from_slice(&[
-            1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-            24, 25, 26, 27, 28, 29, 30, 31,
-        ])
-        .unwrap();
-        let (e_pkey, e_skey) = ed25519::keypair_from_seed(&seed);
-
-        assert_ne!(e_pkey, pkey);
-        assert_ne!(e_skey, skey);
-
-        let sig = Signature::from_bytes(&[42, 43, 44], PrivateKey(e_skey, skey)).unwrap();
-        assert_eq!(
-            vec![
-                31, 14, 50, 234, 129, 186, 124, 84, 223, 67, 233, 173, 116, 95, 218, 136, 149, 223,
-                171, 234, 13, 173, 164, 78, 74, 59, 106, 31, 252, 230, 79, 207, 199, 207, 134, 92,
-                252, 211, 142, 172, 183, 61, 17, 236, 208, 124, 206, 37, 204, 85, 62, 155, 171,
-                129, 153, 90, 3, 148, 202, 220, 53, 159, 172, 7
-            ],
-            sig.signature
-        );
-
-        assert!(sig.verify(&[42, 43, 44], PublicKey(pkey, pkey)));
-    }
+    fn test_sign() {}
 }
