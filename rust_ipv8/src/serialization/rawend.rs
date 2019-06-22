@@ -26,6 +26,7 @@ impl<'de> Deserialize<'de> for RawEnd {
     where
         D: Deserializer<'de>,
     {
+        #[doc(hidden)]
         struct RawEndVisitor;
         impl<'de> Visitor<'de> for RawEndVisitor {
             type Value = RawEnd;

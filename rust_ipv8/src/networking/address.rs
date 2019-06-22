@@ -1,10 +1,14 @@
+//! Module containing structs for working with network addresses
+//!
+//! This also provides the serialization and deserialization of network addresses
 use serde::{Deserialize, Serialize, Serializer, Deserializer};
 use std::net::{Ipv4Addr, SocketAddr, IpAddr};
 use serde::ser::SerializeTuple;
 use serde::de::{Visitor, SeqAccess};
 use std::fmt;
 
-// IPV4 address
+/// Wrapper for a SocketAddr. Had to be wrapped to serialize it properly
+/// Currently this can only be used as an IPV4 address + port
 #[derive(Debug, PartialEq)]
 pub struct Address(pub SocketAddr);
 
@@ -36,7 +40,7 @@ impl<'de> Deserialize<'de> for Address {
         D: Deserializer<'de>,
     {
         // first deserialize it to a temporary struct which literally represents the packer
-
+        #[doc(hidden)]
         struct AddressVistor;
         impl<'de> Visitor<'de> for AddressVistor {
             type Value = Address;

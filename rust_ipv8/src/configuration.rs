@@ -1,7 +1,13 @@
+//! In this module, the IPv8 configuration can be specified.
+//!
+//! Also contains the default IPv8 configuration.
+
 use std::net::{Ipv4Addr, SocketAddr, IpAddr};
 use std::time::Duration;
 use crate::networking::address::Address;
 
+/// This struct configures the IPv8 instance. It contains all the options
+/// you can change when using rust_ipv8 in your code.
 pub struct Config {
     /// the amount of space reserved for queueing up incoming messages (messages)
     pub queuesize: usize,
@@ -10,14 +16,14 @@ pub struct Config {
     /// frequency at which polling times out and events are checked (ms)
     /// None is as fast as possible
     pub pollinterval: Option<Duration>,
-    /// the max number of threads to use in the network manager. 0 is #cores
+    /// the max number of threads to use in the network manager. 0 is \#cores.
     pub threadcount: usize,
 
-    /// Default list of host used for peer discovery
+    /// Default list of host used for peer discovery and bootstrapping
     pub default_hosts: Vec<Address>,
-    /// from py-ipv8 configuration. UDP socket address.
-    /// There split up in "address" and "port"
+    /// UDP Socket address used for sending packets
     pub sending_address: Address,
+    /// UDP Socket address used for receiving packets
     pub receiving_address: Address,
 }
 

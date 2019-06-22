@@ -2,7 +2,6 @@ use pyo3::prelude::*;
 use rust_ipv8::serialization::Packet;
 use pyo3::exceptions::{ValueError, KeyError};
 use pyo3::types::PyBytes;
-use rust_ipv8::crypto::keytypes::PrivateKey;
 
 #[pymodule]
 pub fn borrowed_bundler(_py: Python, m: &PyModule) -> PyResult<()> {

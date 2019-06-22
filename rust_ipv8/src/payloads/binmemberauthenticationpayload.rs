@@ -1,3 +1,5 @@
+//! The [BinMemberAuthenticationPayload](crate::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload) module contains the structs and methods necessary for representing serializing and deserializing [BinMemberAuthenticationPayloads](crate::payloads::binmemberauthenticationpayload::BinMemberAuthenticationPayload)
+
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 use serde::ser::SerializeTuple;
@@ -13,6 +15,7 @@ use crate::serialization::varlen::VarLen16;
 pub struct BinMemberAuthenticationPayload {
     /// TODO: has to change to a PublicKey binary representation object. The serializer should convert this to a varlen16 while serializing like in IntroductionRequestPayload.
     pub public_key_bin: Ed25519PublicKey,
+    /// The 32 Bytes representing the public Curve25519 encryption key
     pub encryption_key_bin: [u8; 32],
 }
 

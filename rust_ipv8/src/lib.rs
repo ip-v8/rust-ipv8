@@ -1,4 +1,5 @@
-#[forbid(missing_docs_in_private_items)]
+//! [README](https://github.com/ip-v8/rust-ipv8/blob/develop/README.md)
+#![deny(clippy::missing_docs_in_private_items)]
 #[macro_use]
 extern crate log;
 
@@ -29,8 +30,11 @@ use std::sync::Once;
 /// let ipv8 = IPv8::new(Config::default());
 /// ```
 pub struct IPv8 {
+    /// Defines the config used forIPv8
     pub config: Config,
+    /// The network receiver which forwards the packets to the correct communities
     pub network_receiver: NetworkReceiver,
+    /// The sender used for sending packets over the network
     pub network_sender: NetworkSender,
 
     /// The registry containing all the communities
@@ -38,11 +42,12 @@ pub struct IPv8 {
 }
 
 // To keep track if the threadpool is already started
+#[doc(hidden)]
 static THREADPOOL_START: Once = Once::new();
 
 impl IPv8 {
-    #[no_mangle]
-    pub extern "C" fn new(config: configuration::Config) -> Result<Self, Box<dyn Error>> {
+    /// Creates a new instance of the ipv8 struct
+    pub fn new(config: configuration::Config) -> Result<Self, Box<dyn Error>> {
         // Setup the global threadpool
         {
             let mut started = None;
@@ -70,6 +75,7 @@ impl IPv8 {
         })
     }
 
+    /// Starts ipv8 to actually listen for packets
     pub fn start(self) {
         self.network_receiver.start(&self.config);
     }

@@ -1,8 +1,16 @@
+//! Represents the type of connection two communities have.
+
 #[derive(Debug, PartialEq)]
+/// Sent as a member of a number of payloads like the [IntroductionRequestPayload](crate::payloads::introductionrequestpayload::IntroductionRequestPayload), in their flags fields.
+///
+/// **_NOTE_**: with IPv6 support, another connection type might be added to signify this.
 pub enum ConnectionType {
-    UNKNOWN,
+    /// A Public connnection meaning: Easily reachable and no NAT Puncturing needed.
     PUBLIC,
+    /// The ConnectionType specifiying both parties being behind a NAT used to indicate NAT puncturing is required.
     SYMMETRICNAT,
+    /// Fallback if connectiontype could not be determined or is not known.
+    UNKNOWN,
 }
 
 impl ConnectionType {
