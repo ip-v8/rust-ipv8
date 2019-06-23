@@ -151,9 +151,6 @@ mod tests {
         };
 
         let mut packet = Packet::new(create_test_header!()).unwrap();
-        match packet.add(&i) {
-            Ok(_) => assert!(false),
-            Err(_) => assert!(true),
-        }
+        assert!(packet.add(&i).is_err())
     }
 }

@@ -255,41 +255,28 @@ mod tests {
     #[test]
     fn test_fail_deserialize_no_headertype_first_byte() {
         let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[]);
-
-        match h {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
+        assert!(h.is_err())
     }
 
     #[test]
     fn test_fail_deserialize_no_headertype_second_byte() {
         let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[1]);
 
-        match h {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
+        assert!(h.is_err())
     }
 
     #[test]
     fn test_fail_deserialize_no_headertype() {
         let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[1, 2]);
 
-        match h {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
+        assert!(h.is_err())
     }
 
     #[test]
     fn test_fail_deserialize_no_hash() {
         let h: Result<Header, Box<ErrorKind>> = bincode::config().big_endian().deserialize(&[0, 2]);
 
-        match h {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
+        assert!(h.is_err())
     }
 
     #[test]
@@ -298,10 +285,7 @@ mod tests {
             0, 2, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
         ]);
 
-        match h {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
+        assert!(h.is_err())
     }
 
     #[test]
@@ -310,10 +294,7 @@ mod tests {
             0, 2, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 42,
         ]);
 
-        match h {
-            Err(_) => assert!(false),
-            Ok(_) => assert!(true),
-        };
+        assert!(h.is_ok())
     }
 
     #[test]
@@ -327,10 +308,7 @@ mod tests {
 
         dbg!(&h);
 
-        match bincode::config().big_endian().serialize(&h) {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
+        assert!(bincode::config().big_endian().serialize(&h).is_err())
     }
 
     #[test]
@@ -342,10 +320,7 @@ mod tests {
             message_type: None,
         };
 
-        match bincode::config().big_endian().serialize(&h) {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
+        assert!(bincode::config().big_endian().serialize(&h).is_err())
     }
 
     #[test]
@@ -357,10 +332,7 @@ mod tests {
             message_type: Some(1u64),
         };
 
-        match bincode::config().big_endian().serialize(&h) {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
+        assert!(bincode::config().big_endian().serialize(&h).is_err())
     }
 
     #[test]
@@ -374,9 +346,6 @@ mod tests {
             message_type: Some(1u64),
         };
 
-        match bincode::config().big_endian().serialize(&h) {
-            Err(_) => assert!(true),
-            Ok(_) => assert!(false),
-        };
+        assert!(bincode::config().big_endian().serialize(&h).is_err())
     }
 }

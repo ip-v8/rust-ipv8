@@ -32,10 +32,7 @@ mod tests {
         let data = &[0u8, 1u8, 2u8];
         let fixed: Result<&[u8; 4], Box<dyn Error>> = as_fixed_size(data);
 
-        match fixed {
-            Ok(_) => assert!(false),
-            Err(_) => assert!(true),
-        };
+        assert!(fixed.is_err());
     }
 
     #[test]
@@ -43,10 +40,7 @@ mod tests {
         let data = &[0u8, 1u8, 2u8];
         let fixed: Result<&[u8; 2], Box<dyn Error>> = as_fixed_size(data);
 
-        match fixed {
-            Ok(_) => assert!(false),
-            Err(_) => assert!(true),
-        };
+        assert!(fixed.is_err());
     }
 
 }
