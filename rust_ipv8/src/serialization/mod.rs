@@ -345,9 +345,6 @@ mod tests {
         assert_eq!(c, deser_iterator.next_payload().unwrap());
 
         let last: Result<TestPayload1, Box<ErrorKind>> = deser_iterator.next_payload();
-        match last {
-            Ok(_) => assert!(false, "this should throw an error as there is no next"),
-            Err(_) => assert!(true),
-        };
+        assert!(last.is_err())
     }
 }

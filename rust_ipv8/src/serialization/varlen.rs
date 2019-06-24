@@ -235,13 +235,7 @@ mod tests {
     fn test_varlen16_too_large() {
         let tmp: Vec<u8> = vec![0; (1u32 << 17) as usize];
         let i = VarLen16(tmp);
-        match Packet::new(create_test_header!()).unwrap().add(&i) {
-            Ok(_) => assert!(
-                false,
-                "this should throw an error as 2^17 bytes is too large for a varlen16"
-            ),
-            Err(_) => assert!(true),
-        };
+        assert!(Packet::new(create_test_header!()).unwrap().add(&i).is_err())
     }
 
     // fucking ci cant run this
@@ -250,13 +244,7 @@ mod tests {
     fn test_varlen32_too_large() {
         let tmp: Vec<u8> = vec![0; (1u64 << 32 + 1) as usize];
         let i = VarLen32(tmp);
-        match Packet::new(create_test_header!()).unwrap().add(&i) {
-            Ok(_) => assert!(
-                false,
-                "this should throw an error as 2^33 bytes is too large for a varlen32"
-            ),
-            Err(_) => assert!(true),
-        };
+        assert!(Packet::new(create_test_header!()).unwrap().add(&i).is_err())
     }
 
     #[test]

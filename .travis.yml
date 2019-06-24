@@ -23,6 +23,7 @@ matrix:
 jobs:
   include:
     - stage: test
+      cache: false # Caching seems to break coverage reporting
       name: "Nightly + coverage"
       <<: *rust_template
       rust: nightly

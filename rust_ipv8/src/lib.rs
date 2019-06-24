@@ -1,5 +1,6 @@
 //! [README](https://github.com/ip-v8/rust-ipv8/blob/develop/README.md)
 #![deny(clippy::missing_docs_in_private_items)]
+#![recursion_limit = "99999999999999999"]
 #[macro_use]
 extern crate log;
 
