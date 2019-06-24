@@ -88,7 +88,8 @@ jobs:
       <<: *rust_template
 
     - stage: deploy
-      script: cargo doc
+      rust: nightly
+      script: cargo +nightly doc
       name: "Deploy docs on GitHub Pages"
       if: branch = develop AND type != pull_request
       deploy:
