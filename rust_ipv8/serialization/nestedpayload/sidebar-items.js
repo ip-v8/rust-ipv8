@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["NestedPacket","A struct containing a packet, thus creating a NestedPacket if you will"]]});

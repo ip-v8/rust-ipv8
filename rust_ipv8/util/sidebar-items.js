@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["as_fixed_size","Helper function types which have the FromBytes trait to be converted to some fixed size variant. Doesn't copy."]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["ED25519_SIZE",""]],"struct":[["PrivateKey",""],["PublicKey","Struct containing the public key."]]});

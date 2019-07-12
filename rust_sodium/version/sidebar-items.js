@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["version_major","`version_major()` returns the major version from libsodium."],["version_minor","`version_minor()` returns the minor version from libsodium."],["version_string","`version_string()` returns the version string from libsodium."]]});

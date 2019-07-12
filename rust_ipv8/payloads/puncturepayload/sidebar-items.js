@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["PuncturePayload","Payload used for NAT puncturing, containg the addresses which should be used communicate."]]});

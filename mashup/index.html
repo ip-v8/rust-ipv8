@@ -1,0 +1,132 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `mashup` crate."><meta name="keywords" content="rust, rustlang, rust-lang, mashup"><title>mashup - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../mashup/index.html'><div class='logo-container'><img src='../rust-logo.png' alt='logo'></div></a><p class='location'>Crate mashup</p><div class="sidebar-elems"><a id='all-types' href='all.html'><p>See all mashup's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'mashup', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/mashup/lib.rs.html#1-185' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href=''>mashup</a></span></h1><div class='docblock'><p>The nightly-only <a href="https://doc.rust-lang.org/std/macro.concat_idents.html"><code>concat_idents!</code></a> macro in the Rust standard library is
+notoriously underpowered in that its concatenated identifiers can only refer to
+existing items, they can never be used to define something new.</p>
+<p>This crate provides a more flexible spin on concatenating idents.</p>
+<pre><code class="language-toml">[dependencies]
+mashup = &quot;0.1&quot;
+</code></pre>
+<p>Mashup works with any Rust compiler version &gt;= 1.15.0.</p>
+<h1 id="so-tell-me-about-concatenating-idents" class="section-header"><a href="#so-tell-me-about-concatenating-idents">So tell me about concatenating idents</a></h1>
+<p>This crate provides a <code>mashup!</code> macro-generating macro. You provide mashup a
+mapping of arbitrary key tokens to idents that you want concatenated together,
+and mashup defines for you a substitution macro that substitutes your key tokens
+with the single concatenated ident corresponding to each one.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">mashup</span>;
+
+<span class="comment">// Use mashup to generate a substitution macro called m. The substitution macro</span>
+<span class="comment">// will replace all occurrences of the key token &quot;method&quot; in its input with the</span>
+<span class="comment">// single concatenated identifier abc.</span>
+<span class="macro">mashup</span><span class="macro">!</span> {
+    <span class="ident">m</span>[<span class="string">&quot;method&quot;</span>] <span class="op">=</span> <span class="ident">a</span> <span class="ident">b</span> <span class="ident">c</span>;
+}
+
+<span class="kw">struct</span> <span class="ident">Struct</span>;
+
+<span class="macro">m</span><span class="macro">!</span> {
+    <span class="kw">impl</span> <span class="ident">Struct</span> {
+        <span class="kw">fn</span> <span class="string">&quot;method&quot;</span>() {}
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="comment">// Our struct now has an abc method.</span>
+    <span class="ident">Struct</span>::<span class="ident">abc</span>();
+}</pre></div>
+<h1 id="glossary" class="section-header"><a href="#glossary">Glossary</a></h1>
+<ul>
+<li>
+<p><strong>Substitution macro:</strong> A macro produced by the <code>mashup!</code> macro. The input to
+<code>mashup!</code> provides a name for one or more substitution macros to be defined.
+The substitution macro in the short example above is called <code>m!</code>.</p>
+</li>
+<li>
+<p><strong>Key tokens:</strong> Arbitrary tokens that are to be replaced by a single
+concatenated ident anywhere in the input of a substitution macro. The token
+<code>&quot;method&quot;</code> is used as a key token above.</p>
+</li>
+<li>
+<p><strong>Ident pieces:</strong> Idents that are concatenated together to form a single
+concatenated ident in the final macro-expanded code. The <code>a</code> <code>b</code> <code>c</code> are ident
+pieces that come together to form the <code>abc</code> method name.</p>
+</li>
+</ul>
+<h1 id="more-elaborate-example" class="section-header"><a href="#more-elaborate-example">More elaborate example</a></h1>
+<p>This example demonstrates some trickier uses of mashup.</p>
+<ul>
+<li>
+<p>You may need to bundle a <code>mashup!</code> invocation inside of a more convenient
+user-facing macro of your own.</p>
+</li>
+<li>
+<p>The <code>mashup!</code> invocation may define multiple substitutions, including via the
+<code>$(...)*</code> repetition available in macro_rules.</p>
+</li>
+<li>
+<p>Key tokens may consist of more than one token.</p>
+</li>
+<li>
+<p>Substitution macros work equally well in item position and expression
+position.</p>
+</li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">mashup</span>;
+
+<span class="kw">const</span> <span class="ident">ROCKET_A</span>: <span class="ident">char</span> <span class="op">=</span> <span class="string">&#39;a&#39;</span>;
+<span class="kw">const</span> <span class="ident">ROCKET_B</span>: <span class="ident">char</span> <span class="op">=</span> <span class="string">&#39;b&#39;</span>;
+
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">routes</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">route</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=&gt;</span> {{
+        <span class="macro">mashup</span><span class="macro">!</span> {
+            $(
+                <span class="ident">m</span>[<span class="string">&quot;rocket-codegen-route&quot;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">route</span>] <span class="op">=</span> <span class="ident">ROCKET_</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">route</span>;
+            )<span class="op">*</span>
+        }
+
+        <span class="macro">m</span><span class="macro">!</span> {
+            <span class="macro">vec</span><span class="macro">!</span>[$(<span class="string">&quot;rocket-codegen-route&quot;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">route</span>),<span class="kw-2">*</span>]
+        }
+    }}
+}
+
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="ident">routes</span> <span class="op">=</span> <span class="macro">routes</span><span class="macro">!</span>(<span class="ident">A</span>, <span class="ident">B</span>);
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">routes</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&#39;a&#39;</span>, <span class="string">&#39;b&#39;</span>]);
+}</pre></div>
+<h2 id="attributes" class="section-header"><a href="#attributes">Attributes</a></h2>
+<p>Attributes for the substitution macro, including doc comments, may be provided
+inside of the mashup invocation.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="macro">mashup</span><span class="macro">!</span> {
+    <span class="doccomment">/// Needs better documentation.</span>
+    <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+    <span class="ident">m1</span>[<span class="string">&quot;w&quot;</span>] <span class="op">=</span> <span class="ident">W</span> <span class="ident">w</span>;
+    <span class="ident">m1</span>[<span class="string">&quot;x&quot;</span>] <span class="op">=</span> <span class="ident">X</span> <span class="ident">x</span>;
+
+    <span class="attribute">#[<span class="ident">macro_export</span>]</span>
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="ident">m2</span>[<span class="string">&quot;y&quot;</span>] <span class="op">=</span> <span class="ident">Y</span> <span class="ident">y</span>;
+    <span class="ident">m2</span>[<span class="string">&quot;z&quot;</span>] <span class="op">=</span> <span class="ident">Z</span> <span class="ident">z</span>;
+}</pre></div>
+<h1 id="limitations" class="section-header"><a href="#limitations">Limitations</a></h1>
+<ul>
+<li>
+<p>The <code>mashup!</code> macro may be invoked <em>at most once</em> within a lexical scope. To
+provide a way around this, you may use a single mashup invocation to define
+more than one substitution macro by using as many different substitution macro
+names within one invocation as you want (<a href="https://github.com/dtolnay/mashup/issues/5">#5</a>).</p>
+</li>
+<li>
+<p>As a consequence of hygiene, a concatenated identifier may not be used to
+refer to a captured local variable (<a href="https://github.com/dtolnay/mashup/issues/6">#6</a>).</p>
+</li>
+</ul>
+</div><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+<table><tr class='module-item'><td><a class="macro" href="macro.mashup.html" title='mashup::mashup macro'>mashup</a></td><td class='docblock-short'><p>A working stable concat_idents.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../";window.currentCrate = "mashup";</script><script src="../aliases.js"></script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["PunctureRequestPayload","The actual payload used when requesting a NAT puncture."]]});

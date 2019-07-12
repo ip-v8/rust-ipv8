@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `byteorder` mod in crate `zerocopy`."><meta name="keywords" content="rust, rustlang, rust-lang, byteorder"><title>zerocopy::byteorder - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../zerocopy/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a><p class='location'>Module byteorder</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li></ul></div><p class='location'><a href='../index.html'>zerocopy</a></p><script>window.sidebarCurrent = {name: 'byteorder', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/zerocopy/byteorder.rs.html#5-469' title='goto source code'>[src]</a></span><span class='in-band'>Module <a href='../index.html'>zerocopy</a>::<wbr><a class="mod" href=''>byteorder</a></span></h1><div class='docblock'><p>Byte order-aware numeric primitives.</p>
+<p>This module contains equivalents of the native multi-byte integer types with
+no alignment requirement and supporting byte order conversions.</p>
+<p>For each native multi-byte integer type - <code>u16</code>, <code>i16</code>, <code>u32</code>, etc - an
+equivalent type is defined by this module - <a href="../../zerocopy/byteorder/struct.U16.html" title="`U16`"><code>U16</code></a>, <a href="../../zerocopy/byteorder/struct.I16.html" title="`I16`"><code>I16</code></a>, <a href="../../zerocopy/byteorder/struct.U32.html" title="`U32`"><code>U32</code></a>, etc.
+Unlike their native counterparts, these types have alignment 1, and take a
+type parameter specifying the byte order in which the bytes are stored in
+memory. Each type implements the <a href="../../zerocopy/trait.FromBytes.html" title="`FromBytes`"><code>FromBytes</code></a>, <a href="../../zerocopy/trait.AsBytes.html" title="`AsBytes`"><code>AsBytes</code></a>, and
+<a href="../../zerocopy/trait.Unaligned.html" title="`Unaligned`"><code>Unaligned</code></a> traits.</p>
+<p>These two properties, taken together, make these types very useful for
+defining data structures whose memory layout matches a wire format such as
+that of a network protocol or a file format. Such formats often have
+multi-byte values at offsets that do not respect the alignment requirements
+of the equivalent native types, and stored in a byte order not necessarily
+the same as that of the target platform.</p>
+<h1 id="example" class="section-header"><a href="#example">Example</a></h1>
+<p>One use of these types is for representing network packet formats, such as
+UDP:</p>
+
+<div class='information'><div class='tooltip edition'>ⓘ<span class='tooltiptext'>This code runs with edition 2018</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered edition ">
+<span class="kw">use</span> ::<span class="ident">byteorder</span>::<span class="ident">NetworkEndian</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">FromBytes</span>, <span class="ident">AsBytes</span>, <span class="ident">Unaligned</span>)]</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="kw">struct</span> <span class="ident">UdpHeader</span> {
+    <span class="ident">src_port</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">NetworkEndian</span><span class="op">&gt;</span>,
+    <span class="ident">dst_port</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">NetworkEndian</span><span class="op">&gt;</span>,
+    <span class="ident">length</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">NetworkEndian</span><span class="op">&gt;</span>,
+    <span class="ident">checksum</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">NetworkEndian</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">struct</span> <span class="ident">UdpPacket</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteSlice</span><span class="op">&gt;</span> {
+    <span class="ident">header</span>: <span class="ident">LayoutVerified</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">UdpHeader</span><span class="op">&gt;</span>,
+    <span class="ident">body</span>: <span class="ident">B</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteSlice</span><span class="op">&gt;</span> <span class="ident">UdpPacket</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">bytes</span>: <span class="ident">B</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">UdpPacket</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">let</span> (<span class="ident">header</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="ident">LayoutVerified</span>::<span class="ident">new_from_prefix</span>(<span class="ident">bytes</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(<span class="ident">UdpPacket</span> { <span class="ident">header</span>, <span class="ident">body</span> })
+    }
+
+    <span class="kw">fn</span> <span class="ident">src_port</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u16</span> {
+        <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">src_port</span>.<span class="ident">get</span>()
+    }
+
+    <span class="comment">// more getters...</span>
+}</pre></div>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.I16.html" title='zerocopy::byteorder::I16 struct'>I16</a></td><td class='docblock-short'><p>A 16-bit signed integer
+stored in <code>O</code> byte order.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.I32.html" title='zerocopy::byteorder::I32 struct'>I32</a></td><td class='docblock-short'><p>A 32-bit signed integer
+stored in <code>O</code> byte order.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.I64.html" title='zerocopy::byteorder::I64 struct'>I64</a></td><td class='docblock-short'><p>A 64-bit signed integer
+stored in <code>O</code> byte order.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.I128.html" title='zerocopy::byteorder::I128 struct'>I128</a></td><td class='docblock-short'><p>A 128-bit signed integer
+stored in <code>O</code> byte order.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.U16.html" title='zerocopy::byteorder::U16 struct'>U16</a></td><td class='docblock-short'><p>A 16-bit unsigned integer
+stored in <code>O</code> byte order.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.U32.html" title='zerocopy::byteorder::U32 struct'>U32</a></td><td class='docblock-short'><p>A 32-bit unsigned integer
+stored in <code>O</code> byte order.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.U64.html" title='zerocopy::byteorder::U64 struct'>U64</a></td><td class='docblock-short'><p>A 64-bit unsigned integer
+stored in <code>O</code> byte order.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.U128.html" title='zerocopy::byteorder::U128 struct'>U128</a></td><td class='docblock-short'><p>A 128-bit unsigned integer
+stored in <code>O</code> byte order.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "zerocopy";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

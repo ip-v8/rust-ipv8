@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Signature","A struct containing a cryptographic signature"]]});

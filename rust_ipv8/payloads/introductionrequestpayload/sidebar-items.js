@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["IntroductionRequestPayload","The IntroductionRequestPayload is a payload used to send Introduction requests to other peers."]]});

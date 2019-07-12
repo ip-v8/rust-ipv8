@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Peer","Represents an IPv8 peer. Contains it's address and key."]]});

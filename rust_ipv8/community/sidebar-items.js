@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["peer","The Peer module containg the peer struct which is used to keep track of a peer's public key, address and \"intro\""]],"struct":[["CommunityRegistry","Every different kind of community is registered here with it's MID."]],"trait":[["Community","Community struct This is the main struct defining a community"]]});
