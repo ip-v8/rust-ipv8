@@ -7,7 +7,7 @@
 
 **Development:**
 
-[![Documentation](https://img.shields.io/badge/rustdoc-ipv8-9E978E.svg)](https://ip-v8.github.io/rust-ipv8/ipv8)
+[![Documentation](https://img.shields.io/badge/rustdoc-ipv8-9E978E.svg)](https://ip-v8.github.io/rust-ipv8/rust_ipv8/)
 [![Build Status](https://travis-ci.org/ip-v8/rust-ipv8.svg?branch=develop)](https://travis-ci.org/ip-v8/rust-ipv8)
 [![codecov](https://codecov.io/gh/ip-v8/rust-ipv8/branch/develop/graph/badge.svg)](https://codecov.io/gh/ip-v8/rust-ipv8)
 
